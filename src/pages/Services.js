@@ -50,34 +50,6 @@ const Services = () => {
 			price: "$100-150",
 		},
 		{
-			icon: <Shield className="w-8 h-8" />,
-			title: "Swallowing Disorders (Dysphagia)",
-			description: "Expert evaluation and therapy for swallowing difficulties.",
-			features: [
-				"Swallowing assessment",
-				"Modified barium swallow",
-				"Swallowing exercises",
-				"Diet modifications",
-				"Safety strategies",
-			],
-			duration: "45-60 minutes",
-			price: "$150-200",
-		},
-		{
-			icon: <Syringe className="w-8 h-8" />,
-			title: "Voice Therapy",
-			description: "Treatment for voice disorders and vocal cord issues.",
-			features: [
-				"Voice assessment",
-				"Vocal hygiene education",
-				"Voice exercises",
-				"Resonance therapy",
-				"Vocal cord care",
-			],
-			duration: "30-45 minutes",
-			price: "$120-160",
-		},
-		{
 			icon: <Activity className="w-8 h-8" />,
 			title: "Child Language Development",
 			description: "Early intervention for children with language delays.",
@@ -104,6 +76,34 @@ const Services = () => {
 			],
 			duration: "45-60 minutes",
 			price: "$130-180",
+		},
+		{
+			icon: <Shield className="w-8 h-8" />,
+			title: "Swallowing Disorders (Dysphagia)",
+			description: "Expert evaluation and therapy for swallowing difficulties.",
+			features: [
+				"Swallowing assessment",
+				"Modified barium swallow",
+				"Swallowing exercises",
+				"Diet modifications",
+				"Safety strategies",
+			],
+			duration: "45-60 minutes",
+			price: "$150-200",
+		},
+		{
+			icon: <Syringe className="w-8 h-8" />,
+			title: "Voice Therapy",
+			description: "Treatment for voice disorders and vocal cord issues.",
+			features: [
+				"Voice assessment",
+				"Vocal hygiene education",
+				"Voice exercises",
+				"Resonance therapy",
+				"Vocal cord care",
+			],
+			duration: "30-45 minutes",
+			price: "$120-160",
 		},
 	]
 
@@ -201,7 +201,63 @@ const Services = () => {
 				</div>
 			</section>
 
-			{/* Insurance & Payment */}
+			{/* Online Section */}
+			<section className="bg-gradient-to-br from-primary-50 to-blue-50 section-padding">
+				<div className="max-w-7xl mx-auto text-center">
+					<motion.div
+						initial={{ opacity: 0, y: 30 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ duration: 0.8 }}>
+						<h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-12">
+							Our Online Services
+						</h1>
+
+						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+							{services.slice(0, 4).map((service, index) => (
+								<motion.div
+									key={index}
+									initial={{ opacity: 0, y: 50 }}
+									animate={{ opacity: 1, y: 0 }}
+									transition={{ duration: 0.6, delay: index * 0.15 }}
+									className={`
+        bg-white rounded-2xl shadow-md hover:shadow-2xl 
+        transition-all duration-300 hover:-translate-y-2 
+        p-6 flex flex-col
+        ${index === 3 ? "lg:col-start-2" : ""} 
+      `}>
+									<h3 className="text-xl font-semibold text-gray-900 mb-3">
+										{service.title}
+									</h3>
+
+									<div className="border-t border-gray-200 pt-4 flex-1 flex flex-col justify-between">
+										<div className="flex justify-between items-center mb-4 text-gray-600">
+											<div className="flex items-center">
+												<Clock className="w-4 h-4 mr-2" />
+												<span className="text-sm">{service.duration}</span>
+											</div>
+											<div className="flex items-center">
+												<DollarSign className="w-4 h-4 mr-2" />
+												<span className="text-sm font-medium">
+													{service.price}
+												</span>
+											</div>
+										</div>
+
+										<Link
+											to="/appointment"
+											className="btn-primary w-full flex items-center justify-center">
+											<Calendar className="w-4 h-4 mr-2" />
+											Book This Service
+										</Link>
+									</div>
+								</motion.div>
+							))}
+						</div>
+					</motion.div>
+				</div>
+			</section>
+
+			{/* Payment */}
 			<section className="section-padding bg-white">
 				<div className="max-w-7xl mx-auto">
 					<div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -213,8 +269,8 @@ const Services = () => {
 								Payment Options
 							</h2>
 							<p className="text-lg text-gray-600 mb-8">
-								We offer flexible payment
-								options to ensure quality healthcare is accessible to everyone.
+								We offer flexible payment options to ensure quality healthcare
+								is accessible to everyone.
 							</p>
 							<div className="space-y-4">
 								<div className="flex items-center">
@@ -231,44 +287,49 @@ const Services = () => {
 								</div>
 								<div className="flex items-center">
 									<CheckCircle className="w-6 h-6 text-medical-500 mr-3" />
-									<span className="text-gray-700">
-										Self-pay and discounts
-									</span>
+									<span className="text-gray-700">Self-pay and discounts</span>
 								</div>
 							</div>
 						</motion.div>
-            <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="bg-white rounded-2xl shadow-xl p-8"
-            >
-              <h3 className="text-2xl font-semibold text-gray-900 mb-6">
-                Why Choose Us?
-              </h3>
-              <div className="space-y-4">
-                                 <div className="flex items-center">
-                   <Star className="w-5 h-5 text-yellow-400 fill-current mr-3" />
-                   <span className="text-gray-700">Licensed speech-language pathologist</span>
-                 </div>
-                 <div className="flex items-center">
-                   <Star className="w-5 h-5 text-yellow-400 fill-current mr-3" />
-                   <span className="text-gray-700">Flexible appointment scheduling</span>
-                 </div>
-                 <div className="flex items-center">
-                   <Star className="w-5 h-5 text-yellow-400 fill-current mr-3" />
-                   <span className="text-gray-700">Child-friendly therapy environment</span>
-                 </div>
-                 <div className="flex items-center">
-                   <Star className="w-5 h-5 text-yellow-400 fill-current mr-3" />
-                   <span className="text-gray-700">Therapy for all age groups</span>
-                 </div>
-                 <div className="flex items-center">
-                   <Star className="w-5 h-5 text-yellow-400 fill-current mr-3" />
-                   <span className="text-gray-700">Telepractice available</span>
-                 </div>
-              </div>
-            </motion.div>
+						<motion.div
+							initial={{ opacity: 0, x: 50 }}
+							animate={{ opacity: 1, x: 0 }}
+							transition={{ duration: 0.8, delay: 0.2 }}
+							className="bg-white rounded-2xl shadow-xl p-8">
+							<h3 className="text-2xl font-semibold text-gray-900 mb-6">
+								Why Choose Us?
+							</h3>
+							<div className="space-y-4">
+								<div className="flex items-center">
+									<Star className="w-5 h-5 text-yellow-400 fill-current mr-3" />
+									<span className="text-gray-700">
+										Licensed speech-language pathologist
+									</span>
+								</div>
+								<div className="flex items-center">
+									<Star className="w-5 h-5 text-yellow-400 fill-current mr-3" />
+									<span className="text-gray-700">
+										Flexible appointment scheduling
+									</span>
+								</div>
+								<div className="flex items-center">
+									<Star className="w-5 h-5 text-yellow-400 fill-current mr-3" />
+									<span className="text-gray-700">
+										Child-friendly therapy environment
+									</span>
+								</div>
+								<div className="flex items-center">
+									<Star className="w-5 h-5 text-yellow-400 fill-current mr-3" />
+									<span className="text-gray-700">
+										Therapy for all age groups
+									</span>
+								</div>
+								<div className="flex items-center">
+									<Star className="w-5 h-5 text-yellow-400 fill-current mr-3" />
+									<span className="text-gray-700">Telepractice available</span>
+								</div>
+							</div>
+						</motion.div>
 					</div>
 				</div>
 			</section>
