@@ -36,19 +36,19 @@ const Home = () => {
 
   const testimonials = [
     {
-      name: "Sarah M.",
+      name: "Taher M.",
       rating: 5,
-      text: "Dr. Johnson is exceptional! She takes the time to listen and provides personalized care. Highly recommend!"
+      text: "Dr. Fatima is exceptional! She takes the time to listen and provides personalized care. She is very creative for kids and my kids love her. Highly recommend!"
     },
     {
-      name: "Michael R.",
+      name: "Hussain K.",
       rating: 5,
       text: "The best doctor I've ever had. Professional, caring, and always available when I need her."
     },
     {
-      name: "Emily T.",
+      name: "Mariya U.",
       rating: 5,
-      text: "Dr. Johnson and her staff are wonderful. The office is clean, modern, and the care is top-notch."
+      text: "Dr. Fatima and her methods are wonderful. The office is clean, modern, and the care is top-notch."
     }
   ];
 

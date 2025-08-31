@@ -31,9 +31,7 @@ const Appointment = () => {
     reason: '',
     symptoms: '',
     
-    // Insurance & Medical History
-    insuranceProvider: '',
-    insuranceNumber: '',
+    // Medical History
     isNewPatient: '',
     currentMedications: '',
     allergies: '',
@@ -330,41 +328,6 @@ const Appointment = () => {
       transition={{ duration: 0.5 }}
       className="space-y-6"
     >
-      <h3 className="text-2xl font-semibold text-gray-900 mb-6">
-        Insurance & Background Information
-      </h3>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label htmlFor="insuranceProvider" className="block text-sm font-medium text-gray-700 mb-2">
-            Insurance Provider
-          </label>
-          <input
-            type="text"
-            id="insuranceProvider"
-            name="insuranceProvider"
-            value={formData.insuranceProvider}
-            onChange={handleChange}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            placeholder="e.g., Blue Cross Blue Shield"
-          />
-        </div>
-        <div>
-          <label htmlFor="insuranceNumber" className="block text-sm font-medium text-gray-700 mb-2">
-            Insurance Number
-          </label>
-          <input
-            type="text"
-            id="insuranceNumber"
-            name="insuranceNumber"
-            value={formData.insuranceNumber}
-            onChange={handleChange}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            placeholder="Your insurance number"
-          />
-        </div>
-      </div>
-
       <div>
         <label htmlFor="isNewPatient" className="block text-sm font-medium text-gray-700 mb-2">
           Are you a new patient? *
@@ -469,7 +432,6 @@ const Appointment = () => {
             <h4 className="font-semibold text-blue-900 mb-1">Important Notes</h4>
             <ul className="text-blue-700 text-sm space-y-1">
               <li>• Please arrive 15 minutes before your appointment time</li>
-              <li>• Bring your ID and insurance card</li>
               <li>• Complete any required forms before your visit</li>
               <li>• Call us if you need to reschedule or cancel</li>
             </ul>

@@ -219,42 +219,6 @@ const About = () => {
         </div>
       </section>
 
-      {/* Our Team */}
-      <section className="section-padding bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Meet Our Team
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Our dedicated healthcare professionals are committed to providing you with 
-              the best possible care experience.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {team.map((member, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="card text-center hover:shadow-xl transition-shadow duration-300"
-              >
-                <div className="text-6xl mb-4">{member.image}</div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  {member.name}
-                </h3>
-                <p className="text-primary-600 font-medium mb-3">{member.role}</p>
-                <div className="space-y-2 text-sm text-gray-600">
-                  <p><strong>Education:</strong> {member.education}</p>
-                  <p><strong>Experience:</strong> {member.experience}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Office Information */}
       <section className="section-padding bg-gray-50">
         <div className="max-w-7xl mx-auto">
@@ -325,10 +289,6 @@ const About = () => {
                  <div className="flex items-center">
                    <Star className="w-5 h-5 text-yellow-400 fill-current mr-3" />
                    <span className="text-gray-700">Telepractice available</span>
-                 </div>
-                 <div className="flex items-center">
-                   <Star className="w-5 h-5 text-yellow-400 fill-current mr-3" />
-                   <span className="text-gray-700">Most insurance plans accepted</span>
                  </div>
               </div>
             </motion.div>

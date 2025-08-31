@@ -386,23 +386,7 @@ const Contact = () => {
                 using our online booking system, or sending us a message through the contact form.
               </p>
             </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="card"
-            >
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                What insurance plans do you accept?
-              </h3>
-              <p className="text-gray-600">
-                We accept most major insurance plans including Blue Cross Blue Shield, 
-                Aetna, Cigna, UnitedHealth, Humana, and Medicare. Please contact us 
-                to verify your specific coverage.
-              </p>
-            </motion.div>
-
+            
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
