@@ -6,22 +6,17 @@ import { supabase } from "../supabase"
 const Appointment = () => {
 	const [currentStep, setCurrentStep] = useState(1)
 	const [formData, setFormData] = useState({
-		// Personal Information
 		firstName: "",
 		lastName: "",
 		email: "",
 		phone: "",
 		dateOfBirth: "",
 		gender: "",
-
-		// Appointment Details
 		appointmentType: "",
 		preferredDate: "",
 		preferredTime: "",
 		reason: "",
 		symptoms: "",
-
-		// Medical History
 		isNewPatient: "",
 		currentMedications: "",
 		allergies: "",
@@ -42,45 +37,67 @@ const Appointment = () => {
 	const nextStep = () => setCurrentStep((prev) => prev + 1)
 	const prevStep = () => setCurrentStep((prev) => prev - 1)
 
-	const handleSubmit = async (e) => {
-		e.preventDefault()
+	// --- Razorpay Checkout ---
+	const openRazorpay = async () => {
 		setIsSubmitting(true)
-		setIsSubmitted(false)
+		const options = {
+			key: "rzp_test_REORU4W2JT2Anw" , // replace with your Razorpay key_id
+			amount: 50000, // 500 INR in paise
+			currency: "INR",
+			name: "Clinic Booking",
+			description: "Appointment Payment",
+			handler: async function (response) {
+				console.log("Payment success:", response)
 
-		console.log("Submitting form data:", formData)
+				// Insert into Supabase AFTER successful payment
+				const { data, error } = await supabase.from("Appointment").insert([
+					{
+						...formData,
+						payment_id: response.razorpay_payment_id,
+					},
+				])
 
-		const { data, error } = await supabase
-			.from("Appointment") // 👈 match table name
-			.insert([formData])
-
-		if (error) {
-			console.error("Supabase insert error:", error)
-			setError(error.message)
-		} else {
-			console.log("Supabase insert success:", data)
-			setIsSubmitted(true)
-			setFormData({
-				firstName: "",
-				lastName: "", 
-				email: "",
-				phone: "",
-				dateOfBirth: "",
-				gender: "",
-				appointmentType: "",
-				preferredDate: "",
-				preferredTime: "",
-				reason: "",
-				symptoms: "",
-				isNewPatient: "",
-				currentMedications: "",
-				allergies: "",
-				medicalHistory: "",
-			})
+				if (error) {
+					console.error("Supabase insert error:", error)
+					setError(error.message)
+				} else {
+					console.log("Supabase insert success:", data)
+					setIsSubmitted(true)
+					setFormData({
+						firstName: "",
+						lastName: "",
+						email: "",
+						phone: "",
+						dateOfBirth: "",
+						gender: "",
+						appointmentType: "",
+						preferredDate: "",
+						preferredTime: "",
+						reason: "",
+						symptoms: "",
+						isNewPatient: "",
+						currentMedications: "",
+						allergies: "",
+						medicalHistory: "",
+					})
+				}
+				setIsSubmitting(false)
+			},
+			prefill: {
+				name: `${formData.firstName} ${formData.lastName}`,
+				email: formData.email,
+				contact: formData.phone,
+			},
+			theme: {
+				color: "#3399cc",
+			},
 		}
-		setIsSubmitting(false)
+
+		const rzp = new window.Razorpay(options)
+		rzp.open()
 	}
 
-
+	// appointmentTypes & timeSlots (unchanged)
 	const appointmentTypes = [
 		{ value: "speech", label: "Speech & Language Assessment" },
 		{ value: "articulation", label: "Articulation Therapy" },
@@ -444,7 +461,7 @@ const Appointment = () => {
 								</p>
 							</motion.div>
 						) : (
-							<form onSubmit={handleSubmit}>
+							<>
 								{currentStep === 1 && renderPersonalInfo()}
 								{currentStep === 2 && renderAppointmentDetails()}
 								{currentStep === 3 && renderMedicalInfo()}
@@ -468,21 +485,21 @@ const Appointment = () => {
 										</button>
 									) : (
 										<button
-											type="submit"
+											type="button"
 											disabled={isSubmitting}
+											onClick={openRazorpay}
 											className="btn-primary flex items-center ml-auto disabled:opacity-50">
 											{isSubmitting ? (
-												"Confirming..."
+												"Processing..."
 											) : (
 												<>
-													<Calendar className="w-5 h-5 mr-2" /> Confirm
-													Appointment
+													<Calendar className="w-5 h-5 mr-2" /> Pay & Confirm
 												</>
 											)}
 										</button>
 									)}
 								</div>
-							</form>
+							</>
 						)}
 					</div>
 				</div>
