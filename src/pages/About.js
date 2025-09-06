@@ -19,7 +19,7 @@ const About = () => {
     "Licensed Speech-Language Pathologist",
     "Master's Degree in Speech-Language Pathology",
     "Certified by American Speech-Language-Hearing Association",
-    "15+ Years of Clinical Experience",
+    "25+ Years of Clinical Experience",
     "Specialized in Pediatric and Adult Therapy"
   ];
 
@@ -46,7 +46,7 @@ const About = () => {
       name: "Dr. Fatima Kasamnath, SLP",
       role: "Speech-Language Pathologist",
       education: "Master's in Speech-Language Pathology",
-      experience: "15+ Years",
+      experience: "25+ Years",
       image: "👩‍⚕️"
     },
     {
@@ -116,7 +116,7 @@ const About = () => {
                     </div>
                     <div className="flex items-center">
                       <CheckCircle className="w-5 h-5 text-medical-500 mr-3" />
-                      <span className="text-gray-700">15+ Years Experience</span>
+                      <span className="text-gray-700">25+ Years Experience</span>
                     </div>
                     <div className="flex items-center">
                       <CheckCircle className="w-5 h-5 text-medical-500 mr-3" />

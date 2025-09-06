@@ -1,31 +1,101 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
-import Home from './pages/Home';
-import Services from './pages/Services';
-import About from './pages/About';
-import Contact from './pages/Contact';
-import Appointment from './pages/Appointment';
+import React from "react"
+import {
+	BrowserRouter as Router,
+	Routes,
+	Route,
+	useLocation,
+} from "react-router-dom"
+import Navbar from "./components/Navbar"
+import Footer from "./components/Footer"
+import Home from "./pages/Home"
+import Services from "./pages/Services"
+import About from "./pages/About"
+import Contact from "./pages/Contact"
+import Appointment from "./pages/Appointment"
 
-function App() {
-  return (
-    <Router>
-      <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <main>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/services" element={<Services />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/appointment" element={<Appointment />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
-    </Router>
-  );
+import AdminLogin from "./admin/AdminLogin"
+import AdminLayout from "./admin/AdminLayout"
+import AdminDashboard from "./admin/AdminDashboard"
+import Appointments from "./admin/Appointments"
+import AppointmentDetail from "./admin/AppointmentDetail"
+import Analytics from "./admin/Analytics"
+
+function AppContent() {
+	const location = useLocation()
+	const isAdminRoute = location.pathname.startsWith("/admin")
+
+	return (
+		<div className="min-h-screen bg-gray-50">
+			{/* Show Navbar/Footer only on public routes */}
+			{!isAdminRoute && <Navbar />}
+
+			<main>
+				<Routes>
+					{/* Public Routes */}
+					<Route path="/" element={<Home />} />
+					<Route path="/services" element={<Services />} />
+					<Route path="/about" element={<About />} />
+					<Route path="/contact" element={<Contact />} />
+					<Route path="/appointment" element={<Appointment />} />
+
+					{/* Admin Routes */}
+					<Route
+						path="/admin/login"
+						element={
+							<AdminLayout>
+								<AdminLogin />
+							</AdminLayout>
+						}
+					/>
+
+					<Route
+						path="/admin/dashboard"
+						element={
+							<AdminLayout>
+								<AdminDashboard />
+							</AdminLayout>
+						}
+					/>
+
+					<Route
+						path="/admin/appointments"
+						element={
+							<AdminLayout>
+								<Appointments />
+							</AdminLayout>
+						}
+					/>
+
+					<Route
+						path="/admin/appointments/:id"
+						element={
+							<AdminLayout>
+								<AppointmentDetail />
+							</AdminLayout>
+						}
+					/>
+					<Route
+						path="/admin/analytics"
+						element={
+							<AdminLayout>
+								<Analytics />
+							</AdminLayout>
+						}
+					/>
+				</Routes>
+			</main>
+
+			{!isAdminRoute && <Footer />}
+		</div>
+	)
 }
 
-export default App;
+function App() {
+	return (
+		<Router>
+			<AppContent />
+		</Router>
+	)
+}
+
+export default App

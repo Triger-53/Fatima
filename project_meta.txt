@@ -1,0 +1,32 @@
+# Environment Variables
+DATABASE_URL=postgres://user:pass@localhost:5432/dbname
+NODE_ENV=development
+API_KEY=abcdef123456
+
+# Configurations
+debug: true
+logging: verbose
+theme: dark
+max_connections: 10
+
+# Logs
+Error: Cannot read property 'foo' of undefined at index.js:45:12
+Warning: Unused variable 'bar'
+Info: Server started on port 3000
+
+# Build / Cache Info
+node_modules/
+dist/
+bundle.js
+.cache/
+build-output/
+
+# Dependencies
+package.json / requirements.txt
+
+# Tests
+tests/unit/
+tests/integration/
+
+# Scripts
+build.sh / deploy.sh / setup.py

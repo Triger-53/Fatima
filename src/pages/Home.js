@@ -106,7 +106,7 @@ const Home = () => {
 										<div className="flex items-center">
 											<CheckCircle className="w-5 h-5 text-medical-500 mr-3" />
 											<span className="text-gray-700">
-												15+ Years Experience
+												25+ Years Experience
 											</span>
 										</div>
 										<div className="flex items-center">
