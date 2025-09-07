@@ -41,7 +41,7 @@ const Appointment = () => {
 	const openRazorpay = async () => {
 		setIsSubmitting(true)
 		const options = {
-			key: "rzp_test_REORU4W2JT2Anw" , // replace with your Razorpay key_id
+			key: "rzp_test_REORU4W2JT2Anw", // Replace with your Razorpay key_id
 			amount: 50000, // 500 INR in paise
 			currency: "INR",
 			name: "Clinic Booking",
@@ -52,13 +52,28 @@ const Appointment = () => {
 				// Insert into Supabase AFTER successful payment
 				const { data, error } = await supabase.from("Appointment").insert([
 					{
-						...formData,
+						first_name: formData.firstName,
+						last_name: formData.lastName,
+						email: formData.email,
+						phone: formData.phone,
+						date_of_birth: formData.dateOfBirth,
+						gender: formData.gender,
+						appointment_type: formData.appointmentType,
+						preferred_date: formData.preferredDate,
+						preferred_time: formData.preferredTime,
+						reason: formData.reason,
+						symptoms: formData.symptoms,
+						is_new_patient: formData.isNewPatient,
+						current_medications: formData.currentMedications,
+						allergies: formData.allergies,
+						medical_history: formData.medicalHistory,
 						payment_id: response.razorpay_payment_id,
 					},
 				])
 
+
 				if (error) {
-					console.error("Supabase insert error:", error)
+					console.error("Supabase insert error:", error.message, error.details)
 					setError(error.message)
 				} else {
 					console.log("Supabase insert success:", data)
@@ -97,7 +112,6 @@ const Appointment = () => {
 		rzp.open()
 	}
 
-	// appointmentTypes & timeSlots (unchanged)
 	const appointmentTypes = [
 		{ value: "speech", label: "Speech & Language Assessment" },
 		{ value: "articulation", label: "Articulation Therapy" },
