@@ -40,16 +40,22 @@ const Appointment = () => {
 	// --- Razorpay Checkout ---
 	const openRazorpay = async () => {
 		setIsSubmitting(true)
+
 		const options = {
-			key: "rzp_test_REORU4W2JT2Anw", // Replace with your Razorpay key_id
+			key: "rzp_test_REORU4W2JT2Anw",
 			amount: 50000, // 500 INR in paise
 			currency: "INR",
 			name: "Clinic Booking",
 			description: "Appointment Payment",
+			prefill: {
+				name: `${formData.firstName} ${formData.lastName}`,
+				email: formData.email,
+				contact: formData.phone,
+			},
 			handler: async function (response) {
-				console.log("Payment success:", response)
+				console.log("✅ Payment success:", response)
 
-				// Insert into Supabase AFTER successful payment
+				// Insert into Supabase
 				const { data, error } = await supabase.from("Appointment").insert([
 					{
 						first_name: formData.firstName,
@@ -71,12 +77,15 @@ const Appointment = () => {
 					},
 				])
 
-
 				if (error) {
-					console.error("Supabase insert error:", error.message, error.details)
+					console.error(
+						"❌ Supabase insert error:",
+						error.message,
+						error.details
+					)
 					setError(error.message)
 				} else {
-					console.log("Supabase insert success:", data)
+					console.log("✅ Supabase insert success:", data)
 					setIsSubmitted(true)
 					setFormData({
 						firstName: "",
@@ -98,17 +107,15 @@ const Appointment = () => {
 				}
 				setIsSubmitting(false)
 			},
-			prefill: {
-				name: `${formData.firstName} ${formData.lastName}`,
-				email: formData.email,
-				contact: formData.phone,
-			},
-			theme: {
-				color: "#3399cc",
-			},
+			theme: { color: "#3399cc" },
 		}
 
 		const rzp = new window.Razorpay(options)
+		rzp.on("payment.failed", (err) => {
+			console.error("❌ Payment failed:", err.error)
+			alert("Payment failed. Please try again.")
+			setIsSubmitting(false)
+		})
 		rzp.open()
 	}
 
@@ -470,7 +477,7 @@ const Appointment = () => {
 									Appointment Confirmed!
 								</h2>
 								<p className="text-xl text-gray-600 mb-8">
-									Thank you for booking your appointment. We've sent a
+									Thank you for booking your appointment. We’ve sent a
 									confirmation email with all the details.
 								</p>
 							</motion.div>
