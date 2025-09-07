@@ -3,6 +3,8 @@ import { motion } from "framer-motion"
 import { Calendar, CheckCircle, ChevronRight, ChevronLeft } from "lucide-react"
 import { supabase } from "../supabase"
 
+console.log("🔑 Supabase client test:", supabase)
+
 const Appointment = () => {
 	const [currentStep, setCurrentStep] = useState(1)
 	const [formData, setFormData] = useState({
@@ -58,22 +60,22 @@ const Appointment = () => {
 				// Insert into Supabase
 				const { data, error } = await supabase.from("Appointment").insert([
 					{
-						first_name: formData.firstName,
-						last_name: formData.lastName,
+						firstName: formData.firstName,
+						lastName: formData.lastName,
 						email: formData.email,
 						phone: formData.phone,
-						date_of_birth: formData.dateOfBirth,
+						dateOfBirth: formData.dateOfBirth,
 						gender: formData.gender,
-						appointment_type: formData.appointmentType,
-						preferred_date: formData.preferredDate,
-						preferred_time: formData.preferredTime,
+						appointmentType: formData.appointmentType,
+						preferredDate: formData.preferredDate,
+						preferredTime: formData.preferredTime,
 						reason: formData.reason,
 						symptoms: formData.symptoms,
-						is_new_patient: formData.isNewPatient,
-						current_medications: formData.currentMedications,
+						isNewPatient: formData.isNewPatient,
+						currentMedications: formData.currentMedications,
 						allergies: formData.allergies,
-						medical_history: formData.medicalHistory,
-						payment_id: response.razorpay_payment_id,
+						medicalHistory: formData.medicalHistory,
+						paymentId: response.razorpay_payment_id,
 					},
 				])
 
