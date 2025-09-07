@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { supabase } from "../supabase"
-import AdminNav from "./AdminNav"
 
 const AppointmentDetail = () => {
 	const { id } = useParams()
@@ -28,7 +27,6 @@ const AppointmentDetail = () => {
 	return (
 		<div className="p-6 bg-gray-50 min-h-screen">
 
-			<AdminNav />
 
 			<div className="bg-white shadow-md rounded-lg p-6 space-y-4">
 				<h2 className="text-2xl font-bold">

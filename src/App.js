@@ -26,7 +26,6 @@ function AppContent() {
 
 	return (
 		<div className="min-h-screen bg-gray-50">
-			{/* Show Navbar/Footer only on public routes */}
 			{!isAdminRoute && <Navbar />}
 
 			<main>
@@ -47,7 +46,6 @@ function AppContent() {
 							</AdminLayout>
 						}
 					/>
-
 					<Route
 						path="/admin/dashboard"
 						element={
@@ -56,7 +54,6 @@ function AppContent() {
 							</AdminLayout>
 						}
 					/>
-
 					<Route
 						path="/admin/appointments"
 						element={
@@ -65,7 +62,6 @@ function AppContent() {
 							</AdminLayout>
 						}
 					/>
-
 					<Route
 						path="/admin/appointments/:id"
 						element={

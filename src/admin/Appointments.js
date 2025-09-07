@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { supabase } from "../supabase"
 import { Calendar, Clock, FileText } from "lucide-react"
-import AdminNav from "./AdminNav"
 
 const Appointments = () => {
 	const [appointments, setAppointments] = useState([])
@@ -28,7 +27,6 @@ const Appointments = () => {
 	return (
 		<div className="p-6 bg-gray-50 min-h-screen">
 			
-			<AdminNav />
 
 			{/* Heading */}
 			<div className="mb-6 p-6 rounded-lg text-white bg-blue-600 shadow-md">

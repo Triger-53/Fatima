@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react"
 import { supabase } from "../supabase"
-import AdminNav from "./AdminNav"
 import { useNavigate } from "react-router-dom"
 import {
 	Chart as ChartJS,
@@ -162,7 +161,6 @@ const Analytics = () => {
 		<div className="relative p-6 bg-gradient-to-br from-gray-950 via-black to-gray-900 min-h-screen text-white overflow-hidden">
 			<div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,#06b6d4_1px,transparent_1px)] bg-[length:30px_30px]" />
 
-			<AdminNav />
 
 			<motion.div
 				initial={{ opacity: 0, y: -20 }}
