@@ -10,7 +10,7 @@ import {
 	Eye,
 	Baby,
 	Brain,
-  Star,
+	Star,
 	Calendar,
 	Clock,
 	DollarSign,
@@ -32,7 +32,7 @@ const Services = () => {
 				"Communication skills training",
 			],
 			duration: "45-60 minutes",
-			price: "$120-180",
+			price: { min: 120, max: 180, currency: "USD" },
 		},
 		{
 			icon: <Stethoscope className="w-8 h-8" />,
@@ -47,7 +47,7 @@ const Services = () => {
 				"Progress monitoring",
 			],
 			duration: "30-45 minutes",
-			price: "$100-150",
+			price: { min: 100, max: 150, currency: "USD" },
 		},
 		{
 			icon: <Activity className="w-8 h-8" />,
@@ -61,7 +61,7 @@ const Services = () => {
 				"Progress tracking",
 			],
 			duration: "30-45 minutes",
-			price: "$100-140",
+			price: { min: 100, max: 140, currency: "USD" },
 		},
 		{
 			icon: <Eye className="w-8 h-8" />,
@@ -75,7 +75,7 @@ const Services = () => {
 				"Life participation goals",
 			],
 			duration: "45-60 minutes",
-			price: "$130-180",
+			price: { min: 130, max: 180, currency: "USD" },
 		},
 		{
 			icon: <Shield className="w-8 h-8" />,
@@ -89,7 +89,7 @@ const Services = () => {
 				"Safety strategies",
 			],
 			duration: "45-60 minutes",
-			price: "$150-200",
+			price: { min: 150, max: 200, currency: "USD" },
 		},
 		{
 			icon: <Syringe className="w-8 h-8" />,
@@ -103,9 +103,17 @@ const Services = () => {
 				"Vocal cord care",
 			],
 			duration: "30-45 minutes",
-			price: "$120-160",
+			price: { min: 120, max: 160, currency: "USD" },
 		},
 	]
+
+	// helper to format prices
+	const formatPrice = (price) => {
+		if (!price) return ""
+		return price.min === price.max
+			? `$${price.min}`
+			: `$${price.min} - $${price.max}`
+	}
 
 	return (
 		<div className="min-h-screen bg-gray-50">
@@ -184,7 +192,7 @@ const Services = () => {
 										<div className="flex items-center text-gray-600">
 											<DollarSign className="w-4 h-4 mr-2" />
 											<span className="text-sm font-medium">
-												{service.price}
+												{formatPrice(service.price)}
 											</span>
 										</div>
 									</div>
@@ -200,64 +208,7 @@ const Services = () => {
 					</div>
 				</div>
 			</section>
-
-			{/* Online Section */}
-			<section className="bg-gradient-to-br from-primary-50 to-blue-50 section-padding">
-				<div className="max-w-7xl mx-auto text-center">
-					<motion.div
-						initial={{ opacity: 0, y: 30 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.8 }}>
-						<h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-12">
-							Our Online Services
-						</h1>
-
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-							{services.slice(0, 4).map((service, index) => (
-								<motion.div
-									key={index}
-									initial={{ opacity: 0, y: 50 }}
-									animate={{ opacity: 1, y: 0 }}
-									transition={{ duration: 0.6, delay: index * 0.15 }}
-									className={`
-        bg-white rounded-2xl shadow-md hover:shadow-2xl 
-        transition-all duration-300 hover:-translate-y-2 
-        p-6 flex flex-col
-        ${index === 3 ? "lg:col-start-2" : ""} 
-      `}>
-									<h3 className="text-xl font-semibold text-gray-900 mb-3">
-										{service.title}
-									</h3>
-
-									<div className="border-t border-gray-200 pt-4 flex-1 flex flex-col justify-between">
-										<div className="flex justify-between items-center mb-4 text-gray-600">
-											<div className="flex items-center">
-												<Clock className="w-4 h-4 mr-2" />
-												<span className="text-sm">{service.duration}</span>
-											</div>
-											<div className="flex items-center">
-												<DollarSign className="w-4 h-4 mr-2" />
-												<span className="text-sm font-medium">
-													{service.price}
-												</span>
-											</div>
-										</div>
-
-										<Link
-											to="/appointment"
-											className="btn-primary w-full flex items-center justify-center">
-											<Calendar className="w-4 h-4 mr-2" />
-											Book This Service
-										</Link>
-									</div>
-								</motion.div>
-							))}
-						</div>
-					</motion.div>
-				</div>
-			</section>
-
-			{/* Payment */}
+						{/* Payment */}
 			<section className="section-padding bg-white">
 				<div className="max-w-7xl mx-auto">
 					<div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">

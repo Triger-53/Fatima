@@ -148,7 +148,6 @@ const Appointment = () => {
 		"5:00 PM",
 		"5:30 PM",
 	]
-
 	// Step Indicator
 	const renderStepIndicator = () => (
 		<div className="flex items-center justify-center mb-8">

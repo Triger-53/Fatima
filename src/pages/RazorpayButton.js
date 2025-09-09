@@ -19,17 +19,13 @@ const RazorpayButton = ({ amount, formData, onPaymentSuccess }) => {
 				contact: formData.phone,
 			},
 			handler: function (response) {
-				console.log("✅ Payment success:", response)
 				if (onPaymentSuccess) onPaymentSuccess(response)
 			},
-			theme: {
-				color: "#3399cc",
-			},
+			theme: { color: "#3399cc" },
 		}
 
 		const rzp = new window.Razorpay(options)
-		rzp.on("payment.failed", (err) => {
-			console.error("❌ Payment failed:", err.error)
+		rzp.on("payment.failed", () => {
 			alert("Payment failed. Please try again.")
 		})
 		rzp.open()
