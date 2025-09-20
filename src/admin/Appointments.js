@@ -26,8 +26,6 @@ const Appointments = () => {
 
 	return (
 		<div className="p-6 bg-gray-50 min-h-screen">
-			
-
 			{/* Heading */}
 			<div className="mb-6 p-6 rounded-lg text-white bg-blue-600 shadow-md">
 				<h1 className="text-3xl font-bold text-center">Appointments</h1>
@@ -69,9 +67,28 @@ const Appointments = () => {
 								<span>{appt.appointmentType}</span>
 							</div>
 
+							<div className="mt-3 flex justify-between items-baseline relative top-[-10px] ">
 							<p className="text-gray-700 mt-3 text-sm line-clamp-2">
 								<strong>Reason:</strong> {appt.reason || "N/A"}
 							</p>
+								<button
+									onClick={async (e) => {
+										e.stopPropagation() // prevent card click from navigating
+										if (!window.confirm("Delete this appointment?")) return
+										const { error } = await supabase
+											.from("Appointment")
+											.delete()
+											.eq("id", appt.id)
+										if (error) console.error(error)
+										else
+											setAppointments(
+												appointments.filter((a) => a.id !== appt.id)
+											)
+									}}
+									className="text-red-500 hover:bg-red-200 rounded-2xl px-2 text-sm">
+									Delete
+								</button>
+							</div>
 						</div>
 					))}
 				</div>

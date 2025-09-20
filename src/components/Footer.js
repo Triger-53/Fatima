@@ -7,7 +7,7 @@ import {
 	Clock,
 	Facebook,
 	Twitter,
-	Instagram,
+	Instagram, 
 	Linkedin,
 } from "lucide-react"
 

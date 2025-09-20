@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { motion } from "framer-motion"
 import {
@@ -16,103 +16,51 @@ import {
 	DollarSign,
 	CheckCircle,
 } from "lucide-react"
+import servicesData from "../data/services.json"
 
 const Services = () => {
-	const services = [
-		{
-			icon: <Heart className="w-8 h-8" />,
-			title: "Speech & Language Therapy",
-			description:
-				"Comprehensive assessment and treatment for speech and language disorders.",
-			features: [
-				"Language development assessment",
-				"Speech sound disorder treatment",
-				"Expressive language therapy",
-				"Receptive language therapy",
-				"Communication skills training",
-			],
-			duration: "45-60 minutes",
-			price: { min: 120, max: 180, currency: "USD" },
-		},
-		{
-			icon: <Stethoscope className="w-8 h-8" />,
-			title: "Articulation Therapy",
-			description:
-				"Specialized treatment for speech sound disorders and pronunciation issues.",
-			features: [
-				"Speech sound assessment",
-				"Articulation exercises",
-				"Phonological therapy",
-				"Motor speech therapy",
-				"Progress monitoring",
-			],
-			duration: "30-45 minutes",
-			price: { min: 100, max: 150, currency: "USD" },
-		},
-		{
-			icon: <Activity className="w-8 h-8" />,
-			title: "Child Language Development",
-			description: "Early intervention for children with language delays.",
-			features: [
-				"Language milestone assessment",
-				"Play-based therapy",
-				"Parent education",
-				"School collaboration",
-				"Progress tracking",
-			],
-			duration: "30-45 minutes",
-			price: { min: 100, max: 140, currency: "USD" },
-		},
-		{
-			icon: <Eye className="w-8 h-8" />,
-			title: "Adult Communication Therapy",
-			description: "Therapy for adults with communication challenges.",
-			features: [
-				"Aphasia therapy",
-				"Cognitive communication",
-				"Social communication skills",
-				"Workplace communication",
-				"Life participation goals",
-			],
-			duration: "45-60 minutes",
-			price: { min: 130, max: 180, currency: "USD" },
-		},
-		{
-			icon: <Shield className="w-8 h-8" />,
-			title: "Swallowing Disorders (Dysphagia)",
-			description: "Expert evaluation and therapy for swallowing difficulties.",
-			features: [
-				"Swallowing assessment",
-				"Modified barium swallow",
-				"Swallowing exercises",
-				"Diet modifications",
-				"Safety strategies",
-			],
-			duration: "45-60 minutes",
-			price: { min: 150, max: 200, currency: "USD" },
-		},
-		{
-			icon: <Syringe className="w-8 h-8" />,
-			title: "Voice Therapy",
-			description: "Treatment for voice disorders and vocal cord issues.",
-			features: [
-				"Voice assessment",
-				"Vocal hygiene education",
-				"Voice exercises",
-				"Resonance therapy",
-				"Vocal cord care",
-			],
-			duration: "30-45 minutes",
-			price: { min: 120, max: 160, currency: "USD" },
-		},
-	]
+	const [services, setServices] = useState([])
+	const [loading, setLoading] = useState(true)
+
+	useEffect(() => {
+		// Load services from JSON and map icons
+		const iconMap = {
+			Heart: Heart,
+			Stethoscope: Stethoscope,
+			Shield: Shield,
+			Syringe: Syringe,
+			Activity: Activity,
+			Eye: Eye,
+		}
+
+		const mappedServices = servicesData.services.map((service) => ({
+			...service,
+			icon: React.createElement(iconMap[service.icon], { className: "w-8 h-8" }),
+		}))
+
+		setServices(mappedServices)
+		setLoading(false)
+	}, [])
 
 	// helper to format prices
 	const formatPrice = (price) => {
 		if (!price) return ""
-		return price.min === price.max
-			? `$${price.min}`
-			: `$${price.min} - $${price.max}`
+		// Use INR pricing for display
+		const inrPrice = price.inr || price
+		return inrPrice.min === inrPrice.max
+			? `₹${inrPrice.min.toLocaleString()}`
+			: `₹${inrPrice.min.toLocaleString()} - ₹${inrPrice.max.toLocaleString()}`
+	}
+
+	if (loading) {
+		return (
+			<div className="min-h-screen bg-gray-50 flex items-center justify-center">
+				<div className="text-center">
+					<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+					<p className="text-gray-600">Loading services...</p>
+				</div>
+			</div>
+		)
 	}
 
 	return (
@@ -197,7 +145,12 @@ const Services = () => {
 										</div>
 									</div>
 									<Link
-										to="/appointment"
+										to={`/appointment?service=${encodeURIComponent(JSON.stringify({
+											id: service.id,
+											title: service.title,
+											price: service.price,
+											appointmentType: service.appointmentType
+										}))}`}
 										className="btn-primary w-full flex items-center justify-center">
 										<Calendar className="w-4 h-4 mr-2" />
 										Book This Service

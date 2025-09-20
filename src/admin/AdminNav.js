@@ -19,17 +19,30 @@ const AdminNav = () => {
 			<h1 className="text-xl font-bold">Admin Panel</h1>
 			<ul className="flex space-x-6">
 				<li>
-					<NavLink to="/admin/dashboard" className={linkClasses}>
+					<NavLink
+						to="/admin/dashboard"
+						className="hover:bg-cyan-100 rounded-3xl p-2">
 						Dashboard
 					</NavLink>
 				</li>
 				<li>
-					<NavLink to="/admin/appointments" className={linkClasses}>
+					<NavLink
+						to="/admin/appointments"
+						className="hover:bg-cyan-100 rounded-3xl p-2">
 						Appointments
 					</NavLink>
 				</li>
 				<li>
-					<NavLink to="/admin/analytics" className={linkClasses}>
+					<NavLink
+						to="/admin/Diagnostics"
+						className="hover:bg-cyan-100 rounded-3xl p-2">
+						Diagnostics
+					</NavLink>
+				</li>
+				<li>
+					<NavLink
+						to="/admin/analytics"
+						className="hover:bg-cyan-100 rounded-3xl p-2">
 						Analytics
 					</NavLink>
 				</li>

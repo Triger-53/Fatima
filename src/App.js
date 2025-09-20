@@ -14,7 +14,6 @@ import Contact from "./pages/Contact"
 import Appointment from "./pages/Appointment"
 
 import Login from "./pages/Login"
-import Signup from "./pages/Signup"
 import ResetPassword from "./pages/ResetPassword"
 import ProtectedRoute from "./auth/ProtectedRoute"
 import UpdatePassword from "./pages/UpdatePassword"
@@ -27,6 +26,7 @@ import AdminDashboard from "./admin/AdminDashboard"
 import Appointments from "./admin/Appointments"
 import AppointmentDetail from "./admin/AppointmentDetail"
 import Analytics from "./admin/Analytics"
+import Diagnostics from "./admin/Diagnostics"
 
 function AppContent() {
 	const location = useLocation()
@@ -46,22 +46,30 @@ function AppContent() {
 					<Route path="/appointment" element={<Appointment />} />
 
 					{/* Auth Routes */}
-					<Route path="/login" element={
-						<AuthLayout>
-							<Login />
-						</AuthLayout>} />
-					<Route path="/signup" element={
-						<AuthLayout>
-							<Signup />
-						</AuthLayout> } />
-					<Route path="/reset-password" element={
-						<AuthLayout>
-							<ResetPassword />
-						</AuthLayout> } />
-					<Route path="/update-password" element={
-						<AuthLayout>
-							<UpdatePassword />
-						</AuthLayout> } />
+					<Route
+						path="/login"
+						element={
+							<AuthLayout>
+								<Login />
+							</AuthLayout>
+						}
+					/>
+					<Route
+						path="/reset-password"
+						element={
+							<AuthLayout>
+								<ResetPassword />
+							</AuthLayout>
+						}
+					/>
+					<Route
+						path="/update-password"
+						element={
+							<AuthLayout>
+								<UpdatePassword />
+							</AuthLayout>
+						}
+					/>
 					<Route
 						path="/dashboard"
 						element={
@@ -109,6 +117,14 @@ function AppContent() {
 						element={
 							<AdminLayout>
 								<Analytics />
+							</AdminLayout>
+						}
+					/>
+					<Route
+						path="/admin/diagnostics"
+						element={
+							<AdminLayout>
+								<Diagnostics />
 							</AdminLayout>
 						}
 					/>

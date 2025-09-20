@@ -1,18 +1,25 @@
 import React from "react"
 
-const RazorpayButton = ({ amount, formData, onPaymentSuccess }) => {
+const RazorpayButton = ({ amount, formData, onPaymentSuccess, selectedService }) => {
 	const loadRazorpay = () => {
 		if (!window.Razorpay) {
 			alert("Razorpay SDK not loaded. Please refresh and try again.")
 			return
 		}
 
+		// Calculate amount based on selected service or use provided amount
+		let paymentAmount = amount
+		if (selectedService && selectedService.price) {
+			// Use the minimum price from INR pricing
+			paymentAmount = selectedService.price.inr?.min || selectedService.price.min * 100
+		}
+
 		const options = {
 			key: "rzp_test_REORU4W2JT2Anw",
-			amount: Math.round(amount * 100), // in paise
+			amount: paymentAmount * 100, // Convert to paise
 			currency: "INR",
-			name: "Clinic Booking",
-			description: "Appointment Payment",
+			name: "Dr. Fatima Kasamnath Clinic",
+			description: `Appointment Payment - ${selectedService?.title || 'Service'}`,
 			prefill: {
 				name: `${formData.firstName} ${formData.lastName}`,
 				email: formData.email,
@@ -31,13 +38,24 @@ const RazorpayButton = ({ amount, formData, onPaymentSuccess }) => {
 		rzp.open()
 	}
 
+	const formatPrice = (service) => {
+		if (!service || !service.price) return "₹500"
+		const price = service.price.inr || service.price
+		return `₹${price.min.toLocaleString()}`
+	}
+
 	return (
-		<button
-			type="button"
-			onClick={loadRazorpay}
-			className="btn-primary flex items-center ml-auto">
-			Pay & Confirm Appointment
-		</button>
+		<div className="flex flex-col items-end space-y-3">
+			<button
+				type="button"
+				onClick={loadRazorpay}
+				className="btn-primary flex items-center">
+				Pay {formatPrice(selectedService)} & Confirm Appointment
+			</button>
+			<p className="text-xs text-gray-500 text-right">
+				Secure payment powered by Razorpay
+			</p>
+		</div>
 	)
 }
 
