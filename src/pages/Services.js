@@ -16,7 +16,7 @@ import {
 	DollarSign,
 	CheckCircle,
 } from "lucide-react"
-import servicesData from "../data/services.json"
+import { getAllServices } from "../utils/servicesProvider"
 
 const Services = () => {
 	const [services, setServices] = useState([])
@@ -33,7 +33,7 @@ const Services = () => {
 			Eye: Eye,
 		}
 
-		const mappedServices = servicesData.services.map((service) => ({
+		const mappedServices = getAllServices().map((service) => ({
 			...service,
 			icon: React.createElement(iconMap[service.icon], { className: "w-8 h-8" }),
 		}))

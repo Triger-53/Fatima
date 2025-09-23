@@ -27,6 +27,7 @@ import Appointments from "./admin/Appointments"
 import AppointmentDetail from "./admin/AppointmentDetail"
 import Analytics from "./admin/Analytics"
 import Diagnostics from "./admin/Diagnostics"
+import AdminServices from "./admin/AdminServices"
 
 function AppContent() {
 	const location = useLocation()
@@ -46,6 +47,14 @@ function AppContent() {
 					<Route path="/appointment" element={<Appointment />} />
 
 					{/* Auth Routes */}
+					<Route
+						path="/admin/services"
+						element={
+							<AdminLayout>
+								<AdminServices />
+							</AdminLayout>
+						}
+					/>
 					<Route
 						path="/login"
 						element={

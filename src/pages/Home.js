@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
@@ -14,25 +14,24 @@ import {
   ArrowRight,
   CheckCircle
 } from 'lucide-react';
+import { getAllServices } from "../utils/servicesProvider"
 
 const Home = () => {
-  const services = [
-    {
-      icon: <Heart className="w-8 h-8" />,
-      title: "Speech & Language Therapy",
-      description: "Comprehensive assessment and treatment for speech and language disorders."
-    },
-    {
-      icon: <Stethoscope className="w-8 h-8" />,
-      title: "Articulation Therapy",
-      description: "Specialized treatment for speech sound disorders and pronunciation issues."
-    },
-    {
-      icon: <Shield className="w-8 h-8" />,
-      title: "Swallowing Disorders",
-      description: "Expert evaluation and therapy for dysphagia and swallowing difficulties."
+  const services = useMemo(() => {
+    const iconMap = {
+      Heart: Heart,
+      Stethoscope: Stethoscope,
+      Shield: Shield,
+      Syringe: Shield,
+      Activity: Heart,
+      Eye: Shield,
     }
-  ];
+    return getAllServices().slice(0, 3).map(s => ({
+      icon: React.createElement(iconMap[s.icon] || Heart, { className: "w-8 h-8" }),
+      title: s.title,
+      description: s.description,
+    }))
+  }, [])
 
   const testimonials = [
     {

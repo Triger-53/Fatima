@@ -27,6 +27,13 @@ const AdminNav = () => {
 				</li>
 				<li>
 					<NavLink
+						to="/admin/services"
+						className="hover:bg-cyan-100 rounded-3xl p-2">
+						Services
+					</NavLink>
+				</li>
+				<li>
+					<NavLink
 						to="/admin/appointments"
 						className="hover:bg-cyan-100 rounded-3xl p-2">
 						Appointments
