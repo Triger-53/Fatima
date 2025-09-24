@@ -200,12 +200,21 @@ const AdminServices = () => {
 										<div className="flex justify-between items-center mb-4">
 											<div className="flex items-center text-gray-600"><Clock className="w-4 h-4 mr-2" /><input name="duration" value={draft.duration} onChange={handleChange} className="bg-transparent border-none outline-none text-sm" placeholder="Duration (e.g., 45-60 minutes)" /></div>
 											<div className="flex items-center text-gray-600"><DollarSign className="w-4 h-4 mr-2" /><input type="number" value={draft.price || 0} onChange={(e) => handlePriceChange(e.target.value)} className="bg-transparent border-none outline-none text-sm font-medium w-20" placeholder="500" /></div>
-											</div>
-											<div className="flex items-center space-x-4"><span className="text-sm text-gray-600">Icon:</span><select name="icon" value={draft.icon} onChange={handleChange} className="border border-gray-300 rounded px-3 py-1 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"><option value="Heart">Heart</option><option value="Stethoscope">Stethoscope</option><option value="Shield">Shield</option><option value="Syringe">Syringe</option><option value="Activity">Activity</option><option value="Eye">Eye</option></select></div>
+										</div>
+										<div className="flex items-center space-x-4">
+											<span className="text-sm text-gray-600">Icon:</span>
+											<select name="icon" value={draft.icon} onChange={handleChange} className="border border-gray-300 rounded px-3 py-1 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+												<option value="Heart">Heart</option>
+												<option value="Stethoscope">Stethoscope</option>
+												<option value="Shield">Shield</option>
+												<option value="Syringe">Syringe</option>
+												<option value="Activity">Activity</option>
+												<option value="Eye">Eye</option>
+											</select>
 										</div>
 									</div>
-								)}
-							</div>
+								</div>
+							)}
 						</div>
 					</div>
 				</div>
