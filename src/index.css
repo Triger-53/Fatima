@@ -26,18 +26,7 @@
     max-width: 100%;
   }
 
-  .hero-card {
-    max-width: 520px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  @media (min-width: 1024px) {
-    .hero-card {
-      margin-left: 0;
-      margin-right: 0;
-    }
-  }
+  /* hero-card handled with utility classes to avoid layout conflicts */
   
   .section-padding {
     @apply py-12 sm:py-12 md:py-16 px-4 sm:px-6 lg:px-8;
