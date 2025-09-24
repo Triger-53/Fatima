@@ -86,35 +86,27 @@ const Home = () => {
 							animate={{ opacity: 1, x: 0 }}
 							transition={{ duration: 0.8, delay: 0.2 }}
 							className="relative">
-							<div className="bg-white rounded-2xl shadow-2xl p-8">
+							<div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 hero-card">
 								<div className="text-center">
-									<div className="w-32 h-32 bg-primary-100 rounded-full mx-auto mb-6 flex items-center justify-center">
-										<Users className="w-16 h-16 text-primary-600" />
+									<div className="w-28 h-28 sm:w-32 sm:h-32 bg-primary-100 rounded-full mx-auto mb-4 sm:mb-6 flex items-center justify-center">
+										<Users className="w-12 h-12 sm:w-16 sm:h-16 text-primary-600" />
 									</div>
-									<h3 className="text-2xl font-semibold text-gray-900 mb-2">
+									<h3 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-2">
 										Dr. Fatima Kasamnath, SLP
 									</h3>
-									<p className="text-gray-600 mb-4">
-										Licensed Speech-Language Pathologist
-									</p>
+									<p className="text-gray-600 mb-4">Licensed Speech-Language Pathologist</p>
 									<div className="space-y-3 text-left">
 										<div className="flex items-center">
 											<CheckCircle className="w-5 h-5 text-medical-500 mr-3" />
-											<span className="text-gray-700">
-												25+ Years Experience
-											</span>
+											<span className="text-gray-700">25+ Years Experience</span>
 										</div>
 										<div className="flex items-center">
 											<CheckCircle className="w-5 h-5 text-medical-500 mr-3" />
-											<span className="text-gray-700">
-												Same Day Appointments
-											</span>
+											<span className="text-gray-700">Same Day Appointments</span>
 										</div>
 										<div className="flex items-center">
 											<CheckCircle className="w-5 h-5 text-medical-500 mr-3" />
-											<span className="text-gray-700">
-												Telemedicine Available
-											</span>
+											<span className="text-gray-700">Telemedicine Available</span>
 										</div>
 									</div>
 								</div>
