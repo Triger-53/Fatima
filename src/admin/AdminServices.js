@@ -170,20 +170,26 @@ const AdminServices = () => {
 
 				{/* Edit Form - Card Style like Services Page */}
 				{isEditing && (
-					<div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-xl transition-all duration-300">
-						<div className="flex items-center justify-between mb-6">
-							<h3 className="text-2xl font-semibold text-gray-900">
-								{editingIndex >= 0 ? "Edit" : "Add"} Service
-							</h3>
+					<div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-xl transition-all duration-300 w-[30vw]">
+						<div className="flex items-center justify-between mb-2">
+							<div className="flex items-center space-x-3">
+								<div className="w-16 h-16 bg-primary-100 rounded-lg flex items-center justify-center text-primary-600">
+									{React.createElement(
+										{ Heart, Stethoscope, Shield, Syringe, Activity, Eye }[draft.icon] || Heart,
+										{ className: "w-8 h-8" }
+									)}
+								</div>
+								<h3 className="text-2xl font-semibold text-gray-900"> Service</h3>
+							</div>
 							<div className="flex space-x-3">
-								<button 
-									onClick={cancelEdit} 
+								<button
+									onClick={cancelEdit}
 									className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
 								>
 									Cancel
 								</button>
-								<button 
-									onClick={saveDraft} 
+								<button
+									onClick={saveDraft}
 									className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
 								>
 									Save
@@ -192,26 +198,20 @@ const AdminServices = () => {
 						</div>
 
 						{/* Icon and Title Row */}
-						<div className="flex items-start space-x-6 mb-6">
-							<div className="w-16 h-16 bg-primary-100 rounded-lg flex items-center justify-center text-primary-600">
-								{React.createElement(
-									{ Heart, Stethoscope, Shield, Syringe, Activity, Eye }[draft.icon] || Heart,
-									{ className: "w-8 h-8" }
-								)}
-							</div>
+						<div className="flex items-start mb-6">
 							<div className="flex-1">
-								<input 
-									name="title" 
-									value={draft.title} 
-									onChange={handleChange} 
-									className="w-full text-2xl font-semibold text-gray-900 bg-transparent border-none outline-none mb-2" 
+								<input
+									name="title"
+									value={draft.title}
+									onChange={handleChange}
+									className="w-full text-[17px] font-semibold text-gray-900 bg-transparent border-none outline-none"
 									placeholder="Service Title"
 								/>
-								<input 
-									name="appointmentType" 
-									value={draft.appointmentType} 
-									onChange={handleChange} 
-									className="w-full text-sm text-gray-600 bg-transparent border-none outline-none" 
+								<input
+									name="appointmentType"
+									value={draft.appointmentType}
+									onChange={handleChange}
+									className="w-full text-sm text-gray-600 bg-transparent border-none outline-none"
 									placeholder="Appointment Type (e.g., speech, articulation)"
 								/>
 							</div>
@@ -219,15 +219,16 @@ const AdminServices = () => {
 
 						{/* Description */}
 						<div className="mb-6">
-							<textarea 
-								name="description" 
-								value={draft.description} 
-								onChange={handleChange} 
-								className="w-full text-gray-600 bg-transparent border-none outline-none resize-none" 
+							<textarea
+								name="description"
+								value={draft.description}
+								onChange={handleChange}
+								className="w-full text-gray-600 bg-transparent border-none outline-none resize-none"
 								rows="2"
 								placeholder="Service description"
 							/>
 						</div>
+						<div className="-mb-[9px]" />
 
 						{/* Features Section */}
 						<div className="mb-6">
