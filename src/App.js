@@ -1,9 +1,9 @@
-import React from "react"
+import React, { useEffect } from "react"
 import {
-	BrowserRouter as Router,
-	Routes,
-	Route,
-	useLocation,
+    BrowserRouter as Router,
+    Routes,
+    Route,
+    useLocation,
 } from "react-router-dom"
 import Navbar from "./components/Navbar"
 import Footer from "./components/Footer"
@@ -32,6 +32,11 @@ import AdminServices from "./admin/AdminServices"
 function AppContent() {
 	const location = useLocation()
 	const isAdminRoute = location.pathname.startsWith("/admin")
+
+    useEffect(() => {
+        // Scroll to top on route change
+        window.scrollTo({ top: 0, left: 0, behavior: "auto" })
+    }, [location.pathname])
 
 	return (
 		<div className="min-h-screen bg-gray-50">

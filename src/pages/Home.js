@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
@@ -10,27 +10,42 @@ import {
   Stethoscope, 
   Shield, 
   Users,
+  Activity,
+  Eye,
   Star,
   ArrowRight,
   CheckCircle
 } from 'lucide-react';
-import { getAllServices } from "../data/services"
+import { getAllServicesAsync } from "../data/services"
 
 const Home = () => {
-  const services = useMemo(() => {
+  const [services, setServices] = useState([])
+
+  useEffect(() => {
+    let mounted = true
     const iconMap = {
       Heart: Heart,
       Stethoscope: Stethoscope,
       Shield: Shield,
       Syringe: Shield,
-      Activity: Heart,
-      Eye: Shield,
+      Activity: Activity,
+      Eye: Eye,
     }
-    return getAllServices().slice(0, 3).map(s => ({
-      icon: React.createElement(iconMap[s.icon] || Heart, { className: "w-8 h-8" }),
-      title: s.title,
-      description: s.description,
-    }))
+    ;(async () => {
+      try {
+        const list = await getAllServicesAsync()
+        if (!mounted) return
+        const mapped = list.slice(0, 3).map(s => ({
+          icon: React.createElement(iconMap[s.icon] || Heart, { className: "w-8 h-8" }),
+          title: s.title,
+          description: s.description,
+        }))
+        setServices(mapped)
+      } catch (_) {
+        setServices([])
+      }
+    })()
+    return () => { mounted = false }
   }, [])
 
   const testimonials = [

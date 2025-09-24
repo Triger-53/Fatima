@@ -22,30 +22,33 @@ const Navbar = () => {
 
 	return (
 		<nav className="bg-white shadow-lg sticky top-0 z-50">
-			<div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
+			<div className="max-w-8xl mx-auto px-4 sm:px-4 xl:px-8 lg:px-6">
 				<div className="flex justify-between items-center h-16">
 					{/* Logo */}
 					<Link to="/" className="flex items-center">
-						<div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
+						<div className="w-10 h-10 max-xl:hidden bg-primary-600 rounded-lg flex items-center justify-center">
 							<span className="text-white font-bold text-xl">FK</span>
 						</div>
-						<div className="ml-3">
-							<span className="block text-xl font-semibold text-gray-900">
+						<div className="ml-3 max-xl:bg-primary-600 rounded-xl max-xl:py-1 max-xl:px-4">
+							<span className="block text-xl font-semibold max-xl:hidden text-gray-900">
 								Dr. Fatima Kasamnath
 							</span>
-							<span className="block text-sm text-gray-600">
+							<span className="block text-[19px] font-semibold max-xl:text-white xl:hidden">
+								Dr. Fatima
+							</span>
+							<span className="block text-sm max-xl:hidden text-gray-600">
 								Speech Therapist
 							</span>
 						</div>
 					</Link>
 
 					{/* Desktop Nav */}
-					<div className="hidden md:flex items-center space-x-6">
+					<div className="hidden lg:flex items-center space-x-3">
 						{navItems.map((item) => (
 							<Link
 								key={item.name}
 								to={item.path}
-								className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${isActive(
+								className={`px-3 py-2 rounded-md max-xl:text-[14px] text-sm font-medium transition-colors duration-200 ${isActive(
 									item.path
 								)}`}>
 								{item.name}
@@ -55,13 +58,15 @@ const Navbar = () => {
 							<>
 								<Link
 									to="/dashboard"
-									className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${isActive(
+									className={`px-3 py-2 rounded-md max-xl:text-[14px] text-sm font-medium transition-colors duration-200 ${isActive(
 										"/dashboard"
 									)}`}>
 									Dashboard
 								</Link>
 							</>
-						):(<div> </div>)}
+						) : (
+							<div> </div>
+						)}
 
 						{/* CTA */}
 						<Link
@@ -97,7 +102,7 @@ const Navbar = () => {
 					)}
 
 					{/* Mobile menu toggle */}
-					<div className="md:hidden">
+					<div className="lg:hidden flex items-center">
 						<button
 							onClick={() => setIsOpen(!isOpen)}
 							className="p-2 rounded-md text-gray-700 hover:text-primary-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500">
@@ -110,72 +115,72 @@ const Navbar = () => {
 					</div>
 				</div>
 			</div>
-
 			{/* Mobile Nav */}
-			{isOpen && (
-				<div className="md:hidden bg-white border-t border-gray-200 px-2 pt-2 pb-3 space-y-2">
-					{navItems.map((item) => (
+			<div
+				className={`lg:hidden ${
+					isOpen ? "block" : "hidden"
+				} bg-white border-t border-gray-200 px-2 pt-2 pb-3 space-y-2`}>
+				{navItems.map((item) => (
+					<Link
+						key={item.name}
+						to={item.path}
+						onClick={() => setIsOpen(false)}
+						className={`block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${isActive(
+							item.path
+						)}`}>
+						{item.name}
+					</Link>
+				))}
+
+				{user ? (
+					<>
 						<Link
-							key={item.name}
-							to={item.path}
+							to="/dashboard"
 							onClick={() => setIsOpen(false)}
-							className={`block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${isActive(
-								item.path
-							)}`}>
-							{item.name}
+							className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600">
+							Dashboard
 						</Link>
-					))}
+						<button
+							onClick={() => {
+								signOut()
+								setIsOpen(false)
+							}}
+							className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-red-600">
+							Log out
+						</button>
+					</>
+				) : (
+					<>
+						<Link
+							to="/login"
+							onClick={() => setIsOpen(false)}
+							className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600">
+							Log in
+						</Link>
+						<Link
+							to="/signup"
+							onClick={() => setIsOpen(false)}
+							className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600">
+							Sign up
+						</Link>
+					</>
+				)}
 
-					{user ? (
-						<>
-							<Link
-								to="/dashboard"
-								onClick={() => setIsOpen(false)}
-								className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600">
-								Dashboard
-							</Link>
-							<button
-								onClick={() => {
-									signOut()
-									setIsOpen(false)
-								}}
-								className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-red-600">
-								Log out
-							</button>
-						</>
-					) : (
-						<>
-							<Link
-								to="/login"
-								onClick={() => setIsOpen(false)}
-								className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600">
-								Log in
-							</Link>
-							<Link
-								to="/signup"
-								onClick={() => setIsOpen(false)}
-								className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600">
-								Sign up
-							</Link>
-						</>
-					)}
-
-					<Link
-						to="/contact"
-						onClick={() => setIsOpen(false)}
-						className="flex items-center px-3 py-2 text-gray-700 hover:text-primary-600 transition-colors duration-200">
-						<Phone className="w-4 h-4 mr-2" />
-						<span>Call Now</span>
-					</Link>
-					<Link
-						to="/appointment"
-						onClick={() => setIsOpen(false)}
-						className="btn-primary flex items-center justify-center w-full">
-						<Calendar className="w-4 h-4 mr-2" />
-						Book Appointment
-					</Link>
-				</div>
-			)}
+				<Link
+					to="/contact"
+					onClick={() => setIsOpen(false)}
+					className="flex items-center px-3 py-2 text-gray-700 hover:text-primary-600 transition-colors duration-200">
+					<Phone className="w-4 h-4 mr-2" />
+					<span>Call Now</span>
+				</Link>
+				<Link
+					to="/appointment"
+					onClick={() => setIsOpen(false)}
+					className="btn-primary flex items-center justify-center w-full">
+					<Calendar className="w-4 h-4 mr-2" />
+					Book Appointment
+				</Link>
+			</div>
 		</nav>
 	)
 }

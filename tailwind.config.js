@@ -4,6 +4,14 @@ module.exports = {
     "./src/**/*.{js,jsx,ts,tsx}",
   ],
   theme: {
+  extend: {
+    screens: {
+      "max-1100": { max: "1100px" }, // new custom breakpoint
+    },
+  },
+},
+
+  theme: {
     extend: {
       colors: {
         primary: {
