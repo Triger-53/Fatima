@@ -195,7 +195,7 @@ const About = () => {
               We believe in providing comprehensive, compassionate care that puts our patients first.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
             {values.map((value, index) => (
               <motion.div
                 key={index}
