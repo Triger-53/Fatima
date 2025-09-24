@@ -23,6 +23,20 @@
 
   .card {
     @apply bg-white rounded-xl shadow-lg p-4 sm:p-6 border border-gray-100;
+    max-width: 100%;
+  }
+
+  .hero-card {
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  @media (min-width: 1024px) {
+    .hero-card {
+      margin-left: 0;
+      margin-right: 0;
+    }
   }
   
   .section-padding {
