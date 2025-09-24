@@ -2,28 +2,27 @@ import React, { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { motion } from "framer-motion"
 import {
-	Heart,
-	Stethoscope,
-	Shield,
-	Syringe,
-	Activity,
-	Eye,
-	Baby,
-	Brain,
-	Star,
-	Calendar,
-	Clock,
-	DollarSign,
-	CheckCircle,
+    Heart,
+    Stethoscope,
+    Shield,
+    Syringe,
+    Activity,
+    Eye,
+    Baby,
+    Brain,
+    Star,
+    Calendar,
+    Clock,
+    CheckCircle,
 } from "lucide-react"
-import { getAllServices } from "../data/services"
+import { getAllServicesAsync } from "../data/services"
 
 const Services = () => {
 	const [services, setServices] = useState([])
 	const [loading, setLoading] = useState(true)
 
-	useEffect(() => {
-		// Load services from JSON and map icons
+    useEffect(() => {
+        // Load services and map icons
 		const iconMap = {
 			Heart: Heart,
 			Stethoscope: Stethoscope,
@@ -33,14 +32,16 @@ const Services = () => {
 			Eye: Eye,
 		}
 
-		const mappedServices = getAllServices().map((service) => ({
-			...service,
-			icon: React.createElement(iconMap[service.icon], { className: "w-8 h-8" }),
-		}))
-
-		setServices(mappedServices)
-		setLoading(false)
-	}, [])
+        ;(async () => {
+            const list = await getAllServicesAsync()
+            const mappedServices = list.map((service) => ({
+                ...service,
+                icon: React.createElement(iconMap[service.icon], { className: "w-8 h-8" }),
+            }))
+            setServices(mappedServices)
+            setLoading(false)
+        })()
+    }, [])
 
 	// helper to format prices
 	const formatPrice = (price) => {
@@ -141,12 +142,11 @@ const Services = () => {
 											<Clock className="w-4 h-4 mr-2" />
 											<span className="text-sm">{service.duration}</span>
 										</div>
-										<div className="flex items-center text-gray-600">
-											<DollarSign className="w-4 h-4 mr-2" />
-											<span className="text-sm font-medium">
-												{formatPrice(service.price)}
-											</span>
-										</div>
+                                        <div className="flex items-center text-gray-600">
+                                            <span className="text-sm font-medium">
+                                                {formatPrice(service.price)}
+                                            </span>
+                                        </div>
 									</div>
 									<Link
 										to={`/appointment?service=${encodeURIComponent(JSON.stringify({

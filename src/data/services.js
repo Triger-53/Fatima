@@ -71,6 +71,17 @@ function refreshInBackground() {
 }
 
 export function getAllServices() {
+    // 0) Admin override (if present, always prefer)
+    try {
+        const overrideRaw = localStorage.getItem(LS_OVERRIDE_KEY)
+        if (overrideRaw) {
+            const override = JSON.parse(overrideRaw)
+            if (Array.isArray(override?.services)) {
+                return override.services
+            }
+        }
+    } catch (_) {}
+
     // 1) In-memory cache (fastest)
     if (inMemoryCache && Date.now() - inMemoryCache.ts < CACHE_TTL_MS) {
         return inMemoryCache.services
@@ -206,6 +217,45 @@ export async function updateServiceById(id, serviceData) {
     inMemoryCache = null
     localStorage.removeItem(LS_CACHE_KEY)
     return true
+}
+
+// Async API for consumers that want fresh data reliably (no background race)
+export async function getAllServicesAsync() {
+    // 0) Admin override wins, if present
+    try {
+        const overrideRaw = localStorage.getItem(LS_OVERRIDE_KEY)
+        if (overrideRaw) {
+            const override = JSON.parse(overrideRaw)
+            if (Array.isArray(override?.services)) {
+                return override.services
+            }
+        }
+    } catch (_) {}
+
+    // 1) Use in-memory cache if fresh
+    if (inMemoryCache && Date.now() - inMemoryCache.ts < CACHE_TTL_MS) {
+        return inMemoryCache.services
+    }
+
+    // 2) Try Supabase directly
+    try {
+        const services = await fetchFromSupabase()
+        inMemoryCache = { services, ts: Date.now() }
+        writeLocalCache(services)
+        return services
+    } catch (_) {}
+
+    // 3) Fallback to localStorage cache if available
+    const local = readLocalCache()
+    if (local && Array.isArray(local.services)) {
+        inMemoryCache = local
+        return local.services
+    }
+
+    // 4) Final fallback to bundled JSON
+    const services = fallback?.services || []
+    inMemoryCache = { services, ts: Date.now() }
+    return services
 }
 
 
