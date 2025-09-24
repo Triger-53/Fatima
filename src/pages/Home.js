@@ -1,14 +1,15 @@
 import React, { useMemo } from 'react';
+import React, { useMemo } from 'react'
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  Calendar, 
-  Phone, 
-  MapPin, 
-  Clock, 
-  Heart, 
-  Stethoscope, 
-  Shield, 
+import {
+  Calendar,
+  Phone,
+  MapPin,
+  Clock,
+  Heart,
+  Stethoscope,
+  Shield,
   Users,
   Star,
   ArrowRight,
