@@ -14,7 +14,7 @@ import {
   ArrowRight,
   CheckCircle
 } from 'lucide-react';
-import { getAllServices } from "../utils/servicesProvider"
+import { getAllServices } from "../data/services"
 
 const Home = () => {
   const services = useMemo(() => {

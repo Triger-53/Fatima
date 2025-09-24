@@ -4,7 +4,7 @@ import { motion } from "framer-motion"
 import { Calendar, CheckCircle, ChevronRight, ChevronLeft } from "lucide-react"
 import { supabase } from "../supabase"
 import { checkUserExists, deleteUserById } from "../utils/supabaseAdmin"
-import { getAllServices, getServiceByAppointmentType as getServiceByType } from "../utils/servicesProvider"
+import { getAllServices, getServiceByAppointmentType as getServiceByType } from "../data/services"
 
 /**
  * Appointment page
@@ -816,16 +816,23 @@ const Appointment = () => {
 		}
 		
 		if (currentService && currentService.price) {
-			const price = currentService.price.inr || currentService.price
-			paymentAmount = price.min * 100 // Convert to paise
+			// Handle both old format (price object) and new format (single number)
+			if (typeof currentService.price === 'number') {
+				paymentAmount = currentService.price * 100 // Convert to paise
+			} else {
+				const price = currentService.price.inr || currentService.price
+				paymentAmount = price.min * 100 // Convert to paise
+			}
 		}
 
 		const options = {
-			key: "rzp_test_REORU4W2JT2Anw",
+			key: "rzp_live_RL4t8lq29IQAcb",
 			amount: paymentAmount,
 			currency: "INR",
 			name: "Dr. Fatima Kasamnath Clinic",
-			description: `Appointment Payment - ${selectedService?.title || formData.appointmentType}`,
+			description: `Appointment Payment - ${
+				selectedService?.title || formData.appointmentType
+			}`,
 			prefill: {
 				name: `${formData.firstName} ${formData.lastName}`,
 				email: formData.email,
@@ -838,9 +845,9 @@ const Appointment = () => {
 				try {
 					// Book the slot first to prevent double booking
 					await bookSlot(
-						formData.preferredDate, 
-						formData.preferredTime, 
-						formData.consultationMethod, 
+						formData.preferredDate,
+						formData.preferredTime,
+						formData.consultationMethod,
 						formData.medicalCenter
 					)
 
@@ -1869,6 +1876,10 @@ const Appointment = () => {
 														<Calendar className="w-5 h-5 mr-2" /> 
 														Pay ₹{(() => {
 															const currentService = selectedService || getServiceByAppointmentType(formData.appointmentType)
+															// Handle both old format (price object) and new format (single number)
+															if (typeof currentService?.price === 'number') {
+																return currentService.price
+															}
 															return currentService?.price?.inr?.min || currentService?.price?.min || 500
 														})()} & Confirm
 													</>

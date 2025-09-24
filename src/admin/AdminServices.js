@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react"
-import { getAllServices, saveAllServices, resetServicesToDefault } from "../utils/servicesProvider"
+import { getAllServices, saveAllServices, resetServicesToDefault, publishAllServices, deleteServiceById, updateServiceById } from "../data/services"
+import { Heart, Stethoscope, Shield, Syringe, Activity, Eye, Clock, DollarSign, CheckCircle } from "lucide-react"
 
 const emptyService = {
 	id: "",
@@ -7,7 +8,7 @@ const emptyService = {
 	description: "",
 	features: [],
 	duration: "", 
-	price: { min: 0, max: 0, currency: "USD", inr: { min: 0, max: 0 } },
+	price: 0,
 	icon: "Heart",
 	appointmentType: "",
 }
@@ -30,34 +31,69 @@ const AdminServices = () => {
 		setEditingIndex(-1)
 		setDraft(emptyService)
 	}
-	const removeAt = (index) => {
-		const next = services.filter((_, i) => i !== index)
-		setServices(next)
-		saveAllServices(next)
+	const removeAt = async (index) => {
+		const service = services[index]
+		if (!service?.id) {
+			// Local-only service, remove from local state
+			const next = services.filter((_, i) => i !== index)
+			setServices(next)
+			saveAllServices(next)
+			return
+		}
+
+		// Service exists in Supabase, delete it
+		try {
+			await deleteServiceById(service.id)
+			// Refresh services from Supabase
+			const freshServices = getAllServices()
+			setServices(freshServices)
+			alert("Service deleted successfully.")
+		} catch (e) {
+			console.error(e)
+			alert(e?.message || "Failed to delete service")
+		}
 	}
 	const handleChange = (e) => {
 		const { name, value } = e.target
 		setDraft((p) => ({ ...p, [name]: value }))
 	}
-	const handlePriceChange = (currency, field, value) => {
+	const handlePriceChange = (value) => {
 		setDraft((p) => ({
 			...p,
-			price: {
-				...p.price,
-				[currency]: {
-					...p.price?.[currency],
-					[field]: Number(value) || 0,
-				},
-			},
+			price: Number(value) || 0,
 		}))
 	}
 	const handleFeaturesChange = (value) => {
 		const lines = value.split("\n").map((s) => s.trim()).filter(Boolean)
 		setDraft((p) => ({ ...p, features: lines }))
 	}
-	const saveDraft = () => {
+	const saveDraft = async () => {
 		const sanitized = { ...draft }
-		if (!sanitized.id) sanitized.id = sanitized.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")
+		
+		// If editing an existing service with a valid UUID, update in Supabase
+		if (isEditing && services[editingIndex]?.id && /^[0-9a-fA-F-]{36}$/.test(services[editingIndex].id)) {
+			try {
+				await updateServiceById(services[editingIndex].id, sanitized)
+				// Refresh services from Supabase
+				const freshServices = getAllServices()
+				setServices(freshServices)
+				setEditingIndex(-1)
+				setDraft(emptyService)
+				alert("Service updated successfully.")
+				return
+			} catch (e) {
+				console.error(e)
+				alert(e?.message || "Failed to update service")
+				return
+			}
+		}
+
+		// For new services or local drafts, don't set an ID - let Supabase generate UUIDs on publish
+		if (!sanitized.id || !/^[0-9a-fA-F-]{36}$/.test(sanitized.id)) {
+			delete sanitized.id
+		}
+
+		// Handle as local draft
 		let next
 		if (isEditing) {
 			next = services.map((s, i) => (i === editingIndex ? sanitized : s))
@@ -77,76 +113,179 @@ const AdminServices = () => {
 		setDraft(emptyService)
 	}
 
+	const publishNow = async () => {
+		try {
+			await publishAllServices(services)
+			alert("Services published successfully.")
+		} catch (e) {
+			console.error(e)
+			alert(e?.message || "Failed to publish services")
+		}
+	}
+
 	return (
-		<div className="">
-			<div className="bg-white rounded-lg shadow p-4">
-				<div className="flex justify-between items-center mb-4">
-					<h2 className="text-xl font-semibold">Manage Services</h2>
-					<div className="space-x-2">
-						<button onClick={startAdd} className="px-3 py-2 bg-blue-600 text-white rounded">Add Service</button>
-						<button onClick={resetToDefault} className="px-3 py-2 bg-gray-100 rounded">Reset to Default</button>
+		<div className="p-6">
+			<div className="bg-white rounded-lg shadow p-6">
+				<div className="flex justify-between items-center mb-6">
+					<h2 className="text-2xl font-semibold text-gray-900">Manage Services</h2>
+					<div className="space-x-3">
+						<button onClick={startAdd} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+							Add Service
+						</button>
+						<button onClick={resetToDefault} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+							Reset to Default
+						</button>
+						<button onClick={publishNow} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+							Publish
+						</button>
 					</div>
 				</div>
 
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-					<div className="md:col-span-2">
-						<table className="w-full text-sm">
-							<thead>
-								<tr className="text-left border-b">
-									<th className="py-2">Title</th>
-									<th className="py-2">Type</th>
-									<th className="py-2">INR</th>
-									<th className="py-2">Actions</th>
+				{/* Services List - Simple Table */}
+				<div className="mb-8">
+					<table className="w-full text-sm">
+						<thead>
+							<tr className="text-left border-b">
+								<th className="py-3">Title</th>
+								<th className="py-3">Type</th>
+								<th className="py-3">Price</th>
+								<th className="py-3">Actions</th>
+							</tr>
+						</thead>
+						<tbody>
+							{services.map((s, i) => (
+								<tr key={s.id || i} className="border-b">
+									<td className="py-3 pr-2">{s.title}</td>
+									<td className="py-3 pr-2">{s.appointmentType}</td>
+									<td className="py-3 pr-2">₹{s.price || 0}</td>
+									<td className="py-3">
+										<button onClick={() => startEdit(i)} className="px-3 py-1 bg-indigo-600 text-white rounded mr-2 hover:bg-indigo-700">Edit</button>
+										<button onClick={() => removeAt(i)} className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700">Delete</button>
+									</td>
 								</tr>
-							</thead>
-							<tbody>
-								{services.map((s, i) => (
-									<tr key={s.id || i} className="border-b">
-										<td className="py-2 pr-2">{s.title}</td>
-										<td className="py-2 pr-2">{s.appointmentType}</td>
-										<td className="py-2 pr-2">₹{(s.price?.inr?.min || s.price?.min || 0)} - ₹{(s.price?.inr?.max || s.price?.max || 0)}</td>
-										<td className="py-2">
-											<button onClick={() => startEdit(i)} className="px-2 py-1 bg-indigo-600 text-white rounded mr-2">Edit</button>
-											<button onClick={() => removeAt(i)} className="px-2 py-1 bg-red-600 text-white rounded">Delete</button>
-										</td>
-									</tr>
-								))}
-							</tbody>
-						</table>
-					</div>
+							))}
+						</tbody>
+					</table>
+				</div>
 
-					<div className="md:col-span-1">
-						<div className="border rounded p-3">
-							<h3 className="font-semibold mb-3">{isEditing ? "Edit" : "Add"} Service</h3>
-							<label className="block text-sm">Title</label>
-							<input name="title" value={draft.title} onChange={handleChange} className="w-full border rounded p-2 mb-2" />
-							<label className="block text-sm">Appointment Type (key)</label>
-							<input name="appointmentType" value={draft.appointmentType} onChange={handleChange} className="w-full border rounded p-2 mb-2" />
-							<label className="block text-sm">Icon (Heart, Stethoscope, Shield, Syringe, Activity, Eye)</label>
-							<input name="icon" value={draft.icon} onChange={handleChange} className="w-full border rounded p-2 mb-2" />
-							<label className="block text-sm">Duration</label>
-							<input name="duration" value={draft.duration} onChange={handleChange} className="w-full border rounded p-2 mb-2" />
-							<label className="block text-sm">Description</label>
-							<textarea name="description" value={draft.description} onChange={handleChange} className="w-full border rounded p-2 mb-2" rows="3" />
-							<label className="block text-sm">Features (one per line)</label>
-							<textarea value={(draft.features || []).join("\n")} onChange={(e) => handleFeaturesChange(e.target.value)} className="w-full border rounded p-2 mb-2" rows="4" />
-							<div className="grid grid-cols-2 gap-2">
-								<div>
-									<label className="block text-sm">INR Min</label>
-									<input type="number" value={draft.price?.inr?.min || 0} onChange={(e) => handlePriceChange("inr", "min", e.target.value)} className="w-full border rounded p-2 mb-2" />
+				{/* Edit Form - Card Style like Services Page */}
+				{isEditing && (
+					<div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-xl transition-all duration-300">
+						<div className="flex items-center justify-between mb-6">
+							<h3 className="text-2xl font-semibold text-gray-900">
+								{editingIndex >= 0 ? "Edit" : "Add"} Service
+							</h3>
+							<div className="flex space-x-3">
+								<button 
+									onClick={cancelEdit} 
+									className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+								>
+									Cancel
+								</button>
+								<button 
+									onClick={saveDraft} 
+									className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+								>
+									Save
+								</button>
+							</div>
+						</div>
+
+						{/* Icon and Title Row */}
+						<div className="flex items-start space-x-6 mb-6">
+							<div className="w-16 h-16 bg-primary-100 rounded-lg flex items-center justify-center text-primary-600">
+								{React.createElement(
+									{ Heart, Stethoscope, Shield, Syringe, Activity, Eye }[draft.icon] || Heart,
+									{ className: "w-8 h-8" }
+								)}
+							</div>
+							<div className="flex-1">
+								<input 
+									name="title" 
+									value={draft.title} 
+									onChange={handleChange} 
+									className="w-full text-2xl font-semibold text-gray-900 bg-transparent border-none outline-none mb-2" 
+									placeholder="Service Title"
+								/>
+								<input 
+									name="appointmentType" 
+									value={draft.appointmentType} 
+									onChange={handleChange} 
+									className="w-full text-sm text-gray-600 bg-transparent border-none outline-none" 
+									placeholder="Appointment Type (e.g., speech, articulation)"
+								/>
+							</div>
+						</div>
+
+						{/* Description */}
+						<div className="mb-6">
+							<textarea 
+								name="description" 
+								value={draft.description} 
+								onChange={handleChange} 
+								className="w-full text-gray-600 bg-transparent border-none outline-none resize-none" 
+								rows="2"
+								placeholder="Service description"
+							/>
+						</div>
+
+						{/* Features Section */}
+						<div className="mb-6">
+							<h4 className="font-semibold text-gray-900 mb-3">What's Included:</h4>
+							<textarea 
+								value={(draft.features || []).join("\n")} 
+								onChange={(e) => handleFeaturesChange(e.target.value)} 
+								className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" 
+								rows="4"
+								placeholder="Feature 1&#10;Feature 2&#10;Feature 3"
+							/>
+						</div>
+
+						{/* Bottom Section with Duration, Price, and Icon Selector */}
+						<div className="border-t border-gray-200 pt-4">
+							<div className="flex justify-between items-center mb-4">
+								<div className="flex items-center text-gray-600">
+									<Clock className="w-4 h-4 mr-2" />
+									<input 
+										name="duration" 
+										value={draft.duration} 
+										onChange={handleChange} 
+										className="bg-transparent border-none outline-none text-sm" 
+										placeholder="Duration (e.g., 45-60 minutes)"
+									/>
 								</div>
-								<div>
-									<label className="block text-sm">INR Max</label>
-									<input type="number" value={draft.price?.inr?.max || 0} onChange={(e) => handlePriceChange("inr", "max", e.target.value)} className="w-full border rounded p-2 mb-2" />
+								<div className="flex items-center text-gray-600">
+									<DollarSign className="w-4 h-4 mr-2" />
+									<input 
+										type="number" 
+										value={draft.price || 0} 
+										onChange={(e) => handlePriceChange(e.target.value)} 
+										className="bg-transparent border-none outline-none text-sm font-medium w-20" 
+										placeholder="500"
+									/>
 								</div>
 							</div>
-							<div className="flex justify-end space-x-2 mt-2">
-								<button onClick={cancelEdit} className="px-3 py-2 bg-gray-100 rounded">Cancel</button>
-								<button onClick={saveDraft} className="px-3 py-2 bg-green-600 text-white rounded">Save</button>
+							
+							{/* Icon Selector */}
+							<div className="flex items-center space-x-4">
+								<span className="text-sm text-gray-600">Icon:</span>
+								<select 
+									name="icon" 
+									value={draft.icon} 
+									onChange={handleChange} 
+									className="border border-gray-300 rounded px-3 py-1 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+								>
+									<option value="Heart">Heart</option>
+									<option value="Stethoscope">Stethoscope</option>
+									<option value="Shield">Shield</option>
+									<option value="Syringe">Syringe</option>
+									<option value="Activity">Activity</option>
+									<option value="Eye">Eye</option>
+								</select>
 							</div>
 						</div>
 					</div>
-				</div>
+				)}
 			</div>
 		</div>
 	)

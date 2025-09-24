@@ -16,7 +16,7 @@ import {
 	DollarSign,
 	CheckCircle,
 } from "lucide-react"
-import { getAllServices } from "../utils/servicesProvider"
+import { getAllServices } from "../data/services"
 
 const Services = () => {
 	const [services, setServices] = useState([])
@@ -45,6 +45,10 @@ const Services = () => {
 	// helper to format prices
 	const formatPrice = (price) => {
 		if (!price) return ""
+		// Handle both old format (price object) and new format (single number)
+		if (typeof price === 'number') {
+			return `₹${price.toLocaleString()}`
+		}
 		// Use INR pricing for display
 		const inrPrice = price.inr || price
 		return inrPrice.min === inrPrice.max

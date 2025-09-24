@@ -15,11 +15,13 @@ const RazorpayButton = ({ amount, formData, onPaymentSuccess, selectedService })
 		}
 
 		const options = {
-			key: "rzp_test_REORU4W2JT2Anw",
+			key: "rzp_live_RL4t8lq29IQAcb",
 			amount: paymentAmount * 100, // Convert to paise
 			currency: "INR",
 			name: "Dr. Fatima Kasamnath Clinic",
-			description: `Appointment Payment - ${selectedService?.title || 'Service'}`,
+			description: `Appointment Payment - ${
+				selectedService?.title || "Service"
+			}`,
 			prefill: {
 				name: `${formData.firstName} ${formData.lastName}`,
 				email: formData.email,
