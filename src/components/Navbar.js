@@ -25,35 +25,26 @@ const Navbar = () => {
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 				<div className="flex items-center justify-between h-16 min-w-0">
 					{/* Logo */}
-					<Link to="/" className="flex items-center flex-shrink-0 mr-4">
-						<div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center flex-shrink-0">
-							<span className="text-white font-bold text-xl">FK</span>
+					<div className="flex items-center flex-shrink-0 mr-4">
+						{/* Desktop/Tablet: show FK icon + Dr. Fatima (no Kasamnath) */}
+						<div className="hidden md:flex items-center flex-shrink-0">
+							<div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
+								<span className="text-white font-bold text-xl">FK</span>
+							</div>
+							<div className="ml-3 min-w-0">
+								<span className="text-xl font-semibold text-gray-900 truncate max-w-[16rem]">Dr. Fatima</span>
+							</div>
 						</div>
-						<div className="ml-3 min-w-0">
-							{/* Full name only on lg to avoid overflow on mid screens */}
-							<span className="hidden lg:block text-xl font-semibold text-gray-900 truncate max-w-[20rem]">
-								Dr. Fatima Kasamnath
-							</span>
-							{/* Shorter name on md */}
-							<span className="hidden md:block lg:hidden text-lg font-semibold text-gray-900 truncate max-w-[12rem]">
-								Dr. Fatima
-							</span>
-							{/* Small screens */}
-							<span className="block md:hidden text-lg font-semibold text-gray-900 truncate max-w-[10rem]">Dr. Fatima</span>
-							{/* subtitle hidden on md to save space */}
-							<span className="hidden sm:block md:hidden text-sm text-gray-600 truncate">Speech Therapist</span>
-						</div>
-					</Link>
+						{/* Mobile: show pill with Dr. Fatima and blue background (no FK) */}
+						<Link to="/" className="md:hidden inline-flex items-center bg-primary-600 text-white rounded-full px-3 py-1">
+							<span className="font-semibold">Dr. Fatima</span>
+						</Link>
+					</div>
 
-					{/* Center nav for md+ */}
-					<div className="hidden md:flex flex-1 items-center justify-center space-x-2 sm:space-x-4 lg:space-x-6 min-w-0">
+					{/* Nav links (md+) - keep on right side, do not center */}
+					<div className="hidden md:flex items-center space-x-4 lg:space-x-6">
 						{navItems.map((item) => (
-							<Link
-								key={item.name}
-								to={item.path}
-								className={`px-2 sm:px-3 py-2 rounded-md text-sm font-medium truncate transition-colors duration-200 ${isActive(
-									item.path
-								)}`}>
+							<Link key={item.name} to={item.path} className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${isActive(item.path)}`}>
 								{item.name}
 							</Link>
 						))}
