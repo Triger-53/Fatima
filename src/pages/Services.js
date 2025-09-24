@@ -16,14 +16,14 @@ import {
 	DollarSign,
 	CheckCircle,
 } from "lucide-react"
-import { getAllServices } from "../data/services"
+import { getAllServicesAsync } from "../data/services"
 
 const Services = () => {
 	const [services, setServices] = useState([])
 	const [loading, setLoading] = useState(true)
 
-	useEffect(() => {
-		// Load services from JSON and map icons
+  useEffect(() => {
+        // Load services and map icons
 		const iconMap = {
 			Heart: Heart,
 			Stethoscope: Stethoscope,
@@ -33,14 +33,16 @@ const Services = () => {
 			Eye: Eye,
 		}
 
-		const mappedServices = getAllServices().map((service) => ({
-			...service,
-			icon: React.createElement(iconMap[service.icon], { className: "w-8 h-8" }),
-		}))
-
-		setServices(mappedServices)
-		setLoading(false)
-	}, [])
+      ; (async () => {
+        const list = await getAllServicesAsync()
+        const mappedServices = list.map((service) => ({
+          ...service,
+          icon: React.createElement(iconMap[service.icon], { className: "w-8 h-8" }),
+        }))
+        setServices(mappedServices)
+        setLoading(false)
+      })()
+  }, [])
 
 	// helper to format prices
 	const formatPrice = (price) => {
