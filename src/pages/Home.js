@@ -1,4 +1,3 @@
-import React, { useMemo } from 'react';
 import React, { useMemo } from 'react'
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -141,7 +140,7 @@ const Home = () => {
 							communication needs at every age.
 						</p>
 					</div>
-					<div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+					<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
 						{services.map((service, index) => (
 							<motion.div
 								key={index}
@@ -149,15 +148,15 @@ const Home = () => {
 								animate={{ opacity: 1, y: 0 }}
 								transition={{ duration: 0.6, delay: index * 0.1 }}
 								className="card text-center hover:shadow-xl transition-shadow duration-300">
-								<div className="w-16 h-16 bg-primary-100 rounded-full mx-auto mb-6 flex items-center justify-center text-primary-600">
-									{service.icon}
-								</div>
-								<h3 className="text-xl font-semibold text-gray-900 mb-3">
-									{service.title}
-								</h3>
-								<p className="text-gray-600">{service.description}</p>
-							</motion.div>
-						))}
+									<div className="w-16 h-16 bg-primary-100 rounded-full mx-auto mb-6 flex items-center justify-center text-primary-600">
+										{service.icon}
+									</div>
+									<h3 className="text-xl font-semibold text-gray-900 mb-3">
+										{service.title}
+									</h3>
+									<p className="text-gray-600">{service.description}</p>
+								</motion.div>
+							))}
 					</div>
 					<div className="text-center mt-12">
 						<Link
@@ -179,7 +178,7 @@ const Home = () => {
 							animate={{ opacity: 1, x: 0 }}
 							transition={{ duration: 0.8 }}>
 							<h1 className="text-4xl md:text-5xl lg:text-5xl font-bold text-gray-900 mb-6">
-								Our Online{" "}
+								Our Online,{" "}
 								<span className="text-primary-600">
 									Consultation & Sessions
 								</span>
@@ -241,19 +240,19 @@ const Home = () => {
 											<p className="text-gray-600 text-sm mt-1">
 												{service.desc}
 											</p>
-										</div>
-									))}
+											</div>
+										))}
 
-									<div className="mt-6 p-4 bg-primary-50 rounded-lg">
-										<div className="flex items-center justify-center">
-											<Link
-												to="/appointment"
-												className="btn-primary flex items-center justify-center">
-												<Calendar className="w-5 h-5 mr-2" />
-												Book Appointment
-											</Link>
+										<div className="mt-6 p-4 bg-primary-50 rounded-lg">
+											<div className="flex items-center justify-center">
+												<Link
+													to="/appointment"
+													className="btn-primary flex items-center justify-center">
+														<Calendar className="w-5 h-5 mr-2" />
+														Book Appointment
+													</Link>
+												</div>
 										</div>
-									</div>
 								</div>
 							</div>
 						</motion.div>
@@ -366,25 +365,25 @@ const Home = () => {
 								animate={{ opacity: 1, y: 0 }}
 								transition={{ duration: 0.6, delay: index * 0.1 }}
 								className="card">
-								<div className="flex items-center mb-4">
-									{[...Array(testimonial.rating)].map((_, i) => (
-										<Star
-											key={i}
-											className="w-5 h-5 text-yellow-400 fill-current"
-										/>
-									))}
-								</div>
-								<p className="text-gray-600 mb-4 italic">
+									<div className="flex items-center mb-4">
+										{[...Array(testimonial.rating)].map((_, i) => (
+											<Star
+												key={i}
+												className="w-5 h-5 text-yellow-400 fill-current"
+											/>
+										))}
+									</div>
+									<p className="text-gray-600 mb-4 italic">
 									"{testimonial.text}"
-								</p>
-								<p className="font-semibold text-gray-900">
+									</p>
+									<p className="font-semibold text-gray-900">
 									- {testimonial.name}
-								</p>
-							</motion.div>
-						))}
+									</p>
+								</motion.div>
+							))}
+						</div>
 					</div>
-				</div>
-			</section>
+				</section>
 
 			{/* CTA Section */}
 			<section className="section-padding bg-primary-600">
@@ -402,16 +401,16 @@ const Home = () => {
 							className="bg-white text-primary-600 hover:bg-gray-100 font-medium py-3 px-8 rounded-lg transition-colors duration-200 flex items-center justify-center">
 							<Calendar className="w-5 h-5 mr-2" />
 							Book Appointment
-						</Link>
+							</Link>
 						<Link
 							to="/contact"
 							className="border-2 border-white text-white hover:bg-white hover:text-primary-600 font-medium py-3 px-8 rounded-lg transition-colors duration-200 flex items-center justify-center">
 							<Phone className="w-5 h-5 mr-2" />
 							Call Us
-						</Link>
+							</Link>
+						</div>
 					</div>
-				</div>
-			</section>
+				</section>
 		</div>
 	)
 };
