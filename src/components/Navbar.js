@@ -1,5 +1,4 @@
 import React, { useState } from "react"
-import React, { useState } from "react"
 import { Link, useLocation } from "react-router-dom"
 import { Menu, X, Phone, Calendar } from "lucide-react"
 import { useAuth } from "../auth/AuthProvider"
@@ -23,7 +22,7 @@ const Navbar = () => {
 
 	return (
 		<nav className="bg-white shadow-lg sticky top-0 z-50">
-			<div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
+			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 				<div className="flex justify-between items-center h-16">
 					{/* Logo */}
 					<Link to="/" className="flex items-center">
@@ -31,8 +30,11 @@ const Navbar = () => {
 							<span className="text-white font-bold text-xl">FK</span>
 						</div>
 						<div className="ml-3">
-							<span className="block text-xl font-semibold text-gray-900">
+							<span className="hidden sm:block text-xl font-semibold text-gray-900">
 								Dr. Fatima Kasamnath
+							</span>
+							<span className="block sm:hidden text-lg font-semibold text-gray-900">
+								Dr. Fatima
 							</span>
 							<span className="block text-sm text-gray-600">
 								Speech Therapist
@@ -41,7 +43,7 @@ const Navbar = () => {
 					</Link>
 
 					{/* Desktop Nav */}
-					<div className="hidden md:flex items-center space-x-6">
+					<div className="hidden md:flex items-center space-x-4 lg:space-x-6">
 						{navItems.map((item) => (
 							<Link
 								key={item.name}
@@ -62,7 +64,9 @@ const Navbar = () => {
 									Dashboard
 								</Link>
 							</>
-						):(<div> </div>)}
+						) : (
+							<div />
+						)}
 
 						{/* CTA */}
 						<Link
@@ -124,8 +128,8 @@ const Navbar = () => {
 								item.path
 							)}`}>
 							{item.name}
-						</Link>
-					))}
+							</Link>
+						))}
 
 					{user ? (
 						<>
@@ -134,7 +138,7 @@ const Navbar = () => {
 								onClick={() => setIsOpen(false)}
 								className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600">
 								Dashboard
-							</Link>
+								</Link>
 							<button
 								onClick={() => {
 									signOut()
@@ -142,7 +146,7 @@ const Navbar = () => {
 								}}
 								className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-red-600">
 								Log out
-							</button>
+								</button>
 						</>
 					) : (
 						<>
@@ -151,13 +155,13 @@ const Navbar = () => {
 								onClick={() => setIsOpen(false)}
 								className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600">
 								Log in
-							</Link>
+								</Link>
 							<Link
 								to="/signup"
 								onClick={() => setIsOpen(false)}
 								className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-600">
 								Sign up
-							</Link>
+								</Link>
 						</>
 					)}
 
@@ -172,9 +176,9 @@ const Navbar = () => {
 						to="/appointment"
 						onClick={() => setIsOpen(false)}
 						className="btn-primary flex items-center justify-center w-full">
-						<Calendar className="w-4 h-4 mr-2" />
-						Book Appointment
-					</Link>
+							<Calendar className="w-4 h-4 mr-2" />
+							Book Appointment
+						</Link>
 				</div>
 			)}
 		</nav>
