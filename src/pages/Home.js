@@ -87,7 +87,7 @@ const Home = () => {
 							animate={{ opacity: 1, x: 0 }}
 							transition={{ duration: 0.8, delay: 0.2 }}
 							className="relative">
-							<div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 hero-card">
+							<div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 w-full sm:max-w-md lg:ml-auto">
 								<div className="text-center">
 									<div className="w-28 h-28 sm:w-32 sm:h-32 bg-primary-100 rounded-full mx-auto mb-4 sm:mb-6 flex items-center justify-center">
 										<Users className="w-12 h-12 sm:w-16 sm:h-16 text-primary-600" />
