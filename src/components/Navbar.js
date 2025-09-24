@@ -71,11 +71,11 @@ const Navbar = () => {
 						{/* CTA */}
 						<Link
 							to="/contact"
-							className="flex items-center text-gray-700 hover:text-primary-600 transition-colors duration-200">
+							className="hidden sm:flex items-center text-gray-700 hover:text-primary-600 transition-colors duration-200">
 							<Phone className="w-4 h-4 mr-2" />
 							<span className="text-sm font-medium">Call Now</span>
 						</Link>
-						<Link to="/appointment" className="btn-primary flex items-center">
+						<Link to="/appointment" className="btn-primary flex items-center px-3 py-2 sm:px-4 sm:py-2">
 							<Calendar className="w-4 h-4 mr-2" />
 							Book Appointment
 						</Link>
