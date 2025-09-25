@@ -13,6 +13,9 @@ import {
   Star,
   CheckCircle
 } from 'lucide-react';
+import OnlineIllustration from '../components/OnlineIllustration';
+import FeatureIcon from '../components/FeatureIcon';
+import CtaIllustration from '../components/CtaIllustration';
 
 const About = () => {
   const credentials = [
@@ -25,17 +28,17 @@ const About = () => {
 
   const values = [
     {
-      icon: <Heart className="w-8 h-8" />,
+      icon: "Heart",
       title: "Compassionate Care",
       description: "We treat every patient with kindness, respect, and understanding, recognizing that each person has unique healthcare needs."
     },
     {
-      icon: <Users className="w-8 h-8" />,
+      icon: "Users",
       title: "Patient-Centered",
       description: "Your health goals and preferences are at the center of every decision we make about your care."
     },
     {
-      icon: <Award className="w-8 h-8" />,
+      icon: "Award",
       title: "Excellence",
       description: "We maintain the highest standards of medical care through continuous education and evidence-based practices."
     }
@@ -80,7 +83,7 @@ const About = () => {
                 Meet Dr. Fatima Kasamnath
               </h1>
               <p className="text-xl text-gray-600 mb-8">
-                A dedicated speech-language pathologist with over 15 years of experience 
+                A dedicated speech-language pathologist with over 25 years of experience
                 providing compassionate, comprehensive speech therapy to patients of all ages.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
@@ -98,33 +101,9 @@ const About = () => {
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="relative"
+              className="relative flex items-center justify-center"
             >
-              <div className="bg-white rounded-2xl shadow-2xl p-8">
-                <div className="text-center">
-                  <div className="w-32 h-32 bg-primary-100 rounded-full mx-auto mb-6 flex items-center justify-center text-4xl">
-                    👩‍⚕️
-                  </div>
-                  <h3 className="text-2xl font-semibold text-gray-900 mb-2">
-                    Dr. Fatima Kasamnath, SLP
-                  </h3>
-                  <p className="text-gray-600 mb-4">Speech-Language Pathologist</p>
-                  <div className="space-y-3 text-left">
-                    <div className="flex items-center">
-                      <CheckCircle className="w-5 h-5 text-medical-500 mr-3" />
-                      <span className="text-gray-700">Board Certified</span>
-                    </div>
-                    <div className="flex items-center">
-                      <CheckCircle className="w-5 h-5 text-medical-500 mr-3" />
-                      <span className="text-gray-700">25+ Years Experience</span>
-                    </div>
-                    <div className="flex items-center">
-                      <CheckCircle className="w-5 h-5 text-medical-500 mr-3" />
-                      <span className="text-gray-700">Harvard Medical School</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <OnlineIllustration />
             </motion.div>
           </div>
         </div>
@@ -155,7 +134,7 @@ const About = () => {
                   to quality of life, and I'm committed to providing evidence-based therapy.
                 </p>
                 <p>
-                  Over the past 15 years, I've had the privilege of working with patients from all 
+                  Over the past 25 years, I've had the privilege of working with patients from all
                   walks of life, from toddlers learning their first words to seniors recovering from 
                   stroke. Every patient's journey is unique, and I'm committed to providing the highest 
                   quality speech therapy possible.
@@ -204,8 +183,8 @@ const About = () => {
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 className="card text-center"
               >
-                <div className="w-16 h-16 bg-primary-100 rounded-full mx-auto mb-6 flex items-center justify-center text-primary-600">
-                  {value.icon}
+                <div className="flex justify-center mb-6">
+                  <FeatureIcon icon={value.icon} />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-3">
                   {value.title}
@@ -220,7 +199,7 @@ const About = () => {
       </section>
 
       {/* Office Information */}
-      <section className="section-padding bg-gray-50">
+      <section className="section-padding bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <motion.div
@@ -264,30 +243,30 @@ const About = () => {
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="bg-white rounded-2xl shadow-xl p-8"
+              className="bg-gray-50 rounded-2xl shadow-lg p-8"
             >
               <h3 className="text-2xl font-semibold text-gray-900 mb-6">
                 Why Choose Us?
               </h3>
               <div className="space-y-4">
-                                 <div className="flex items-center">
-                   <Star className="w-5 h-5 text-yellow-400 fill-current mr-3" />
+                 <div className="flex items-center">
+                   <Star className="w-5 h-5 text-accent-500 fill-current mr-3" />
                    <span className="text-gray-700">Licensed speech-language pathologist</span>
                  </div>
                  <div className="flex items-center">
-                   <Star className="w-5 h-5 text-yellow-400 fill-current mr-3" />
+                   <Star className="w-5 h-5 text-accent-500 fill-current mr-3" />
                    <span className="text-gray-700">Flexible appointment scheduling</span>
                  </div>
                  <div className="flex items-center">
-                   <Star className="w-5 h-5 text-yellow-400 fill-current mr-3" />
+                   <Star className="w-5 h-5 text-accent-500 fill-current mr-3" />
                    <span className="text-gray-700">Child-friendly therapy environment</span>
                  </div>
                  <div className="flex items-center">
-                   <Star className="w-5 h-5 text-yellow-400 fill-current mr-3" />
+                   <Star className="w-5 h-5 text-accent-500 fill-current mr-3" />
                    <span className="text-gray-700">Therapy for all age groups</span>
                  </div>
                  <div className="flex items-center">
-                   <Star className="w-5 h-5 text-yellow-400 fill-current mr-3" />
+                   <Star className="w-5 h-5 text-accent-500 fill-current mr-3" />
                    <span className="text-gray-700">Telepractice available</span>
                  </div>
               </div>
@@ -297,8 +276,9 @@ const About = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="section-padding bg-primary-600">
-        <div className="max-w-4xl mx-auto text-center">
+      <section className="section-padding bg-primary-600 relative overflow-hidden">
+        <CtaIllustration />
+        <div className="max-w-4xl mx-auto text-center relative z-10">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
             Ready to Meet Dr. Kasamnath?
           </h2>

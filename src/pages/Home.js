@@ -14,9 +14,15 @@ import {
   Eye,
   Star,
   ArrowRight,
-  CheckCircle
+  CheckCircle,
+  Quote
 } from 'lucide-react';
 import { getAllServicesAsync } from "../data/services"
+import HeroIllustration from '../components/HeroIllustration';
+import ServiceIcon from '../components/ServiceIcon';
+import OnlineIllustration from '../components/OnlineIllustration';
+import FeatureIcon from '../components/FeatureIcon';
+import CtaIllustration from '../components/CtaIllustration';
 
 const Home = () => {
   const [services, setServices] = useState([])
@@ -24,19 +30,19 @@ const Home = () => {
   useEffect(() => {
     let mounted = true
     const iconMap = {
-      Heart: Heart,
-      Stethoscope: Stethoscope,
-      Shield: Shield,
-      Syringe: Shield,
-      Activity: Activity,
-      Eye: Eye,
+      Heart: 'Heart',
+      Stethoscope: 'Stethoscope',
+      Shield: 'Shield',
+      Syringe: 'Shield',
+      Activity: 'Activity',
+      Eye: 'Eye',
     }
     ;(async () => {
       try {
         const list = await getAllServicesAsync()
         if (!mounted) return
         const mapped = list.slice(0, 3).map(s => ({
-          icon: React.createElement(iconMap[s.icon] || Heart, { className: "w-8 h-8" }),
+          icon: iconMap[s.icon] || 'Heart',
           title: s.title,
           description: s.description,
         }))
@@ -76,14 +82,17 @@ const Home = () => {
 							initial={{ opacity: 0, x: -50 }}
 							animate={{ opacity: 1, x: 0 }}
 							transition={{ duration: 0.8 }}>
-							<h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
+							<h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4">
 								Your Health,{" "}
 								<span className="text-primary-600">Our Priority</span>
 							</h1>
-							<p className="text-xl text-gray-600 mb-8">
+							<p className="text-primary-800 font-semibold text-lg md:text-xl mb-6">
+								Compassionate Speech Therapy for All Ages
+							</p>
+							<p className="text-lg text-gray-600 mb-8">
 								Experience exceptional speech therapy with Dr. Fatima Kasamnath.
-								Compassionate, professional, and dedicated to improving
-								communication skills for all ages.
+								Dedicated to improving communication skills with personalized
+								care.
 							</p>
 							<div className="flex flex-col sm:flex-row gap-4">
 								<Link
@@ -101,43 +110,11 @@ const Home = () => {
 							</div>
 						</motion.div>
 						<motion.div
-							initial={{ opacity: 0, x: 50 }}
-							animate={{ opacity: 1, x: 0 }}
+							initial={{ opacity: 0, scale: 0.8 }}
+							animate={{ opacity: 1, scale: 1 }}
 							transition={{ duration: 0.8, delay: 0.2 }}
-							className="relative">
-							<div className="bg-white rounded-2xl shadow-2xl p-8">
-								<div className="text-center">
-									<div className="w-32 h-32 bg-primary-100 rounded-full mx-auto mb-6 flex items-center justify-center">
-										<Users className="w-16 h-16 text-primary-600" />
-									</div>
-									<h3 className="text-2xl font-semibold text-gray-900 mb-2">
-										Dr. Fatima Kasamnath, SLP
-									</h3>
-									<p className="text-gray-600 mb-4">
-										Licensed Speech-Language Pathologist
-									</p>
-									<div className="space-y-3 text-left">
-										<div className="flex items-center">
-											<CheckCircle className="w-5 h-5 text-medical-500 mr-3" />
-											<span className="text-gray-700">
-												25+ Years Experience
-											</span>
-										</div>
-										<div className="flex items-center">
-											<CheckCircle className="w-5 h-5 text-medical-500 mr-3" />
-											<span className="text-gray-700">
-												Same Day Appointments
-											</span>
-										</div>
-										<div className="flex items-center">
-											<CheckCircle className="w-5 h-5 text-medical-500 mr-3" />
-											<span className="text-gray-700">
-												Telemedicine Available
-											</span>
-										</div>
-									</div>
-								</div>
-							</div>
+							className="relative flex items-center justify-center">
+							<HeroIllustration />
 						</motion.div>
 					</div>
 				</div>
@@ -163,8 +140,8 @@ const Home = () => {
 								animate={{ opacity: 1, y: 0 }}
 								transition={{ duration: 0.6, delay: index * 0.1 }}
 								className="card text-center hover:shadow-xl transition-shadow duration-300">
-								<div className="w-16 h-16 bg-primary-100 rounded-full mx-auto mb-6 flex items-center justify-center text-primary-600">
-									{service.icon}
+								<div className="flex justify-center mb-6">
+									<ServiceIcon icon={service.icon} />
 								</div>
 								<h3 className="text-xl font-semibold text-gray-900 mb-3">
 									{service.title}
@@ -191,16 +168,21 @@ const Home = () => {
 						<motion.div
 							initial={{ opacity: 0, x: -50 }}
 							animate={{ opacity: 1, x: 0 }}
-							transition={{ duration: 0.8 }}>
-							<h1 className="text-4xl md:text-5xl lg:text-5xl font-bold text-gray-900 mb-6">
-								Our Online{" "}
-								<span className="text-primary-600">
-									Consultation & Sessions
-								</span>
-							</h1>
-							<p className="text-xl text-gray-600 mb-8">
-								We offer Consultation and interactive speech & Language Therapy
-								Sessions online through zoom that are efficient and creative
+							transition={{ duration: 0.8 }}
+							className="relative flex items-center justify-center">
+							<OnlineIllustration />
+						</motion.div>
+						<motion.div
+							initial={{ opacity: 0, x: 50 }}
+							animate={{ opacity: 1, x: 0 }}
+							transition={{ duration: 0.8, delay: 0.2 }}>
+							<h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+								Online Consultation & Sessions
+							</h2>
+							<p className="text-lg text-gray-600 mb-8">
+								We offer interactive speech and language therapy sessions online
+								via Zoom, providing a creative and efficient way to receive
+								care from the comfort of your home.
 							</p>
 							<div className="flex flex-col sm:flex-row gap-4">
 								<Link
@@ -217,60 +199,6 @@ const Home = () => {
 								</Link>
 							</div>
 						</motion.div>
-						<motion.div
-							initial={{ opacity: 0, x: 50 }}
-							animate={{ opacity: 1, x: 0 }}
-							transition={{ duration: 0.8, delay: 0.2 }}
-							className="relative">
-							<div className="bg-white rounded-2xl shadow-2xl p-8">
-								<h3 className="text-2xl font-bold text-gray-900 mb-6">
-									Our Online Services
-								</h3>
-
-								<div className="space-y-4">
-									{[
-										{
-											title: "Speech & Language Therapy",
-											desc: "Comprehensive assessment and treatment for speech and language disorders.",
-										},
-										{
-											title: "Articulation Therapy",
-											desc: "Specialized treatment for speech sound disorders and pronunciation issues.",
-										},
-										{
-											title: "Adult Communication Therapy",
-											desc: "Therapy for adults with communication challenges.",
-										},
-										{
-											title: "Child Language Development",
-											desc: "Early intervention for children with language delays.",
-										},
-									].map((service, idx) => (
-										<div
-											key={idx}
-											className="border-b border-gray-200 pb-3 last:border-0">
-											<h4 className="font-medium text-lg text-gray-900">
-												{service.title}
-											</h4>
-											<p className="text-gray-600 text-sm mt-1">
-												{service.desc}
-											</p>
-										</div>
-									))}
-
-									<div className="mt-6 p-4 bg-primary-50 rounded-lg">
-										<div className="flex items-center justify-center">
-											<Link
-												to="/appointment"
-												className="btn-primary flex items-center justify-center">
-												<Calendar className="w-5 h-5 mr-2" />
-												Book Appointment
-											</Link>
-										</div>
-									</div>
-								</div>
-							</div>
-						</motion.div>
 					</div>
 				</div>
 			</section>
@@ -285,8 +213,8 @@ const Home = () => {
 							</h2>
 							<div className="space-y-6">
 								<div className="flex items-start">
-									<div className="w-12 h-12 bg-medical-100 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
-										<Heart className="w-6 h-6 text-medical-600" />
+									<div className="flex-shrink-0 mr-4">
+										<FeatureIcon icon="Heart" />
 									</div>
 									<div>
 										<h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -299,8 +227,8 @@ const Home = () => {
 									</div>
 								</div>
 								<div className="flex items-start">
-									<div className="w-12 h-12 bg-medical-100 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
-										<Clock className="w-6 h-6 text-medical-600" />
+									<div className="flex-shrink-0 mr-4">
+										<FeatureIcon icon="Clock" />
 									</div>
 									<div>
 										<h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -313,8 +241,8 @@ const Home = () => {
 									</div>
 								</div>
 								<div className="flex items-start">
-									<div className="w-12 h-12 bg-medical-100 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
-										<Shield className="w-6 h-6 text-medical-600" />
+									<div className="flex-shrink-0 mr-4">
+										<FeatureIcon icon="Shield" />
 									</div>
 									<div>
 										<h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -361,7 +289,7 @@ const Home = () => {
 			</section>
 
 			{/* Testimonials */}
-			<section className="section-padding bg-white">
+			<section className="section-padding bg-gray-50">
 				<div className="max-w-7xl mx-auto">
 					<div className="text-center mb-12">
 						<h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -379,19 +307,23 @@ const Home = () => {
 								initial={{ opacity: 0, y: 30 }}
 								animate={{ opacity: 1, y: 0 }}
 								transition={{ duration: 0.6, delay: index * 0.1 }}
-								className="card">
-								<div className="flex items-center mb-4">
-									{[...Array(testimonial.rating)].map((_, i) => (
-										<Star
-											key={i}
-											className="w-5 h-5 text-yellow-400 fill-current"
-										/>
-									))}
+								className="bg-white rounded-2xl shadow-lg p-8 flex flex-col justify-between"
+							>
+								<div>
+									<Quote className="w-8 h-8 text-primary-400 mb-4" />
+									<div className="flex items-center mb-4">
+										{[...Array(testimonial.rating)].map((_, i) => (
+											<Star
+												key={i}
+												className="w-5 h-5 text-accent-500 fill-current"
+											/>
+										))}
+									</div>
+									<p className="text-gray-600 mb-4 italic">
+										"{testimonial.text}"
+									</p>
 								</div>
-								<p className="text-gray-600 mb-4 italic">
-									"{testimonial.text}"
-								</p>
-								<p className="font-semibold text-gray-900">
+								<p className="font-semibold text-gray-900 text-right">
 									- {testimonial.name}
 								</p>
 							</motion.div>
@@ -401,8 +333,9 @@ const Home = () => {
 			</section>
 
 			{/* CTA Section */}
-			<section className="section-padding bg-primary-600">
-				<div className="max-w-4xl mx-auto text-center">
+			<section className="section-padding bg-primary-600 relative overflow-hidden">
+				<CtaIllustration />
+				<div className="max-w-4xl mx-auto text-center relative z-10">
 					<h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
 						Ready to Improve Your Communication?
 					</h2>
