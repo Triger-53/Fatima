@@ -182,7 +182,7 @@ const Analytics = () => {
 			) : (
 				<div className="space-y-12">
 					{/* Summary Cards */}
-					<div className="grid gap-6 md:grid-cols-3">
+					<div className="grid gap-6 sm:grid-cols-1 md:grid-cols-3">
 						{[
 							{
 								label: "Total Appointments",
@@ -228,7 +228,7 @@ const Analytics = () => {
 					</div>
 
 					{/* Small Charts Grid */}
-					<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+					<div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
 						{[
 							{
 								title: "Gender Distribution",

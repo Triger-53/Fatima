@@ -37,7 +37,7 @@ const Appointments = () => {
 			) : appointments.length === 0 ? (
 				<p className="text-gray-600">No appointments found.</p>
 			) : (
-				<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+				<div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
 					{appointments.map((appt) => (
 						<div
 							key={appt.id}

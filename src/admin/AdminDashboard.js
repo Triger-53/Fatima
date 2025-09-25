@@ -62,7 +62,7 @@ const AdminDashboard = () => {
 			{loading ? (
 				<p className="text-gray-600 animate-pulse">Loading dashboard...</p>
 			) : (
-				<div className="grid gap-6 md:grid-cols-3 mb-10">
+				<div className="grid gap-6 sm:grid-cols-1 md:grid-cols-3 mb-10">
 					{cards.map((card, i) => (
 						<motion.div
 							key={i}
@@ -82,7 +82,7 @@ const AdminDashboard = () => {
 				</div>
 			)}
 
-			<div className="grid gap-6 md:grid-cols-2">
+			<div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2">
 				<NavLink
 					to="/admin/appointments"
 					className="cursor-pointer p-6 bg-white rounded-xl shadow hover:shadow-lg border border-gray-200 flex flex-col justify-between">
