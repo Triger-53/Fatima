@@ -102,7 +102,7 @@ export default function Dashboard() {
 							<h3 className="text-2xl font-semibold text-green-600 mb-6 flex items-center gap-2 border-b pb-2">
 								<FaCalendarAlt /> Appointments & Sessions
 							</h3>
-							<div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+							<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
 								<InfoCard
 									label="📅 Appointments"
 									value={dashboard.appointments || "-"}
@@ -153,7 +153,7 @@ function InfoCard({ label, value, fullWidth }) {
 	return (
 		<div
 			className={`bg-white p-6 rounded-2xl border border-gray-200 shadow hover:shadow-lg transition-shadow duration-300 ${
-				fullWidth ? "w-full" : "w-auto"
+				fullWidth ? "w-full" : "w-full sm:w-auto"
 			}`}>
 			{label && (
 				<p className="text-sm text-gray-500 mb-2 font-medium">{label}</p>

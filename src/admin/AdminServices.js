@@ -169,11 +169,11 @@ const AdminServices = () => {
 	return (
 		<div className="p-6">
 			<div className="bg-white rounded-lg shadow p-6">
-				<div className="flex justify-between items-center mb-6">
-					<h2 className="text-2xl font-semibold text-gray-900">
+				<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+					<h2 className="text-2xl font-semibold text-gray-900 mb-4 sm:mb-0">
 						Manage Services
 					</h2>
-					<div className="space-x-3">
+					<div className="flex flex-wrap gap-3">
 						<button
 							onClick={startAdd}
 							className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
@@ -211,7 +211,7 @@ const AdminServices = () => {
 									return (
 										<div
 											key={s.id || i}
-											className="card hover:shadow-xl w-[350px] transition-all duration-300">
+											className="card hover:shadow-xl w-full sm:w-[350px] transition-all duration-300">
 											<div className="flex items-center justify-between">
 												<div className="w-14 h-14 bg-primary-100 rounded-lg flex items-center justify-center text-primary-600 mb-4">
 													{IconComp

@@ -969,7 +969,7 @@ const Appointment = () => {
 	// Removed static timeSlots - now using dynamic availableSlots based on appointment type and medical center
 
 	const renderStepIndicator = () => (
-		<div className="flex items-center justify-center mb-8">
+		<div className="flex items-center justify-center mb-8 flex-wrap">
 			{[0, 1, 2, 3, 4].map((step) => (
 				<div key={step} className="flex items-center">
 					<div
@@ -988,7 +988,7 @@ const Appointment = () => {
 					</div>
 					{step < 4 && (
 						<div
-							className={`w-16 h-1 mx-2 ${
+							className={`w-8 sm:w-12 md:w-16 h-1 mx-1 sm:mx-2 ${
 								step < viewStep ? "bg-primary-600" : "bg-gray-200"
 							}`}
 						/>
@@ -1742,7 +1742,7 @@ const Appointment = () => {
 					</div>
 				</div>
 
-				<div className="max-w-3xl mx-auto mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+				<div className="max-w-3xl mx-auto mt-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
 					<div className="bg-white rounded-lg shadow p-6">
 						<h4 className="font-semibold mb-4">Appointment Details</h4>
 						<p>
