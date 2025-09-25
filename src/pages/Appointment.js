@@ -1725,27 +1725,28 @@ const Appointment = () => {
 			<motion.div
 				initial={{ opacity: 0, scale: 0.98 }}
 				animate={{ opacity: 1, scale: 1 }}
-				className="py-12">
-				<div className="text-center">
-					<CheckCircle className="w-20 h-20 text-green-500 mx-auto mb-6" />
-					<h2 className="text-3xl font-bold text-gray-900 mb-4">
+				className="py-8 sm:py-12">
+				<div className="text-center px-2">
+					<CheckCircle className="w-16 h-16 sm:w-20 sm:h-20 text-green-500 mx-auto mb-4 sm:mb-6" />
+					<h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
 						Appointment Confirmed! 🎉
 					</h2>
-					<p className="text-xl text-gray-600 mb-6">
+					<p className="text-lg sm:text-xl text-gray-600 mb-6">
 						Thank you, {formData.firstName}! Your appointment has been
 						successfully booked.
 					</p>
-					<div className="bg-green-50 border border-green-200 rounded-lg p-4 max-w-md mx-auto mb-6">
-						<p className="text-sm text-green-700">
+					<div className="bg-green-50 border border-green-200 rounded-lg p-3 sm:p-4 max-w-md mx-auto mb-6">
+						<p className="text-xs sm:text-sm text-green-700">
 							📧 A confirmation email has been sent to {formData.email}
 						</p>
 					</div>
 				</div>
 
-				<div className="max-w-3xl mx-auto mt-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
-					<div className="bg-white rounded-lg shadow p-6">
-						<h4 className="font-semibold mb-4">Appointment Details</h4>
-						<p>
+				<div className="max-w-3xl mx-auto mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+					<div className="bg-white rounded-lg shadow p-4 sm:p-6">
+						<h4 className="font-semibold mb-4 text-lg">Appointment Details</h4>
+						<div className="space-y-2 text-sm text-gray-700">
+							<p>
 							<strong>Booking ID:</strong> {appt?.id || "—"}
 						</p>
 						<p>
@@ -1769,10 +1770,12 @@ const Appointment = () => {
 						<p>
 							<strong>Payment ID:</strong> {appt?.paymentId}
 						</p>
+						</div>
 					</div>
 
-					<div className="bg-white rounded-lg shadow p-6">
-						<h4 className="font-semibold mb-4">Account</h4>
+					<div className="bg-white rounded-lg shadow p-4 sm:p-6">
+						<h4 className="font-semibold mb-4 text-lg">Account</h4>
+						<div className="space-y-2 text-sm text-gray-700">
 						<p>
 							<strong>Email:</strong>{" "}
 							{signupEmail || loginEmail || formData.email}
@@ -1781,6 +1784,7 @@ const Appointment = () => {
 							You can log in to view your appointments (if not already signed
 							in).
 						</p>
+						</div>
 					</div>
 				</div>
 			</motion.div>
@@ -1790,7 +1794,7 @@ const Appointment = () => {
 	// ----------------- Main render -----------------
 	return (
 		<div className="min-h-screen bg-gray-50">
-			<section className="bg-gradient-to-br from-primary-50 to-blue-50 section-padding">
+			<section className="bg-gradient-to-br from-primary-50 to-blue-50 py-12 px-4 sm:px-6 lg:px-8">
 				<div className="max-w-7xl mx-auto text-center">
 					<motion.div
 						initial={{ opacity: 0, y: 30 }}
@@ -1799,7 +1803,7 @@ const Appointment = () => {
 						<h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
 							Book Your Appointment
 						</h1>
-						<p className="text-xl text-gray-600 max-w-3xl mx-auto">
+						<p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
 							Schedule your visit with Dr. Fatima Kasamnath. Our online booking
 							system makes it easy to find a time that works for you.
 						</p>
@@ -1807,9 +1811,9 @@ const Appointment = () => {
 				</div>
 			</section>
 
-			<section className="section-padding">
+			<section className="py-12 px-4 sm:px-6 lg:px-8">
 				<div className="max-w-4xl mx-auto">
-					<div className="card">
+					<div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
 						{renderStepIndicator()}
 
 						{isSubmitted ? (
@@ -1822,7 +1826,7 @@ const Appointment = () => {
 								{viewStep === 3 && renderMedicalInfo()}
 								{viewStep === 4 && renderConfirmation()}
 
-								<div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
+								<div className="flex flex-col sm:flex-row justify-between mt-8 pt-6 border-t border-gray-200 space-y-4 sm:space-y-0">
 									{viewStep > 0 && (
 										<button
 											type="button"
@@ -1830,7 +1834,7 @@ const Appointment = () => {
 												if (viewStep === 1 && !canProceed) return
 												prevStep()
 											}}
-											className="btn-secondary flex items-center">
+											className="btn-secondary flex items-center justify-center w-full sm:w-auto">
 											<ChevronLeft className="w-5 h-5 mr-2" /> Previous
 										</button>
 									)}
@@ -1854,18 +1858,18 @@ const Appointment = () => {
 												setError(null)
 												nextStep()
 											}}
-											className={`btn-primary flex items-center ml-auto ${
+											className={`btn-primary flex items-center justify-center w-full sm:w-auto ml-auto ${
 												!canProceed ? "opacity-50 cursor-not-allowed" : ""
 											}`}>
 											Next <ChevronRight className="w-5 h-5 ml-2" />
 										</button>
 									) : (
-										<div className="flex flex-col items-end space-y-3">
+										<div className="flex flex-col items-stretch sm:items-end space-y-3 ml-auto">
 											<button
 												type="button"
 												disabled={isSubmitting || !canProceed}
 												onClick={openRazorpay}
-												className="btn-primary flex items-center disabled:opacity-50 disabled:cursor-not-allowed">
+												className="btn-primary flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto">
 												{isSubmitting ? (
 													<>
 														<LoadingSpinner />
@@ -1873,7 +1877,7 @@ const Appointment = () => {
 													</>
 												) : (
 													<>
-														<Calendar className="w-5 h-5 mr-2" /> 
+														<Calendar className="w-5 h-5 mr-2" />
 														Pay ₹{(() => {
 															const currentService = selectedService || getServiceByAppointmentType(formData.appointmentType)
 															// Handle both old format (price object) and new format (single number)
@@ -1885,7 +1889,7 @@ const Appointment = () => {
 													</>
 												)}
 											</button>
-											<p className="text-xs text-gray-500 text-right">
+											<p className="text-xs text-gray-500 text-center sm:text-right">
 												Secure payment powered by Razorpay
 											</p>
 										</div>
