@@ -5,16 +5,18 @@
 - ***services more detail***
 - ***rewive***
 ***
-- ***fallback system***
 - ***appointment booking logic not proper*** 
 - ***session managment***
-- ***config system*** 
-- ***secuity*** 
-- ***routes***
 - ***doctor interface*** 
 - ***admin panel*** 
-- ***polices*** 
 - ***user live*** 
-- ***terms*** 
-- ***seo*** 
+***
+- ***config system*** 
+- ***routes***
 - ***ai***
+- ***secuity*** 
+- ***seo*** 
+***
+- ***fallback system***
+- ***terms*** 
+- ***polices*** 
