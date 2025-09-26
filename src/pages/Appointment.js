@@ -5,79 +5,16 @@ import { Calendar, CheckCircle, ChevronRight, ChevronLeft } from "lucide-react"
 import { supabase } from "../supabase"
 import { checkUserExists, deleteUserById } from "../utils/supabaseAdmin"
 import { getAllServices, getServiceByAppointmentType as getServiceByType } from "../data/services"
+import { MEDICAL_CENTERS, ONLINE_SLOTS } from '../data/appointmentData';
 
-/**
- * Appointment page
- *
- * - Requires a real Supabase session to proceed (fresh browser blocked unless logged in;
- *   old browser with only stale local storage is blocked unless there's an active session).
- * - Sign-up uses email+password and then attempts to sign in immediately.
- * - Toggle between "Sign up" and "Login".
- * - If account was created in this flow and booking fails or is abandoned, delete the account.
- * - No placeholder attributes used in inputs.
- */
+import AuthStep from '../components/appointment/AuthStep';
+import PersonalInfoStep from '../components/appointment/PersonalInfoStep';
+import AppointmentDetailsStep from '../components/appointment/AppointmentDetailsStep';
+import MedicalInfoStep from '../components/appointment/MedicalInfoStep';
+import ConfirmationStep from '../components/appointment/ConfirmationStep';
+import SuccessScreen from '../components/appointment/SuccessScreen';
 
 const DELETE_GRACE_PERIOD_MS = 15 * 60 * 1000 // 15 minutes grace period (client-side)
-
-// Medical Centers Data
-const MEDICAL_CENTERS = {
-	SAIFEE_HOSPITAL: {
-		id: 'saifee',
-		name: 'Saifee Hospital',
-		address: '15/17, Maharshi Karve Road, Marine Lines, Mumbai',
-		phone: '+91 22 2200 0000',
-		doctorSchedule: {
-			monday: { start: '09:00', end: '12:00', slots: ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30'] },
-			tuesday: { start: '09:00', end: '12:00', slots: ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30'] },
-			wednesday: { start: '09:00', end: '12:00', slots: ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30'] },
-			thursday: { start: '09:00', end: '12:00', slots: ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30'] },
-			friday: { start: '09:00', end: '12:00', slots: ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30'] },
-			saturday: { start: '09:00', end: '12:00', slots: ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30'] },
-			sunday: null
-		}
-	},
-	LILAVATI_HOSPITAL: {
-		id: 'lilavati',
-		name: 'Lilavati Hospital',
-		address: 'A-791, Bandra Reclamation, Bandra West, Mumbai',
-		phone: '+91 22 2675 1000',
-		doctorSchedule: {
-			monday: { start: '14:00', end: '17:00', slots: ['14:00', '14:30', '15:00', '15:30', '16:00', '16:30'] },
-			tuesday: { start: '14:00', end: '17:00', slots: ['14:00', '14:30', '15:00', '15:30', '16:00', '16:30'] },
-			wednesday: { start: '14:00', end: '17:00', slots: ['14:00', '14:30', '15:00', '15:30', '16:00', '16:30'] },
-			thursday: { start: '14:00', end: '17:00', slots: ['14:00', '14:30', '15:00', '15:30', '16:00', '16:30'] },
-			friday: { start: '14:00', end: '17:00', slots: ['14:00', '14:30', '15:00', '15:30', '16:00', '16:30'] },
-			saturday: null,
-			sunday: null
-		}
-	},
-	KOKILABEN_HOSPITAL: {
-		id: 'kokilaben',
-		name: 'Kokilaben Dhirubhai Ambani Hospital',
-		address: 'Rao Saheb Achutrao Patwardhan Marg, Four Bungalows, Andheri West, Mumbai',
-		phone: '+91 22 3099 9999',
-		doctorSchedule: {
-			monday: { start: '10:00', end: '13:00', slots: ['10:00', '10:30', '11:00', '11:30', '12:00', '12:30'] },
-			tuesday: { start: '10:00', end: '13:00', slots: ['10:00', '10:30', '11:00', '11:30', '12:00', '12:30'] },
-			wednesday: { start: '10:00', end: '13:00', slots: ['10:00', '10:30', '11:00', '11:30', '12:00', '12:30'] },
-			thursday: { start: '10:00', end: '13:00', slots: ['10:00', '10:30', '11:00', '11:30', '12:00', '12:30'] },
-			friday: { start: '10:00', end: '13:00', slots: ['10:00', '10:30', '11:00', '11:30', '12:00', '12:30'] },
-			saturday: null,
-			sunday: null
-		}
-	}
-}
-
-// Online appointment slots
-const ONLINE_SLOTS = {
-	monday: { start: '09:00', end: '18:00', slots: ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30'] },
-	tuesday: { start: '09:00', end: '18:00', slots: ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30'] },
-	wednesday: { start: '09:00', end: '18:00', slots: ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30'] },
-	thursday: { start: '09:00', end: '18:00', slots: ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30'] },
-	friday: { start: '09:00', end: '18:00', slots: ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30'] },
-	saturday: { start: '09:00', end: '14:00', slots: ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30'] },
-	sunday: null
-}
 
 // Helper functions
 const getDayOfWeek = (dateString) => {
@@ -161,7 +98,6 @@ const Appointment = () => {
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [isSubmitted, setIsSubmitted] = useState(false)
 	const [error, setError] = useState(null)
-	// Removed unused isLoading state
 	
 	// New state for enhanced appointment system
 	const [availableSlots, setAvailableSlots] = useState([])
@@ -966,8 +902,6 @@ const Appointment = () => {
 	// Function to get service details by appointment type
     const getServiceByAppointmentType = (appointmentType) => getServiceByType(appointmentType)
 
-	// Removed static timeSlots - now using dynamic availableSlots based on appointment type and medical center
-
 	const renderStepIndicator = () => (
 		<div className="flex items-center justify-center mb-8 flex-wrap">
 			{[0, 1, 2, 3, 4].map((step) => (
@@ -998,818 +932,27 @@ const Appointment = () => {
 		</div>
 	)
 
-	const renderAuthStep = () => {
-		return (
-			<motion.div
-				initial={{ opacity: 0, x: 20 }}
-				animate={{ opacity: 1, x: 0 }}
-				transition={{ duration: 0.4 }}
-				className="space-y-6">
-				<h3 className="text-2xl font-semibold text-gray-900 mb-2">
-					Create an account or log in
-				</h3>
-				<p className="text-sm text-gray-600">
-					You must sign up or log in before booking. If you sign up here and the
-					booking fails we will delete the created account.
-				</p>
-
-				{/* If user is already signed in, show a compact panel with ability to use that account or switch */}
-				{isAuthenticated && user ? (
-					<div className="bg-white rounded-lg shadow p-6">
-						<h4 className="font-semibold mb-3">You are signed in</h4>
-						<p className="text-sm text-gray-700 mb-3">
-							Signed in as <strong>{user.email}</strong>
-						</p>
-
-						<div className="flex gap-3">
-							<button
-								type="button"
-								onClick={() => {
-									// continue as this user
-									setAuthMessage(null)
-									setCurrentStep(1)
-								}}
-								className="px-4 py-2 bg-indigo-600 text-white rounded-lg">
-								Continue as {user.email}
-							</button>
-
-							<button
-								type="button"
-								onClick={() => {
-									// sign out to allow booking from another account
-									signOutNow()
-									setAuthMode("login")
-									setAuthMessage(null)
-								}}
-								className="px-4 py-2 bg-white border rounded-lg">
-								Book with another account
-							</button>
-						</div>
-
-						<p className="text-xs text-gray-500 mt-3">
-							If you want to book using a different account, choose "Book with
-							another account".
-						</p>
-					</div>
-				) : (
-					<>
-						<div className="mt-4 flex items-center gap-4">
-							<button
-								type="button"
-								onClick={() => {
-									setAuthMode("signup")
-									setAuthMessage(null)
-									setAuthLoading(false)
-									setLoginEmail("")
-									setLoginPassword("")
-								}}
-								className={`px-4 py-2 rounded-lg ${
-									authMode === "signup"
-										? "bg-indigo-600 text-white"
-										: "bg-white border"
-								}`}>
-								Sign up
-							</button>
-							<button
-								type="button"
-								onClick={() => {
-									setAuthMode("login")
-									setAuthMessage(null)
-									setAuthLoading(false)
-									setSignupEmail("")
-									setSignupPassword("")
-									setSignupConfirmPassword("")
-								}}
-								className={`px-4 py-2 rounded-lg ${
-									authMode === "login"
-										? "bg-indigo-600 text-white"
-										: "bg-white border"
-								}`}>
-								Log in
-							</button>
-						</div>
-
-						{authMode === "signup" && (
-							<div className="bg-white rounded-lg shadow p-6">
-								<h4 className="font-semibold mb-3">New? Create an account</h4>
-
-								<label className="block text-sm text-gray-700">Email</label>
-								<input
-									type="email"
-									value={signupEmail}
-									onChange={(e) => setSignupEmail(e.target.value)}
-									className="mt-1 block w-full rounded-lg border border-gray-300 shadow-sm p-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-									required
-								/>
-
-								<label className="block text-sm text-gray-700 mt-3">
-									Password
-								</label>
-								<input
-									type="password"
-									value={signupPassword}
-									onChange={(e) => setSignupPassword(e.target.value)}
-									className="mt-1 block w-full rounded-lg border border-gray-300 shadow-sm p-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-									required
-								/>
-
-								<label className="block text-sm text-gray-700 mt-3">
-									Confirm Password
-								</label>
-								<input
-									type="password"
-									value={signupConfirmPassword}
-									onChange={(e) => setSignupConfirmPassword(e.target.value)}
-									className="mt-1 block w-full rounded-lg border border-gray-300 shadow-sm p-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-									required
-								/>
-
-								<button
-									onClick={signUpNow}
-									disabled={authLoading}
-									className="mt-4 w-full py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200">
-									{authLoading ? "Creating account..." : "Create account"}
-								</button>
-
-								<p className="text-xs text-gray-500 mt-2">
-									If that email already exists, you will be prompted to log in
-									instead.
-								</p>
-							</div>
-						)}
-
-						{authMode === "login" && (
-							<div className="bg-white rounded-lg shadow p-6">
-								<h4 className="font-semibold mb-3">Already have an account?</h4>
-
-								<label className="block text-sm text-gray-700">Email</label>
-								<input
-									type="email"
-									value={loginEmail}
-									onChange={(e) => setLoginEmail(e.target.value)}
-									className="mt-1 block w-full rounded-lg border border-gray-300 shadow-sm p-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-									required
-								/>
-
-								<label className="block text-sm text-gray-700 mt-3">
-									Password
-								</label>
-								<input
-									type="password"
-									value={loginPassword}
-									onChange={(e) => setLoginPassword(e.target.value)}
-									className="mt-1 block w-full rounded-lg border border-gray-300 shadow-sm p-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-									required
-								/>
-
-								<button
-									onClick={loginNow}
-									disabled={authLoading}
-									className="mt-4 w-full py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200">
-									{authLoading ? "Signing in..." : "Log in"}
-								</button>
-							</div>
-						)}
-					</>
-				)}
-
-				{authMessage && (
-					<div
-						className={`mt-3 p-3 rounded-lg text-sm ${
-							authMessage.toLowerCase().includes("error") ||
-							authMessage.toLowerCase().includes("failed") ||
-							authMessage.toLowerCase().includes("invalid")
-								? "bg-red-50 text-red-700 border border-red-200"
-								: "bg-green-50 text-green-700 border border-green-200"
-						}`}>
-						{authMessage}
-					</div>
-				)}
-			</motion.div>
-		)
-	}
-
-	const renderPersonalInfo = () => (
-		<motion.div
-			initial={{ opacity: 0, x: 20 }}
-			animate={{ opacity: 1, x: 0 }}
-			transition={{ duration: 0.5 }}
-			className="space-y-6">
-			<h3 className="text-2xl font-semibold text-gray-900 mb-6">
-				Personal Information
-			</h3>
-
-			<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-				<div>
-					<label className="block text-gray-700">First Name</label>
-					<input
-						type="text"
-						name="firstName"
-						value={formData.firstName}
-						onChange={handleChange}
-						className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-						required
-					/>
-				</div>
-
-				<div>
-					<label className="block text-gray-700">Last Name</label>
-					<input
-						type="text"
-						name="lastName"
-						value={formData.lastName}
-						onChange={handleChange}
-						className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-						required
-					/>
-				</div>
-			</div>
-
-			<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-				<div>
-					<label className="block text-gray-700">Email</label>
-					<input
-						type="email"
-						name="email"
-						value={formData.email}
-						onChange={handleChange}
-						className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-						required
-					/>
-				</div>
-
-				<div>
-					<label className="block text-gray-700">Phone</label>
-					<input
-						type="tel"
-						name="phone"
-						value={formData.phone}
-						onChange={handleChange}
-						className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-						required
-					/>
-				</div>
-			</div>
-
-			<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-				<div>
-					<label className="block text-gray-700 mb-2 font-medium">Date of Birth</label>
-					<div className="relative">
-						<input
-							type="date"
-							name="dateOfBirth"
-							value={formData.dateOfBirth}
-							onChange={handleChange}
-							className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white shadow-sm hover:border-gray-300"
-							style={{
-								appearance: 'none',
-								WebkitAppearance: 'none',
-								MozAppearance: 'none'
-							}}
-						/>
-					</div>
-					<p className="text-xs text-gray-500 mt-1">Select your date of birth</p>
-				</div>
-
-				<div>
-					<label className="block text-gray-700 mb-2 font-medium">Gender</label>
-					<div className="relative">
-						<select
-							name="gender"
-							value={formData.gender}
-							onChange={handleChange}
-							className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white shadow-sm hover:border-gray-300 appearance-none cursor-pointer">
-							<option value="">Select Gender</option>
-							<option value="male">Male</option>
-							<option value="female">Female</option>
-							<option value="other">Other</option>
-						</select>
-						<div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-							<svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-							</svg>
-						</div>
-					</div>
-					<p className="text-xs text-gray-500 mt-1">Select your gender</p>
-				</div>
-			</div>
-		</motion.div>
-	)
-
-	const renderAppointmentDetails = () => (
-		<motion.div
-			initial={{ opacity: 0, x: 20 }}
-			animate={{ opacity: 1, x: 0 }}
-			transition={{ duration: 0.5 }}
-			className="space-y-6">
-			<h3 className="text-2xl font-semibold text-gray-900 mb-6">
-				Appointment Details
-			</h3>
-
-			{/* Service Selection */}
-			<div>
-				<label className="block text-gray-700">Type of Appointment</label>
-				<select
-					name="appointmentType"
-					value={formData.appointmentType}
-					onChange={handleChange}
-					className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-					required>
-					<option value="">Select Appointment Type</option>
-					{appointmentTypes.map((type) => (
-						<option key={type.value} value={type.value}>
-							{type.label}
-						</option>
-					))}
-				</select>
-				
-				{/* Show selected service details */}
-				{selectedService && (
-					<div className="mt-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-						<div className="flex justify-between items-center">
-							<div>
-								<h4 className="font-semibold text-blue-900">{selectedService.title}</h4>
-								<p className="text-sm text-blue-700">{selectedService.description}</p>
-								<p className="text-sm text-blue-600">Duration: {selectedService.duration}</p>
-							</div>
-							<div className="text-right">
-								<p className="text-2xl font-bold text-blue-900">
-									₹{selectedService.price?.inr?.min || selectedService.price?.min || 500}
-								</p>
-								<p className="text-sm text-blue-600">per session</p>
-							</div>
-						</div>
-					</div>
-				)}
-			</div>
-
-			{/* Consultation Method Selection */}
-				<div>
-				<label className="block text-gray-700 mb-3">Consultation Method</label>
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-					<label className={`cursor-pointer p-4 border-2 rounded-lg transition-all ${
-						formData.consultationMethod === 'online' 
-							? 'border-primary-500 bg-primary-50' 
-							: 'border-gray-300 hover:border-gray-400'
-					}`}>
-					<input
-							type="radio"
-							name="consultationMethod"
-							value="online"
-							checked={formData.consultationMethod === 'online'}
-							onChange={handleChange}
-							className="sr-only"
-						/>
-						<div className="text-center">
-							<div className="text-2xl mb-2">💻</div>
-							<div className="font-semibold text-gray-900">Online Consultation</div>
-							<div className="text-sm text-gray-600">Video call via Zoom</div>
-						</div>
-					</label>
-					
-					<label className={`cursor-pointer p-4 border-2 rounded-lg transition-all ${
-						formData.consultationMethod === 'offline' 
-							? 'border-primary-500 bg-primary-50' 
-							: 'border-gray-300 hover:border-gray-400'
-					}`}>
-						<input
-							type="radio"
-							name="consultationMethod"
-							value="offline"
-							checked={formData.consultationMethod === 'offline'}
-							onChange={handleChange}
-							className="sr-only"
-						/>
-						<div className="text-center">
-							<div className="text-2xl mb-2">🏥</div>
-							<div className="font-semibold text-gray-900">In-Person Visit</div>
-							<div className="text-sm text-gray-600">Visit at medical center</div>
-						</div>
-					</label>
-				</div>
-			</div>
-
-			{/* Medical Center Selection (only for offline appointments) */}
-			{formData.consultationMethod === 'offline' && (
-				<div className="mt-6">
-					<label className="block text-gray-700 mb-4 font-medium text-lg">🏥 Select Medical Center</label>
-					<div className="grid grid-cols-1 md:grid-cols-1 gap-4">
-						{Object.values(MEDICAL_CENTERS).map((center) => (
-							<label key={center.id} className={`cursor-pointer group relative overflow-hidden rounded-2xl border-2 transition-all duration-300 hover:shadow-lg ${
-								formData.medicalCenter === center.id 
-									? 'border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50 shadow-lg ring-2 ring-blue-200' 
-									: 'border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50'
-							}`}>
-								<input
-									type="radio"
-									name="medicalCenter"
-									value={center.id}
-									checked={formData.medicalCenter === center.id}
-									onChange={handleChange}
-									className="sr-only"
-								/>
-								<div className="p-6">
-									<div className="flex items-start justify-between">
-										<div className="flex-1">
-											<div className="flex items-center mb-2">
-												<div className="w-3 h-3 rounded-full border-2 mr-3 flex-shrink-0 ${
-													formData.medicalCenter === center.id 
-														? 'border-blue-500 bg-blue-500' 
-														: 'border-gray-300 group-hover:border-blue-400'
-												}"></div>
-												<h3 className="font-bold text-gray-900 text-lg">{center.name}</h3>
-											</div>
-											<div className="ml-6 space-y-2">
-												<div className="flex items-start text-sm text-gray-600">
-													<svg className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-														<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-														<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-													</svg>
-													<span className="leading-relaxed">{center.address}</span>
-												</div>
-												<div className="flex items-center text-sm text-gray-500">
-													<svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-														<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-													</svg>
-													<span>{center.phone}</span>
-												</div>
-											</div>
-										</div>
-										{formData.medicalCenter === center.id && (
-											<div className="ml-4 flex-shrink-0">
-												<div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-													<svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-														<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-													</svg>
-												</div>
-											</div>
-										)}
-									</div>
-								</div>
-							</label>
-						))}
-					</div>
-					<p className="text-xs text-gray-500 mt-3 flex items-center">
-						<span className="mr-1">🏥</span>
-						Choose the medical center where you'd like to have your in-person appointment
-					</p>
-				</div>
-			)}
-
-			{/* Date Selection */}
-			<div>
-				<label className="block text-gray-700 mb-2 font-medium">Preferred Date</label>
-				<div className="relative">
-					<select
-						name="preferredDate"
-						value={formData.preferredDate}
-						onChange={handleChange}
-						className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white shadow-sm hover:border-gray-300 appearance-none cursor-pointer"
-						required>
-						<option value="">📅 Select your preferred date</option>
-						{availableDates.map((date) => (
-							<option key={date} value={date}>
-								{new Date(date).toLocaleDateString('en-US', { 
-									weekday: 'long', 
-									year: 'numeric', 
-									month: 'long', 
-									day: 'numeric' 
-								})}
-							</option>
-						))}
-					</select>
-					<div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-						<svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-						</svg>
-					</div>
-				</div>
-				<p className="text-xs text-gray-500 mt-1 flex items-center">
-					<span className="mr-1">📅</span>
-					Available dates for the next 30 days
-				</p>
-			</div>
-
-			{/* Time Selection */}
-			<div>
-				<label className="block text-gray-700 mb-2 font-medium">Preferred Time</label>
-				{loadingSlots ? (
-					<div className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 flex items-center justify-center">
-						<div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600 mr-3"></div>
-						<span className="text-blue-700 font-medium">Loading available slots...</span>
-					</div>
-				) : availableSlots.length > 0 ? (
-					<div className="relative">
-						<select
-							name="preferredTime"
-							value={formData.preferredTime}
-							onChange={handleChange}
-							className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white shadow-sm hover:border-gray-300 appearance-none cursor-pointer"
-							required>
-							<option value="">🕐 Select your preferred time</option>
-							{availableSlots.map((time) => (
-								<option key={time} value={time}>
-									🕐 {time}
-								</option>
-							))}
-						</select>
-						<div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-							<svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-							</svg>
-						</div>
-					</div>
-				) : formData.consultationMethod && formData.preferredDate ? (
-					<div className="w-full px-4 py-3 border-2 border-red-200 rounded-xl bg-red-50 text-red-700 flex items-center">
-						<svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-						</svg>
-						No available slots for this date and consultation method. Please select a different date.
-					</div>
-				) : (
-					<div className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-gray-50 text-gray-500 flex items-center">
-						<svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-						</svg>
-						Please select consultation method and date first
-					</div>
-				)}
-				<p className="text-xs text-gray-500 mt-1 flex items-center">
-					<span className="mr-1">🕐</span>
-					{formData.consultationMethod === 'online' 
-						? 'Available time slots for online consultation'
-						: formData.medicalCenter 
-							? `Available time slots at ${MEDICAL_CENTERS[formData.medicalCenter]?.name}`
-							: 'Select a medical center to see available slots'
-					}
-				</p>
-			</div>
-
-			<div>
-				<label className="block text-gray-700">Reason for Visit</label>
-				<textarea
-					name="reason"
-					value={formData.reason}
-					onChange={handleChange}
-					rows="3"
-					className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-				/>
-			</div>
-
-			<div>
-				<label className="block text-gray-700">Symptoms</label>
-				<textarea
-					name="symptoms"
-					value={formData.symptoms}
-					onChange={handleChange}
-					rows="3"
-					className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-				/>
-			</div>
-		</motion.div>
-	)
-
-	const renderMedicalInfo = () => (
-		<motion.div
-			initial={{ opacity: 0, x: 20 }}
-			animate={{ opacity: 1, x: 0 }}
-			transition={{ duration: 0.5 }}
-			className="space-y-6">
-			<h3 className="text-2xl font-semibold text-gray-900 mb-6">
-				Medical History
-			</h3>
-
-			<div>
-				<label className="block text-gray-700">Are you a new patient?</label>
-				<select
-					name="isNewPatient"
-					value={formData.isNewPatient}
-					onChange={handleChange}
-					className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500">
-					<option value="">Select</option>
-					<option value="yes">Yes</option>
-					<option value="no">No</option>
-				</select>
-			</div>
-
-			<div>
-				<label className="block text-gray-700">Current Medications</label>
-				<textarea
-					name="currentMedications"
-					value={formData.currentMedications}
-					onChange={handleChange}
-					rows="3"
-					className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-				/>
-			</div>
-
-			<div>
-				<label className="block text-gray-700">Allergies</label>
-				<textarea
-					name="allergies"
-					value={formData.allergies}
-					onChange={handleChange}
-					rows="3"
-					className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-				/>
-			</div>
-
-			<div>
-				<label className="block text-gray-700">Past Medical History</label>
-				<textarea
-					name="medicalHistory"
-					value={formData.medicalHistory}
-					onChange={handleChange}
-					rows="3"
-					className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-				/>
-			</div>
-		</motion.div>
-	)
-
-	const renderConfirmation = () => (
-		<motion.div
-			initial={{ opacity: 0, x: 20 }}
-			animate={{ opacity: 1, x: 0 }}
-			transition={{ duration: 0.5 }}
-			className="space-y-6">
-			<h3 className="text-2xl font-semibold text-gray-900 mb-6">
-				Confirm Your Appointment
-			</h3>
-			
-			{/* Selected Service Information */}
-			{selectedService && (
-				<div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
-					<h4 className="text-lg font-semibold text-blue-900 mb-3">Selected Service</h4>
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-						<div>
-							<p><strong>Service:</strong> {selectedService.title}</p>
-							<p><strong>Price:</strong> ₹{selectedService.price?.inr?.min || selectedService.price?.min || 500}</p>
-						</div>
-						<div>
-							<p><strong>Duration:</strong> {selectedService.duration || '45-60 minutes'}</p>
-							<p><strong>Type:</strong> {formData.appointmentType}</p>
-						</div>
-					</div>
-				</div>
-			)}
-
-			<div className="bg-white shadow rounded-lg p-6 space-y-4">
-				<p>
-					<strong>Name:</strong> {formData.firstName} {formData.lastName}
-				</p>
-				<p>
-					<strong>Email:</strong> {formData.email}
-				</p>
-				<p>
-					<strong>Phone:</strong> {formData.phone}
-				</p>
-				<p>
-					<strong>Date of Birth:</strong> {formData.dateOfBirth}
-				</p>
-				<p>
-					<strong>Gender:</strong> {formData.gender}
-				</p>
-				<p>
-					<strong>Service:</strong> {selectedService?.title || formData.appointmentType}
-				</p>
-				{selectedService && (
-					<p>
-						<strong>Price:</strong> ₹{selectedService.price?.inr?.min || selectedService.price?.min || 500}
-					</p>
-				)}
-				<p>
-					<strong>Consultation Method:</strong> {formData.consultationMethod === 'online' ? '💻 Online Consultation' : '🏥 In-Person Visit'}
-				</p>
-				{formData.consultationMethod === 'offline' && formData.medicalCenter && (
-					<p>
-						<strong>Medical Center:</strong> {MEDICAL_CENTERS[formData.medicalCenter]?.name}
-					</p>
-				)}
-				<p>
-					<strong>Date:</strong> {new Date(formData.preferredDate).toLocaleDateString('en-US', { 
-						weekday: 'long', 
-						year: 'numeric', 
-						month: 'long', 
-						day: 'numeric' 
-					})}
-				</p>
-				<p>
-					<strong>Time:</strong> {formData.preferredTime}
-				</p>
-				<p>
-					<strong>Reason:</strong> {formData.reason}
-				</p>
-				<p>
-					<strong>Symptoms:</strong> {formData.symptoms}
-				</p>
-				<p>
-					<strong>New Patient:</strong> {formData.isNewPatient}
-				</p>
-				<p>
-					<strong>Medications:</strong> {formData.currentMedications}
-				</p>
-				<p>
-					<strong>Allergies:</strong> {formData.allergies}
-				</p>
-				<p>
-					<strong>Medical History:</strong> {formData.medicalHistory}
-				</p>
-			</div>
-		</motion.div>
-	)
-
-	const renderSuccessScreen = () => {
-		const appt = confirmationData?.appointment
-		return (
-			<motion.div
-				initial={{ opacity: 0, scale: 0.98 }}
-				animate={{ opacity: 1, scale: 1 }}
-				className="py-8 sm:py-12">
-				<div className="text-center px-2">
-					<CheckCircle className="w-16 h-16 sm:w-20 sm:h-20 text-green-500 mx-auto mb-4 sm:mb-6" />
-					<h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
-						Appointment Confirmed! 🎉
-					</h2>
-					<p className="text-lg sm:text-xl text-gray-600 mb-6">
-						Thank you, {formData.firstName}! Your appointment has been
-						successfully booked.
-					</p>
-					<div className="bg-green-50 border border-green-200 rounded-lg p-3 sm:p-4 max-w-md mx-auto mb-6">
-						<p className="text-xs sm:text-sm text-green-700">
-							📧 A confirmation email has been sent to {formData.email}
-						</p>
-					</div>
-				</div>
-
-				<div className="max-w-3xl mx-auto mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-					<div className="bg-white rounded-lg shadow p-4 sm:p-6">
-						<h4 className="font-semibold mb-4 text-lg">Appointment Details</h4>
-						<div className="space-y-2 text-sm text-gray-700">
-							<p>
-							<strong>Booking ID:</strong> {appt?.id || "—"}
-						</p>
-						<p>
-							<strong>Name:</strong> {appt?.firstName} {appt?.lastName}
-						</p>
-						<p>
-							<strong>Email:</strong> {appt?.email}
-						</p>
-						<p>
-							<strong>Phone:</strong> {appt?.phone}
-						</p>
-						<p>
-							<strong>Type:</strong> {appt?.appointmentType}
-						</p>
-						<p>
-							<strong>Date:</strong> {appt?.preferredDate}
-						</p>
-						<p>
-							<strong>Time:</strong> {appt?.preferredTime}
-						</p>
-						<p>
-							<strong>Payment ID:</strong> {appt?.paymentId}
-						</p>
-						</div>
-					</div>
-
-					<div className="bg-white rounded-lg shadow p-4 sm:p-6">
-						<h4 className="font-semibold mb-4 text-lg">Account</h4>
-						<div className="space-y-2 text-sm text-gray-700">
-						<p>
-							<strong>Email:</strong>{" "}
-							{signupEmail || loginEmail || formData.email}
-						</p>
-						<p className="text-sm text-gray-600">
-							You can log in to view your appointments (if not already signed
-							in).
-						</p>
-						</div>
-					</div>
-				</div>
-			</motion.div>
-		)
-	}
-
 	// ----------------- Main render -----------------
 	return (
 		<div className="min-h-screen bg-gray-50">
-			<section className="bg-gradient-to-br from-primary-50 to-blue-50 py-12 px-4 sm:px-6 lg:px-8">
-				<div className="max-w-7xl mx-auto text-center">
-					<motion.div
-						initial={{ opacity: 0, y: 30 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.8 }}>
-						<h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-							Book Your Appointment
-						</h1>
-						<p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
-							Schedule your visit with Dr. Fatima Kasamnath. Our online booking
-							system makes it easy to find a time that works for you.
-						</p>
-					</motion.div>
-				</div>
-			</section>
+			{!isSubmitted && (
+				<section className="bg-gradient-to-br from-primary-50 to-blue-50 py-12 px-4 sm:px-6 lg:px-8">
+					<div className="max-w-7xl mx-auto text-center">
+						<motion.div
+							initial={{ opacity: 0, y: 30 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ duration: 0.8 }}>
+							<h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+								Book Your Appointment
+							</h1>
+							<p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
+								Schedule your visit with Dr. Fatima Kasamnath. Our online booking
+								system makes it easy to find a time that works for you.
+							</p>
+						</motion.div>
+					</div>
+				</section>
+			)}
 
 			<section className="py-12 px-4 sm:px-6 lg:px-8">
 				<div className="max-w-4xl mx-auto">
@@ -1817,14 +960,54 @@ const Appointment = () => {
 						{renderStepIndicator()}
 
 						{isSubmitted ? (
-							renderSuccessScreen()
+							<SuccessScreen
+								formData={formData}
+								confirmationData={confirmationData}
+								signupEmail={signupEmail}
+								loginEmail={loginEmail}
+							/>
 						) : (
 							<>
-								{viewStep === 0 && renderAuthStep()}
-								{viewStep === 1 && renderPersonalInfo()}
-								{viewStep === 2 && renderAppointmentDetails()}
-								{viewStep === 3 && renderMedicalInfo()}
-								{viewStep === 4 && renderConfirmation()}
+								{viewStep === 0 && (
+									<AuthStep
+										authMode={authMode}
+										setAuthMode={setAuthMode}
+										authMessage={authMessage}
+										setAuthMessage={setAuthMessage}
+										authLoading={authLoading}
+										setAuthLoading={setAuthLoading}
+										signupEmail={signupEmail}
+										setSignupEmail={setSignupEmail}
+										signupPassword={signupPassword}
+										setSignupPassword={setSignupPassword}
+										signupConfirmPassword={signupConfirmPassword}
+										setSignupConfirmPassword={setSignupConfirmPassword}
+										loginEmail={loginEmail}
+										setLoginEmail={setLoginEmail}
+										loginPassword={loginPassword}
+										setLoginPassword={setLoginPassword}
+										signUpNow={signUpNow}
+										loginNow={loginNow}
+										signOutNow={signOutNow}
+										isAuthenticated={isAuthenticated}
+										user={user}
+										setCurrentStep={setCurrentStep}
+									/>
+								)}
+								{viewStep === 1 && <PersonalInfoStep formData={formData} handleChange={handleChange} />}
+								{viewStep === 2 && (
+									<AppointmentDetailsStep
+										formData={formData}
+										handleChange={handleChange}
+										appointmentTypes={appointmentTypes}
+										selectedService={selectedService}
+										availableDates={availableDates}
+										loadingSlots={loadingSlots}
+										availableSlots={availableSlots}
+									/>
+								)}
+								{viewStep === 3 && <MedicalInfoStep formData={formData} handleChange={handleChange} />}
+								{viewStep === 4 && <ConfirmationStep formData={formData} selectedService={selectedService} />}
 
 								<div className="flex flex-col sm:flex-row justify-between mt-8 pt-6 border-t border-gray-200 space-y-4 sm:space-y-0">
 									{viewStep > 0 && (
