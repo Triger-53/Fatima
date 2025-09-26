@@ -1,34 +1,50 @@
 .review-slider-container {
 	overflow: hidden;
-	width: 100%;
 	position: relative;
-}
-
-.review-track {
 	display: flex;
-	width: calc(2 * (250px * var(--review-count))); /* 250px is card width, adjust as needed */
-	animation: slide 40s linear infinite;
+	justify-content: center;
+	align-items: center;
+	min-height: 220px; /* Adjust as needed to prevent layout shifts */
+	padding: 1rem 0;
 }
 
-.review-card {
-	flex: 0 0 350px; /* Do not grow, do not shrink, fixed basis */
-	margin: 0 1rem;
+.review-card-active {
 	padding: 1.5rem;
 	background-color: white;
 	border-radius: 0.75rem;
-	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-	transition: transform 0.3s ease;
+	box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+		0 4px 6px -2px rgba(0, 0, 0, 0.05);
+	width: 100%;
+	max-width: 550px; /* Adjust to fit content */
+	margin: 0 auto;
 }
 
-.review-card:hover {
-	transform: translateY(-5px);
+.review-card-active.slide-in {
+	animation: slideInFromRight 0.6s ease-in-out forwards;
 }
 
-@keyframes slide {
+.review-card-active.slide-out {
+	animation: slideOutToLeft 0.6s ease-in-out forwards;
+}
+
+@keyframes slideInFromRight {
 	from {
-		transform: translateX(0);
+		transform: translateX(110%);
+		opacity: 0;
 	}
 	to {
-		transform: translateX(-50%);
+		transform: translateX(0);
+		opacity: 1;
+	}
+}
+
+@keyframes slideOutToLeft {
+	from {
+		transform: translateX(0);
+		opacity: 1;
+	}
+	to {
+		transform: translateX(-110%);
+		opacity: 0;
 	}
 }
