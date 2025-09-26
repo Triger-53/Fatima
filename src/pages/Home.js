@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react"
 import CtaIllustration from "../components/CtaIllustration"
 import ReviewModal from "../components/ReviewModal"
 import FloatingReviewButton from "../components/FloatingReviewButton"
-import ReviewSlider from "../components/ReviewSlider"
+import MultiReviewSlider from "../components/MultiReviewSlider"
 import { Link } from "react-router-dom"
 import { motion } from "framer-motion"
 import {
@@ -317,7 +317,7 @@ const Home = () => {
 						</p>
 					</div>
 					<div className="mt-12">
-						<ReviewSlider reviews={reviews} />
+						<MultiReviewSlider reviews={reviews} />
 					</div>
 				</div>
 			</section>
