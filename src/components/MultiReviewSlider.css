@@ -7,28 +7,65 @@
 
 .multi-review-track {
 	display: flex;
+	align-items: stretch; /* Ensure all cards have the same height */
 	/* The transition is handled by inline styles in the component */
 }
 
 .multi-review-card {
-	flex: 0 0 calc(100% / 3); /* Display 3 cards at a time */
-	padding: 1.5rem;
-	margin: 0 1rem;
+	flex: 0 0 calc(33.333% - 1.33rem); /* Display 3 cards at a time, accounting for margins */
+	padding: 1.25rem;
+	margin: 0 0.67rem; /* Reduced margin to prevent overflow */
 	background-color: white;
 	border-radius: 0.75rem;
 	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	min-height: 180px; /* Better height for readability */
+	max-height: 200px; /* Maximum height to prevent cards from getting too tall */
 }
 
 /* Responsive adjustments */
 @media (max-width: 1024px) {
 	.multi-review-card {
-		flex: 0 0 calc(100% / 2); /* Display 2 cards */
+		flex: 0 0 calc(50% - 1rem); /* Display 2 cards, accounting for margins */
+		margin: 0 0.5rem;
+		min-height: 160px; /* Better height for tablet */
+		max-height: 180px;
 	}
 }
 
 @media (max-width: 640px) {
 	.multi-review-card {
-		flex: 0 0 100%; /* Display 1 card */
+		flex: 0 0 calc(100% - 1rem); /* Display 1 card, accounting for margins */
+		margin: 0 0.5rem;
+		min-height: 140px; /* Better height for mobile */
+		max-height: 160px;
+	}
+}
+
+/* Text truncation for review content */
+.review-text {
+	display: -webkit-box;
+	-webkit-line-clamp: 3; /* Limit to 3 lines exactly */
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	line-height: 1.5;
+	word-wrap: break-word;
+	hyphens: auto;
+}
+
+/* Responsive text truncation - all screen sizes use 3 lines */
+@media (max-width: 1024px) {
+	.review-text {
+		-webkit-line-clamp: 3; /* 3 lines for tablet */
+	}
+}
+
+@media (max-width: 640px) {
+	.review-text {
+		-webkit-line-clamp: 3; /* 3 lines for mobile */
 	}
 }

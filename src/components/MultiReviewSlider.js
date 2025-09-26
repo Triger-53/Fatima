@@ -5,13 +5,33 @@ import "./MultiReviewSlider.css"
 const MultiReviewSlider = ({ reviews }) => {
 	const [currentIndex, setCurrentIndex] = useState(0)
 	const [isTransitioning, setIsTransitioning] = useState(true)
+	const [itemsToDisplay, setItemsToDisplay] = useState(3)
 
-	const itemsToDisplay = 3
+	// Function to determine how many items to display based on screen size
+	const updateItemsToDisplay = () => {
+		if (window.innerWidth <= 640) {
+			setItemsToDisplay(1)
+		} else if (window.innerWidth <= 1024) {
+			setItemsToDisplay(2)
+		} else {
+			setItemsToDisplay(3)
+		}
+	}
 
 	// Clone the first few items for a seamless loop
 	const clonedForLoop =
 		reviews.length > itemsToDisplay ? reviews.slice(0, itemsToDisplay) : []
 	const extendedReviews = [...reviews, ...clonedForLoop]
+
+	// Handle window resize
+	useEffect(() => {
+		updateItemsToDisplay()
+		const handleResize = () => {
+			updateItemsToDisplay()
+		}
+		window.addEventListener('resize', handleResize)
+		return () => window.removeEventListener('resize', handleResize)
+	}, [])
 
 	useEffect(() => {
 		if (reviews.length <= itemsToDisplay) {
@@ -23,7 +43,7 @@ const MultiReviewSlider = ({ reviews }) => {
 		}, 3000)
 
 		return () => clearInterval(intervalId)
-	}, [reviews.length])
+	}, [reviews.length, itemsToDisplay])
 
 	useEffect(() => {
 		// This effect runs after a jump to re-enable transitions
@@ -46,13 +66,24 @@ const MultiReviewSlider = ({ reviews }) => {
 		return null
 	}
 
+	// Calculate the transform based on the actual card width including margins
+	const getTransformValue = () => {
+		if (itemsToDisplay === 1) {
+			return currentIndex * 100
+		} else if (itemsToDisplay === 2) {
+			return currentIndex * 50
+		} else {
+			return currentIndex * 33.333
+		}
+	}
+
 	return (
 		<div className="multi-review-slider-container">
 			<div
 				className="multi-review-track"
 				onTransitionEnd={handleTransitionEnd}
 				style={{
-					transform: `translateX(-${currentIndex * (100 / itemsToDisplay)}%)`,
+					transform: `translateX(-${getTransformValue()}%)`,
 					transition: isTransitioning ? "transform 0.5s ease-in-out" : "none",
 				}}>
 				{extendedReviews.map((review, index) => (
@@ -65,7 +96,7 @@ const MultiReviewSlider = ({ reviews }) => {
 								/>
 							))}
 						</div>
-						<p className="text-gray-600 mb-4 italic">"{review.review}"</p>
+						<p className="text-gray-600 mb-4 italic flex-grow review-text">"{review.review}"</p>
 						<p className="font-semibold text-gray-900">- {review.name}</p>
 					</div>
 				))}
