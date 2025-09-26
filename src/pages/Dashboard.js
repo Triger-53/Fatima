@@ -13,6 +13,9 @@ import {
 	FaAllergies,
 	FaNotesMedical,
 	FaCheckCircle,
+	FaChalkboardTeacher,
+	FaHourglassHalf,
+	FaPrescriptionBottle,
 } from "react-icons/fa"
 import EditProfileModal from "../components/EditProfileModal"
 import { motion, AnimatePresence } from "framer-motion"
@@ -21,6 +24,7 @@ export default function Dashboard() {
 	const { user, signOut } = useAuth()
 	const [profile, setProfile] = useState(null)
 	const [appointments, setAppointments] = useState([])
+	const [dashboardData, setDashboardData] = useState(null);
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState(null)
 	const [isModalOpen, setIsModalOpen] = useState(false)
@@ -28,36 +32,52 @@ export default function Dashboard() {
 	const [notification, setNotification] = useState(null)
 
 	const fetchProfileAndAppointments = async () => {
-		if (!user) return
-		setLoading(true)
+		if (!user) return;
+		setLoading(true);
+		setError(null);
 		try {
-			const { data, error } = await supabase
+			// Fetch profile and appointment list
+			const { data: apptData, error: apptError } = await supabase
 				.from("Appointment")
 				.select("*")
 				.eq("user_id", user.id)
-				.order("created_at", { ascending: false })
+				.order("created_at", { ascending: false });
 
-			if (error) throw error
+			if (apptError) throw apptError;
 
-			setAppointments(data || [])
+			setAppointments(apptData || []);
 
-			if (data && data.length > 0) {
-				const aggregatedProfile = data.reduce((acc, curr) => {
+			if (apptData && apptData.length > 0) {
+				const aggregatedProfile = apptData.reduce((acc, curr) => {
 					Object.keys(curr).forEach(key => {
-						if (curr[key] !== null && curr[key] !== '') acc[key] = curr[key]
+						if (curr[key] !== null && curr[key] !== '') acc[key] = curr[key];
 					});
-					return acc
-				}, {})
-				setProfile(aggregatedProfile)
+					return acc;
+				}, {});
+				setProfile(aggregatedProfile);
 			} else {
-				setProfile({ email: user.email, firstName: user.email.split('@')[0] })
+				setProfile({ email: user.email, firstName: user.email.split('@')[0] });
 			}
+
+			// Fetch additional dashboard data
+			const { data: dashData, error: dashError } = await supabase
+				.from("user_dashboard")
+				.select("*")
+				.eq("user_id", user.id)
+				.single();
+
+			if (dashError && dashError.code !== 'PGRST116') { // Ignore 'single row not found' errors
+				console.warn("Could not fetch user_dashboard data:", dashError.message);
+			} else {
+				setDashboardData(dashData);
+			}
+
 		} catch (error) {
-			setError(error.message)
+			setError(error.message);
 		} finally {
-			setLoading(false)
+			setLoading(false);
 		}
-	}
+	};
 
 	useEffect(() => {
 		fetchProfileAndAppointments()
@@ -138,7 +158,22 @@ export default function Dashboard() {
 									<InfoCard icon={<FaNotesMedical />} label="Past Medical History" value={profile.medicalHistory} fullWidth />
 								</div>
 							</Section>
-							<Section title="Recent Appointments" icon={<FaCalendarAlt className="text-purple-600" />}>
+							<Section title="Appointments & Sessions" icon={<FaCalendarAlt className="text-blue-600" />}>
+								<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+									<InfoCard icon={<FaCalendarAlt />} label="Upcoming Appointments" value={dashboardData?.appointments || 'None'} />
+									<InfoCard icon={<FaChalkboardTeacher />} label="Therapy Sessions" value={dashboardData?.sessions || 'None'} />
+									<InfoCard icon={<FaHourglassHalf />} label="Next Follow-Up" value={dashboardData?.followUp || 'None'} />
+								</div>
+							</Section>
+
+							<Section title="Doctor Notes" icon={<FaNotesMedical className="text-teal-600" />}>
+								<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+									<InfoCard icon={<FaEnvelope />} label="Messages" value={dashboardData?.message || 'None'} fullWidth />
+									<InfoCard icon={<FaPrescriptionBottle />} label="Prescriptions" value={dashboardData?.prescribe || 'None'} fullWidth />
+								</div>
+							</Section>
+
+							<Section title="Appointment History" icon={<FaCalendarAlt className="text-purple-600" />}>
 								<AppointmentList appointments={appointments} />
 							</Section>
 						</div>
