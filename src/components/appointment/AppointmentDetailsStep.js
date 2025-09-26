@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { getServicePrice } from '../../data/services';
 import { MEDICAL_CENTERS } from '../../data/appointmentData';
 
 const AppointmentDetailsStep = ({
@@ -49,7 +50,7 @@ const AppointmentDetailsStep = ({
               </div>
               <div className="text-right">
                 <p className="text-2xl font-bold text-blue-900">
-                  ₹{selectedService.price?.inr?.min || selectedService.price?.min || 500}
+                  ₹{getServicePrice(selectedService)}
                 </p>
                 <p className="text-sm text-blue-600">per session</p>
               </div>

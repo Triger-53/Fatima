@@ -108,6 +108,36 @@ export function getServiceByAppointmentType(appointmentType) {
     return services.find((s) => s.appointmentType === appointmentType)
 }
 
+/**
+ * A robust helper to extract the price from a service object.
+ * It handles multiple possible data structures for the price property.
+ * @param {object} service - The service object.
+ * @returns {number} The price of the service, defaulting to 500 if not found.
+ */
+export function getServicePrice(service) {
+  if (!service || service.price == null) {
+    return 500; // Default price
+  }
+
+  // Case 1: price is a number (preferred format)
+  if (typeof service.price === 'number') {
+    return service.price;
+  }
+
+  // Case 2: price is an object (legacy format from old data structures)
+  if (typeof service.price === 'object' && service.price !== null) {
+    if (service.price.inr && service.price.inr.min != null) {
+      return service.price.inr.min;
+    }
+    if (service.price.min != null) {
+      return service.price.min;
+    }
+  }
+
+  // Fallback to default price if the structure is unexpected
+  return 500;
+}
+
 // Optional: keep temporary local draft helpers for Admin panel compatibility
 const LS_OVERRIDE_KEY = "servicesOverride"
 
