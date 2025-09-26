@@ -17,29 +17,6 @@ import SuccessScreen from '../components/appointment/SuccessScreen';
 
 const DELETE_GRACE_PERIOD_MS = 15 * 60 * 1000 // 15 minutes grace period (client-side)
 
-// Helper functions
-const getDayOfWeek = (dateString) => {
-	const date = new Date(dateString)
-	const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
-	return days[date.getDay()]
-}
-
-// Use enhanced slot manager for better slot management
-const getAvailableSlots = (dateString, appointmentType, medicalCenter = null) => {
-	return slotManager.getAvailableSlots(dateString, appointmentType, medicalCenter)
-}
-
-const isSlotAvailable = async (dateString, timeSlot, appointmentType, medicalCenter = null) => {
-	return slotManager.isSlotAvailable(dateString, timeSlot, appointmentType, medicalCenter)
-}
-
-const bookSlot = async (dateString, timeSlot, appointmentType, medicalCenter = null) => {
-	return slotManager.bookSlot(dateString, timeSlot, appointmentType, medicalCenter)
-}
-
-const getAvailableDates = () => {
-	return slotManager.getAvailableDates()
-}
 
 const Appointment = () => {
 	// Steps: 0 = Auth required, 1..4 = appointment steps
@@ -168,7 +145,7 @@ const Appointment = () => {
 
 	// ------------------- Load available dates on component mount -------------------
 	useEffect(() => {
-		setAvailableDates(getAvailableDates())
+		setAvailableDates(slotManager.getAvailableDates())
 	}, [])
 
 	// ------------------- Keep selected service synced with appointment type -------------------
@@ -185,39 +162,32 @@ const Appointment = () => {
 	// ------------------- Load available slots when consultation method, date, or medical center changes -------------------
 	useEffect(() => {
 		const loadAvailableSlots = async () => {
-			const { consultationMethod, preferredDate, medicalCenter } = formData
+			const { consultationMethod, preferredDate, medicalCenter } = formData;
 			
 			if (!consultationMethod || !preferredDate) {
-				setAvailableSlots([])
-				return
+				setAvailableSlots([]);
+				return;
 			}
 
-			setLoadingSlots(true)
+			setLoadingSlots(true);
 			
 			try {
-				// Get all possible slots for this date and consultation method
-				const allSlots = getAvailableSlots(preferredDate, consultationMethod, medicalCenter)
-				
-				// Check which slots are actually available (not booked)
-				const availableSlotsList = []
-				for (const slot of allSlots) {
-					const isAvailable = await isSlotAvailable(preferredDate, slot, consultationMethod, medicalCenter)
-					if (isAvailable) {
-						availableSlotsList.push(slot)
-					}
-				}
-				
-				setAvailableSlots(availableSlotsList)
+				const availableSlotsList = await slotManager.getAvailableSlotsForDate(
+					preferredDate,
+					consultationMethod,
+					medicalCenter
+				);
+				setAvailableSlots(availableSlotsList);
 			} catch (error) {
-				console.error('Error loading available slots:', error)
-				setAvailableSlots([])
+				console.error('Error loading available slots:', error);
+				setAvailableSlots([]);
 			} finally {
-				setLoadingSlots(false)
+				setLoadingSlots(false);
 			}
-		}
+		};
 
-		loadAvailableSlots()
-	}, [formData.consultationMethod, formData.preferredDate, formData.medicalCenter])
+		loadAvailableSlots();
+	}, [formData.consultationMethod, formData.preferredDate, formData.medicalCenter]);
 
 	// ------------------- Session handling -------------------
 	useEffect(() => {
@@ -734,6 +704,28 @@ const Appointment = () => {
 			}
 		}
 
+		// Final check to prevent race conditions.
+		const isStillAvailable = await slotManager.isSlotAvailable(
+			formData.preferredDate,
+			formData.preferredTime,
+			formData.consultationMethod,
+			formData.medicalCenter,
+			true // bypass cache
+		);
+
+		if (!isStillAvailable) {
+			setError("Sorry, this slot was just booked by someone else. Please select a different slot.");
+			setIsSubmitting(false);
+			// also reload the slots for the user
+			const updatedSlots = await slotManager.getAvailableSlotsForDate(
+				formData.preferredDate,
+				formData.consultationMethod,
+				formData.medicalCenter
+			);
+			setAvailableSlots(updatedSlots);
+			return;
+		}
+
 		const options = {
 			key: "rzp_live_RL4t8lq29IQAcb",
 			amount: paymentAmount,
@@ -752,14 +744,8 @@ const Appointment = () => {
 				let appointmentRow = null
 
 				try {
-					// Book the slot first to prevent double booking
-					await bookSlot(
-						formData.preferredDate,
-						formData.preferredTime,
-						formData.consultationMethod,
-						formData.medicalCenter
-					)
-
+					// The database's unique constraint handles the "booking".
+					// If the insert succeeds, the slot is officially taken.
 					const appointmentData = {
 						firstName: formData.firstName,
 						lastName: formData.lastName,

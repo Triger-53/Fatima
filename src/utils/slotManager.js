@@ -46,11 +46,11 @@ export class SlotManager {
 	}
 
 	// Check if a slot is available (with database check)
-	async isSlotAvailable(dateString, timeSlot, consultationMethod, medicalCenter = null) {
+	async isSlotAvailable(dateString, timeSlot, consultationMethod, medicalCenter = null, bypassCache = false) {
 		const cacheKey = `slot_${dateString}_${timeSlot}_${consultationMethod}_${medicalCenter || 'online'}`;
 
 		// Check cache first
-		if (this.cache.has(cacheKey)) {
+		if (!bypassCache && this.cache.has(cacheKey)) {
 			const cached = this.cache.get(cacheKey);
 			if (Date.now() - cached.timestamp < this.cacheTimeout) {
 				return cached.available;
@@ -60,27 +60,25 @@ export class SlotManager {
 		try {
 			let query = supabase
 				.from('Appointment')
-				.select('id')
+				.select('id', { count: 'exact', head: true })
 				.eq('preferredDate', dateString)
 				.eq('preferredTime', timeSlot)
 				.eq('consultationMethod', consultationMethod);
 
-			// Fix: Only add .eq('medicalCenter', ...) if medicalCenter is not null/undefined/empty string
 			if (consultationMethod === 'offline') {
 				query = query.eq('medicalCenter', medicalCenter);
 			} else {
-				// For online, ensure medicalCenter is null in DB
 				query = query.is('medicalCenter', null);
 			}
 
-			const { data, error } = await query;
+			const { error, count } = await query;
 
 			if (error) {
 				console.error('Error checking slot availability:', error);
-				return false;
+				return false; // Fail safe
 			}
 
-			const isAvailable = !data || data.length === 0;
+			const isAvailable = count === 0;
 
 			// Cache the result
 			this.cache.set(cacheKey, {
@@ -95,35 +93,41 @@ export class SlotManager {
 		}
 	}
 
-	// Get all available slots for a date and consultation method
+	// Get all available slots for a date by fetching booked slots and filtering
 	async getAvailableSlotsForDate(dateString, consultationMethod, medicalCenter = null) {
-		const allSlots = this.getAvailableSlots(dateString, consultationMethod, medicalCenter);
-		const availableSlots = [];
+		const allPossibleSlots = this.getAvailableSlots(dateString, consultationMethod, medicalCenter);
+		if (!allPossibleSlots.length) {
+			return [];
+		}
 
-		for (const slot of allSlots) {
-			// eslint-disable-next-line no-await-in-loop
-			const isAvailable = await this.isSlotAvailable(dateString, slot, consultationMethod, medicalCenter);
-			if (isAvailable) {
-				availableSlots.push(slot);
+		try {
+			let query = supabase
+				.from('Appointment')
+				.select('preferredTime')
+				.eq('preferredDate', dateString)
+				.eq('consultationMethod', consultationMethod);
+
+			if (consultationMethod === 'offline') {
+				query = query.eq('medicalCenter', medicalCenter);
+			} else {
+				query = query.is('medicalCenter', null);
 			}
+
+			const { data: bookedAppointments, error } = await query;
+
+			if (error) {
+				console.error('Error fetching booked slots:', error);
+				return []; // Fail safe, return no slots
+			}
+
+			const bookedSlots = new Set(bookedAppointments.map(a => a.preferredTime));
+			const availableSlots = allPossibleSlots.filter(slot => !bookedSlots.has(slot));
+
+			return availableSlots;
+		} catch (error) {
+			console.error('Error calculating available slots:', error);
+			return [];
 		}
-
-		return availableSlots;
-	}
-
-	// Book a slot (mark as unavailable)
-	async bookSlot(dateString, timeSlot, consultationMethod, medicalCenter = null) {
-		const isAvailable = await this.isSlotAvailable(dateString, timeSlot, consultationMethod, medicalCenter);
-
-		if (!isAvailable) {
-			throw new Error('Slot is no longer available');
-		}
-
-		// Clear cache for this slot
-		const cacheKey = `slot_${dateString}_${timeSlot}_${consultationMethod}_${medicalCenter || 'online'}`;
-		this.cache.delete(cacheKey);
-
-		return true;
 	}
 
 	// Get slot availability summary for admin dashboard
@@ -247,10 +251,6 @@ export const getAvailableSlots = (dateString, appointmentType, medicalCenter = n
 
 export const isSlotAvailable = async (dateString, timeSlot, appointmentType, medicalCenter = null) => {
 	return slotManager.isSlotAvailable(dateString, timeSlot, appointmentType, medicalCenter)
-}
-
-export const bookSlot = async (dateString, timeSlot, appointmentType, medicalCenter = null) => {
-	return slotManager.bookSlot(dateString, timeSlot, appointmentType, medicalCenter)
 }
 
 export const getAvailableDates = (bookingRange = 30) => {
