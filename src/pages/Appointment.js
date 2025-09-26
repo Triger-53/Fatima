@@ -3,7 +3,6 @@ import React, { useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { Calendar, CheckCircle, ChevronRight, ChevronLeft } from "lucide-react"
 import { supabase } from "../supabase"
-import { checkUserExists, deleteUserById } from "../utils/supabaseAdmin"
 import { getAllServices, getServiceByAppointmentType as getServiceByType, getServicePrice } from "../data/services"
 import { MEDICAL_CENTERS, ONLINE_SLOTS } from '../data/appointmentData';
 import { slotManager } from '../utils/slotManager';
@@ -319,14 +318,14 @@ const Appointment = () => {
 
 			graceTimerRef.current = setTimeout(async () => {
 				if (!isSubmitted) {
-					await deleteCreatedUser(createdUserId, signupEmail || formData.email)
-					setCreatedInFlow(false)
-					setCreatedUserId(null)
+					// The automatic deletion logic has been removed due to security concerns.
+					// A server-side cron job would be a more appropriate solution.
+					console.warn("User account cleanup for abandoned booking is disabled.");
 					setAuthMessage(
-						"Account removed because appointment wasn't completed."
-					)
+						"Your session has expired. Please log in again to complete your booking."
+					);
 				}
-			}, DELETE_GRACE_PERIOD_MS)
+			}, DELETE_GRACE_PERIOD_MS);
 		}
 
 		return () => {
@@ -350,11 +349,8 @@ const Appointment = () => {
 	useEffect(() => {
 		const handleBeforeUnload = async (e) => {
 			if (createdInFlow && createdUserId && !isSubmitted) {
-				try {
-					await deleteCreatedUser(createdUserId, signupEmail || formData.email)
-				} catch (err) {
-					console.error("beforeunload deletion error", err)
-				}
+				// The automatic deletion logic has been removed due to security concerns.
+				console.warn("User account cleanup for abandoned booking is disabled.");
 			}
 		}
 
@@ -484,29 +480,10 @@ const Appointment = () => {
 	}, [currentStep])
 
 	// ----------------- Helper functions -----------------
-	const checkEmailExists = async (email) => {
-		try {
-			const { exists, error } = await checkUserExists(email)
-			if (error) {
-				console.error("checkEmailExists error", error)
-				return null
-			}
-			return exists
-		} catch (err) {
-			console.error("checkEmailExists error", err)
-			return null
-		}
-	}
-
 	const deleteCreatedUser = async (userId, email) => {
-		try {
-			const { success, error } = await deleteUserById(userId)
-			if (!success) {
-				console.error("deleteCreatedUser error:", error)
-			}
-		} catch (err) {
-			console.error("deleteCreatedUser error:", err)
-		}
+		// This function is being deprecated as it relies on an insecure admin client.
+		// The logic will be removed in subsequent steps.
+		console.warn("deleteCreatedUser is deprecated and should not be used.");
 	}
 
 	const signOutNow = async () => {
@@ -541,19 +518,6 @@ const Appointment = () => {
 		}
 
 		setAuthLoading(true)
-
-		try {
-			const exists = await checkEmailExists(signupEmail)
-			if (exists === true) {
-				setAuthMessage(
-					"An account already exists for this email. Please log in."
-				)
-				setAuthLoading(false)
-				return
-			}
-		} catch (err) {
-			console.error("email exists check failed", err)
-		}
 
 		try {
 			// create account
@@ -774,10 +738,8 @@ const Appointment = () => {
 					setError(`Failed to save appointment: ${err.message}`)
 
 					if (createdInFlow) {
-						await deleteCreatedUser(
-							createdUserId,
-							signupEmail || formData.email
-						)
+						// The automatic deletion logic has been removed due to security concerns.
+						console.warn("User account cleanup for abandoned booking is disabled.");
 						setCreatedInFlow(false)
 						setCreatedUserId(null)
 					}
@@ -802,7 +764,8 @@ const Appointment = () => {
 				)
 
 				if (createdInFlow) {
-					await deleteCreatedUser(createdUserId, signupEmail || formData.email)
+					// The automatic deletion logic has been removed due to security concerns.
+					console.warn("User account cleanup for abandoned booking is disabled.");
 					setCreatedInFlow(false)
 					setCreatedUserId(null)
 				}
