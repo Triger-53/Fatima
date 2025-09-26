@@ -57,7 +57,7 @@ const Navbar = () => {
 							</div>
 							<div>
 								<span className="block text-lg font-bold text-gray-900">
-									Dr. Fatima Kasmani
+									Dr. Fatima Kassamanath
 								</span>
 								<span className="block text-xs text-gray-500">
 									Speech & Hearing Therapist

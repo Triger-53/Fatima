@@ -6,6 +6,7 @@ import { supabase } from "../supabase"
 import { checkUserExists, deleteUserById } from "../utils/supabaseAdmin"
 import { getAllServices, getServiceByAppointmentType as getServiceByType } from "../data/services"
 import { MEDICAL_CENTERS, ONLINE_SLOTS } from '../data/appointmentData';
+import { slotManager } from '../utils/slotManager';
 
 import AuthStep from '../components/appointment/AuthStep';
 import PersonalInfoStep from '../components/appointment/PersonalInfoStep';
@@ -23,49 +24,21 @@ const getDayOfWeek = (dateString) => {
 	return days[date.getDay()]
 }
 
+// Use enhanced slot manager for better slot management
 const getAvailableSlots = (dateString, appointmentType, medicalCenter = null) => {
-	const dayOfWeek = getDayOfWeek(dateString)
-	
-	if (appointmentType === 'online') {
-		return ONLINE_SLOTS[dayOfWeek]?.slots || []
-	} else if (appointmentType === 'offline' && medicalCenter) {
-		const center = MEDICAL_CENTERS[medicalCenter]
-		return center?.doctorSchedule[dayOfWeek]?.slots || []
-	}
-	
-	return []
+	return slotManager.getAvailableSlots(dateString, appointmentType, medicalCenter)
 }
 
 const isSlotAvailable = async (dateString, timeSlot, appointmentType, medicalCenter = null) => {
-	const slotKey = `${dateString}_${timeSlot}_${appointmentType}_${medicalCenter || 'online'}`
-	const bookedSlots = JSON.parse(localStorage.getItem('bookedSlots') || '[]')
-	return !bookedSlots.includes(slotKey)
+	return slotManager.isSlotAvailable(dateString, timeSlot, appointmentType, medicalCenter)
 }
 
 const bookSlot = async (dateString, timeSlot, appointmentType, medicalCenter = null) => {
-	const slotKey = `${dateString}_${timeSlot}_${appointmentType}_${medicalCenter || 'online'}`
-	const bookedSlots = JSON.parse(localStorage.getItem('bookedSlots') || '[]')
-	
-	if (bookedSlots.includes(slotKey)) {
-		throw new Error('Slot is already booked')
-	}
-	
-	bookedSlots.push(slotKey)
-	localStorage.setItem('bookedSlots', JSON.stringify(bookedSlots))
-	return true
+	return slotManager.bookSlot(dateString, timeSlot, appointmentType, medicalCenter)
 }
 
 const getAvailableDates = () => {
-	const dates = []
-	const today = new Date()
-	const maxDate = new Date()
-	maxDate.setDate(today.getDate() + 30) // Only allow booking up to 30 days in advance
-	
-	for (let d = new Date(today); d <= maxDate; d.setDate(d.getDate() + 1)) {
-		dates.push(d.toISOString().split('T')[0])
-	}
-	
-	return dates
+	return slotManager.getAvailableDates()
 }
 
 const Appointment = () => {

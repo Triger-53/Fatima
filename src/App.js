@@ -28,6 +28,7 @@ import AppointmentDetail from "./admin/AppointmentDetail"
 import Analytics from "./admin/Analytics"
 import Diagnostics from "./admin/Diagnostics"
 import AdminServices from "./admin/AdminServices"
+import AppointmentSlotManager from "./admin/AppointmentSlotManager"
 
 function AppContent() {
 	const location = useLocation()
@@ -123,6 +124,14 @@ function AppContent() {
 						element={
 							<AdminLayout>
 								<AppointmentDetail />
+							</AdminLayout>
+						}
+					/>
+					<Route
+						path="/admin/slot-manager"
+						element={
+							<AdminLayout>
+								<AppointmentSlotManager />
 							</AdminLayout>
 						}
 					/>

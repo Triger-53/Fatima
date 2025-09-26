@@ -17,7 +17,6 @@ import {
 	CheckCircle,
 	PlusCircle,
 } from "lucide-react"
-import ServiceDetails from "../components/ServiceDetails"
 
 const emptyService = {
 	id: "",
@@ -35,7 +34,6 @@ const pricePlaceholder = 0
 const AdminServices = () => {
 	const [services, setServices] = useState([])
 	const [editingIndex, setEditingIndex] = useState(-1)
-	const [viewingService, setViewingService] = useState(null)
 	const [draft, setDraft] = useState(emptyService)
 	const [featuresText, setFeaturesText] = useState("")
 	const isEditing = useMemo(() => editingIndex >= 0, [editingIndex])
@@ -128,7 +126,11 @@ const AdminServices = () => {
 			setServices(freshServices)
 			// Keep the editor open with the updated data
 			if (isEditing) {
-				setDraft(JSON.parse(JSON.stringify(freshServices[editingIndex] || emptyService)))
+				setDraft(
+					JSON.parse(
+						JSON.stringify(freshServices[editingIndex] || emptyService)
+					)
+				)
 			}
 		} catch (e) {
 			console.error(e)
@@ -187,14 +189,6 @@ const AdminServices = () => {
 												<IconComp className="w-8 h-8" />
 											</div>
 											<div className="flex space-x-2 self-start">
-												<button
-													onClick={(e) => {
-														e.stopPropagation()
-														setViewingService(s)
-													}}
-													className="px-3 py-1 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 text-sm">
-													View
-												</button>
 												<button
 													onClick={(e) => {
 														e.stopPropagation()
@@ -330,9 +324,7 @@ const AdminServices = () => {
 										Cancel
 									</button>
 								)}
-								<button
-									onClick={saveDraft}
-									className="btn-primary">
+								<button onClick={saveDraft} className="btn-primary">
 									{isEditing ? "Save Changes" : "Add Service"}
 								</button>
 							</div>
@@ -340,10 +332,6 @@ const AdminServices = () => {
 					</div>
 				</div>
 			</div>
-			<ServiceDetails
-				service={viewingService}
-				onClose={() => setViewingService(null)}
-			/>
 		</div>
 	)
 }
