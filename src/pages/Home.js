@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import CtaIllustration from "../components/CtaIllustration"
+import ReviewForm from "../components/ReviewForm";
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
@@ -15,15 +16,18 @@ import {
   Eye,
   Star,
   ArrowRight,
-  CheckCircle
+  CheckCircle,
+  Quote,
 } from 'lucide-react';
-import { getAllServicesAsync } from "../data/services"
+import { getAllServicesAsync } from "../data/services";
+import { getAllReviewsAsync } from "../data/reviews";
 
 const Home = () => {
-  const [services, setServices] = useState([])
+  const [services, setServices] = useState([]);
+  const [reviews, setReviews] = useState([]);
 
   useEffect(() => {
-    let mounted = true
+    let mounted = true;
     const iconMap = {
       Heart: Heart,
       Stethoscope: Stethoscope,
@@ -31,41 +35,48 @@ const Home = () => {
       Syringe: Shield,
       Activity: Activity,
       Eye: Eye,
-    }
-    ;(async () => {
+    };
+
+    const fetchServices = async () => {
       try {
-        const list = await getAllServicesAsync()
-        if (!mounted) return
-        const mapped = list.slice(0, 3).map(s => ({
-          icon: React.createElement(iconMap[s.icon] || Heart, { className: "w-8 h-8" }),
+        const list = await getAllServicesAsync();
+        if (!mounted) return;
+        const mapped = list.slice(0, 3).map((s) => ({
+          icon: React.createElement(iconMap[s.icon] || Heart, {
+            className: "w-8 h-8",
+          }),
           title: s.title,
           description: s.description,
-        }))
-        setServices(mapped)
+        }));
+        setServices(mapped);
       } catch (_) {
-        setServices([])
+        setServices([]);
       }
-    })()
-    return () => { mounted = false }
-  }, [])
+    };
 
-  const testimonials = [
-    {
-      name: "Taher M.",
-      rating: 5,
-      text: "Dr. Fatima is exceptional! She takes the time to listen and provides personalized care. She is very creative for kids and my kids love her. Highly recommend!"
-    },
-    {
-      name: "Hussain K.",
-      rating: 5,
-      text: "The best doctor I've ever had. Professional, caring, and always available when I need her."
-    },
-    {
-      name: "Mariya U.",
-      rating: 5,
-      text: "Dr. Fatima and her methods are wonderful. The office is clean, modern, and the care is top-notch."
-    }
-  ];
+    const fetchReviews = async () => {
+      try {
+        const reviewList = await getAllReviewsAsync();
+        if (mounted) {
+          setReviews(reviewList);
+        }
+      } catch (error) {
+        console.error("Failed to fetch reviews:", error);
+        setReviews([]);
+      }
+    };
+
+    fetchServices();
+    fetchReviews();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const handleReviewSubmitted = (newReview) => {
+    setReviews((prevReviews) => [newReview, ...prevReviews]);
+  };
 
   return (
 		<div className="min-h-screen">
@@ -361,6 +372,13 @@ const Home = () => {
 				</div>
 			</section>
 
+			{/* Review Form */}
+			<section className="section-padding bg-gray-50">
+				<div className="max-w-7xl mx-auto">
+					<ReviewForm onReviewSubmitted={handleReviewSubmitted} />
+				</div>
+			</section>
+
 			{/* Testimonials */}
 			<section className="section-padding bg-white">
 				<div className="max-w-7xl mx-auto">
@@ -374,26 +392,19 @@ const Home = () => {
 						</p>
 					</div>
 					<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-						{testimonials.map((testimonial, index) => (
+						{reviews.map((review, index) => (
 							<motion.div
-								key={index}
+								key={review.id}
 								initial={{ opacity: 0, y: 30 }}
 								animate={{ opacity: 1, y: 0 }}
 								transition={{ duration: 0.6, delay: index * 0.1 }}
-								className="card">
-								<div className="flex items-center mb-4">
-									{[...Array(testimonial.rating)].map((_, i) => (
-										<Star
-											key={i}
-											className="w-5 h-5 text-yellow-400 fill-current"
-										/>
-									))}
-								</div>
-								<p className="text-gray-600 mb-4 italic">
-									"{testimonial.text}"
+								className="card flex flex-col">
+								<Quote className="w-8 h-8 text-primary-200 mb-4" />
+								<p className="text-gray-600 mb-4 italic flex-grow">
+									"{review.review}"
 								</p>
-								<p className="font-semibold text-gray-900">
-									- {testimonial.name}
+								<p className="font-semibold text-gray-900 text-right">
+									- A satisfied patient
 								</p>
 							</motion.div>
 						))}
