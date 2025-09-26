@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react"
 import CtaIllustration from "../components/CtaIllustration"
 import ReviewModal from "../components/ReviewModal"
 import FloatingReviewButton from "../components/FloatingReviewButton"
+import ReviewSlider from "../components/ReviewSlider"
 import { Link } from "react-router-dom"
 import { motion } from "framer-motion"
 import {
@@ -315,30 +316,8 @@ const Home = () => {
 							patients.
 						</p>
 					</div>
-					<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-						{reviews.map((testimonial, index) => (
-							<motion.div
-								key={testimonial.id || index}
-								initial={{ opacity: 0, y: 30 }}
-								animate={{ opacity: 1, y: 0 }}
-								transition={{ duration: 0.6, delay: index * 0.1 }}
-								className="card">
-								<div className="flex items-center mb-4">
-									{[...Array(testimonial.rating)].map((_, i) => (
-										<Star
-											key={i}
-											className="w-5 h-5 text-yellow-400 fill-current"
-										/>
-									))}
-								</div>
-								<p className="text-gray-600 mb-4 italic">
-									"{testimonial.review}"
-								</p>
-								<p className="font-semibold text-gray-900">
-									- {testimonial.name}
-								</p>
-							</motion.div>
-						))}
+					<div className="mt-12">
+						<ReviewSlider reviews={reviews} />
 					</div>
 				</div>
 			</section>
