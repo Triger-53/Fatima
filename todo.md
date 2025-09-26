@@ -1,5 +1,4 @@
 ## ***bug todo***
-- ***responsiveness*** 
 - ***broken pages*** 
 - ***user dashboard [edit op]***
 - ***services more detail***
