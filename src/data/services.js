@@ -273,7 +273,11 @@ export async function getAllServicesAsync() {
         inMemoryCache = { services, ts: Date.now() }
         writeLocalCache(services)
         return services
-    } catch (_) {}
+    } catch (error) {
+        // Re-throw the error to make it visible to the UI, instead of silently failing.
+        // This helps debug environment variable issues on platforms like Vercel.
+        throw error;
+    }
 
     // 3) Fallback to localStorage cache if available
     const local = readLocalCache()
