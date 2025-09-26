@@ -4,7 +4,7 @@ import { motion } from "framer-motion"
 import { Calendar, CheckCircle, ChevronRight, ChevronLeft } from "lucide-react"
 import { supabase } from "../supabase"
 import { checkUserExists, deleteUserById } from "../utils/supabaseAdmin"
-import { getAllServices, getServiceByAppointmentType as getServiceByType } from "../data/services"
+import { getAllServices, getServiceByAppointmentType as getServiceByType, getServicePrice } from "../data/services"
 import { MEDICAL_CENTERS, ONLINE_SLOTS } from '../data/appointmentData';
 import { slotManager } from '../utils/slotManager';
 
@@ -686,23 +686,11 @@ const Appointment = () => {
 		}
 
 		// Calculate payment amount based on selected service
-		let paymentAmount = 50000 // Default 500 INR in paise
-		let currentService = selectedService
-		
-		// If no selectedService but appointmentType is selected, get service by type
+		let currentService = selectedService;
 		if (!currentService && formData.appointmentType) {
-			currentService = getServiceByAppointmentType(formData.appointmentType)
+			currentService = getServiceByAppointmentType(formData.appointmentType);
 		}
-		
-		if (currentService && currentService.price != null) {
-			// Handle both old format (price object) and new format (single number)
-			if (typeof currentService.price === 'number') {
-				paymentAmount = currentService.price * 100 // Convert to paise
-			} else {
-				const price = currentService.price.inr || currentService.price
-				paymentAmount = price.min * 100 // Convert to paise
-			}
-		}
+		const paymentAmount = getServicePrice(currentService) * 100; // Price in paise
 
 		// Final check to prevent race conditions.
 		const isStillAvailable = await slotManager.isSlotAvailable(
@@ -1020,16 +1008,7 @@ const Appointment = () => {
 												) : (
 													<>
 														<Calendar className="w-5 h-5 mr-2" />
-														Pay ₹{(() => {
-															const currentService = selectedService || getServiceByAppointmentType(formData.appointmentType)
-															if (currentService && currentService.price != null) {
-																if (typeof currentService.price === 'number') {
-																	return currentService.price
-																}
-																return currentService.price.inr?.min ?? currentService.price.min
-															}
-															return 500
-														})()} & Confirm
+														Pay ₹{getServicePrice(selectedService || getServiceByAppointmentType(formData.appointmentType))} & Confirm
 													</>
 												)}
 											</button>
