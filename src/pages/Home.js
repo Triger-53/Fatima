@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useEffect, useState } from "react"
 import CtaIllustration from "../components/CtaIllustration"
-import FloatingReviewButton from "../components/FloatingReviewButton"
 import ReviewModal from "../components/ReviewModal"
+import FloatingReviewButton from "../components/FloatingReviewButton"
 import { Link } from "react-router-dom"
 import { motion } from "framer-motion"
 import {
@@ -20,10 +20,12 @@ import {
 	CheckCircle,
 } from "lucide-react"
 import { getAllServicesAsync } from "../data/services"
+import { getAllReviewsAsync } from "../data/reviews"
 
 const Home = () => {
 	const [services, setServices] = useState([])
 	const [isReviewModalOpen, setIsReviewModalOpen] = useState(false)
+	const [reviews, setReviews] = useState([])
 
 	useEffect(() => {
 		let mounted = true
@@ -35,7 +37,8 @@ const Home = () => {
 			Activity: Activity,
 			Eye: Eye,
 		}
-		;(async () => {
+
+		const fetchServices = async () => {
 			try {
 				const list = await getAllServicesAsync()
 				if (!mounted) return
@@ -50,7 +53,27 @@ const Home = () => {
 			} catch (_) {
 				setServices([])
 			}
-		})()
+		}
+
+		const fetchReviews = async () => {
+			try {
+				const reviewList = await getAllReviewsAsync()
+				if (mounted) {
+					const reviewsWithRating = reviewList.map((r) => ({
+						...r,
+						rating: 5,
+					}))
+					setReviews(reviewsWithRating)
+				}
+			} catch (error) {
+				console.error("Failed to fetch reviews:", error)
+				setReviews([])
+			}
+		}
+
+		fetchServices()
+		fetchReviews()
+
 		return () => {
 			mounted = false
 		}
@@ -65,27 +88,10 @@ const Home = () => {
 	}
 
 	const handleReviewSubmitted = (newReview) => {
-		console.log("Review submitted:", newReview)
-		// You can add logic here to refresh testimonials or show a success message
+		const reviewWithRating = { ...newReview, rating: 5 }
+		setReviews((prevReviews) => [reviewWithRating, ...prevReviews])
 	}
 
-	const testimonials = [
-		{
-			name: "Taher M.",
-			rating: 5,
-			text: "Dr. Fatima is exceptional! She takes the time to listen and provides personalized care. She is very creative for kids and my kids love her. Highly recommend!",
-		},
-		{
-			name: "Hussain K.",
-			rating: 5,
-			text: "The best doctor I've ever had. Professional, caring, and always available when I need her.",
-		},
-		{
-			name: "Mariya U.",
-			rating: 5,
-			text: "Dr. Fatima and her methods are wonderful. The office is clean, modern, and the care is top-notch.",
-		},
-	]
 
   return (
 		<div className="min-h-screen">
@@ -309,10 +315,10 @@ const Home = () => {
 							patients.
 						</p>
 					</div>
-					<div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-						{testimonials.map((testimonial, index) => (
+					<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+						{reviews.map((testimonial, index) => (
 							<motion.div
-								key={index}
+								key={testimonial.id || index}
 								initial={{ opacity: 0, y: 30 }}
 								animate={{ opacity: 1, y: 0 }}
 								transition={{ duration: 0.6, delay: index * 0.1 }}
@@ -326,7 +332,7 @@ const Home = () => {
 									))}
 								</div>
 								<p className="text-gray-600 mb-4 italic">
-									"{testimonial.text}"
+									"{testimonial.review}"
 								</p>
 								<p className="font-semibold text-gray-900">
 									- {testimonial.name}
