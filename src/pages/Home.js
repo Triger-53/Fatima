@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import CtaIllustration from "../components/CtaIllustration"
-import ReviewForm from "../components/ReviewForm";
+import CtaIllustration from "../components/CtaIllustration";
+import ReviewModal from "../components/ReviewModal";
+import FloatingReviewButton from "../components/FloatingReviewButton";
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
@@ -16,15 +17,23 @@ import {
   Eye,
   Star,
   ArrowRight,
-  CheckCircle,
-  Quote,
+  CheckCircle
 } from 'lucide-react';
 import { getAllServicesAsync } from "../data/services";
 import { getAllReviewsAsync } from "../data/reviews";
 
 const Home = () => {
   const [services, setServices] = useState([]);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [reviews, setReviews] = useState([]);
+
+  const handleOpenReviewModal = () => {
+    setIsReviewModalOpen(true);
+  };
+
+  const handleCloseReviewModal = () => {
+    setIsReviewModalOpen(false);
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -58,7 +67,8 @@ const Home = () => {
       try {
         const reviewList = await getAllReviewsAsync();
         if (mounted) {
-          setReviews(reviewList);
+          const reviewsWithRating = reviewList.map((r) => ({ ...r, rating: 5 }));
+          setReviews(reviewsWithRating);
         }
       } catch (error) {
         console.error("Failed to fetch reviews:", error);
@@ -75,11 +85,18 @@ const Home = () => {
   }, []);
 
   const handleReviewSubmitted = (newReview) => {
-    setReviews((prevReviews) => [newReview, ...prevReviews]);
+    const reviewWithRating = { ...newReview, rating: 5 };
+    setReviews((prevReviews) => [reviewWithRating, ...prevReviews]);
   };
 
   return (
-		<div className="min-h-screen">
+    <div className="min-h-screen">
+      <FloatingReviewButton onClick={handleOpenReviewModal} />
+      <ReviewModal
+        isOpen={isReviewModalOpen}
+        onClose={handleCloseReviewModal}
+        onReviewSubmitted={handleReviewSubmitted}
+      />
 			{/* Hero Section */}
 			<section className="bg-gradient-to-br from-primary-50 to-blue-50 section-padding">
 				<div className="max-w-7xl mx-auto">
@@ -372,13 +389,6 @@ const Home = () => {
 				</div>
 			</section>
 
-			{/* Review Form */}
-			<section className="section-padding bg-gray-50">
-				<div className="max-w-7xl mx-auto">
-					<ReviewForm onReviewSubmitted={handleReviewSubmitted} />
-				</div>
-			</section>
-
 			{/* Testimonials */}
 			<section className="section-padding bg-white">
 				<div className="max-w-7xl mx-auto">
@@ -392,19 +402,26 @@ const Home = () => {
 						</p>
 					</div>
 					<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-						{reviews.map((review, index) => (
+						{reviews.map((testimonial, index) => (
 							<motion.div
-								key={review.id}
+								key={testimonial.id}
 								initial={{ opacity: 0, y: 30 }}
 								animate={{ opacity: 1, y: 0 }}
 								transition={{ duration: 0.6, delay: index * 0.1 }}
-								className="card flex flex-col">
-								<Quote className="w-8 h-8 text-primary-200 mb-4" />
-								<p className="text-gray-600 mb-4 italic flex-grow">
-									"{review.review}"
+								className="card">
+								<div className="flex items-center mb-4">
+									{[...Array(testimonial.rating)].map((_, i) => (
+										<Star
+											key={i}
+											className="w-5 h-5 text-yellow-400 fill-current"
+										/>
+									))}
+								</div>
+								<p className="text-gray-600 mb-4 italic">
+									"{testimonial.review}"
 								</p>
-								<p className="font-semibold text-gray-900 text-right">
-									- A satisfied patient
+								<p className="font-semibold text-gray-900">
+									- {testimonial.name}
 								</p>
 							</motion.div>
 						))}
@@ -440,7 +457,7 @@ const Home = () => {
 				</div>
 			</section>
 		</div>
-	)
+	);
 };
 
 export default Home;
