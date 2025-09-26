@@ -9,7 +9,6 @@ import {
   CheckCircle,
   AlertCircle
 } from 'lucide-react';
-import FeatureIcon from '../components/FeatureIcon';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -49,25 +48,25 @@ const Contact = () => {
 
   const contactInfo = [
     {
-      icon: "Phone",
+      icon: <Phone className="w-6 h-6" />,
       title: "Phone",
       details: ["(555) 123-4567", "(555) 123-4568 (Emergency)"],
       action: "tel:5551234567"
     },
     {
-      icon: "Mail",
+      icon: <Mail className="w-6 h-6" />,
       title: "Email",
       details: ["info@drfatimakasamnath.com", "appointments@drfatimakasamnath.com"],
               action: "mailto:info@drfatimakasamnath.com"
     },
     {
-      icon: "MapPin",
+      icon: <MapPin className="w-6 h-6" />,
       title: "Address",
       details: ["123 Medical Center Dr", "Suite 100", "New York, NY 10001"],
       action: "https://maps.google.com"
     },
     {
-      icon: "Clock",
+      icon: <Clock className="w-6 h-6" />,
       title: "Office Hours",
       details: ["Mon-Fri: 8:00 AM - 6:00 PM", "Sat: 9:00 AM - 2:00 PM", "Sun: Closed"],
       action: null
@@ -107,8 +106,8 @@ const Contact = () => {
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 className="card text-center hover:shadow-xl transition-shadow duration-300"
               >
-                <div className="flex justify-center mb-6">
-                  <FeatureIcon icon={info.icon} />
+                <div className="w-16 h-16 bg-primary-100 rounded-full mx-auto mb-6 flex items-center justify-center text-primary-600">
+                  {info.icon}
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">
                   {info.title}
@@ -144,7 +143,7 @@ const Contact = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
             >
-              <div className="bg-white rounded-2xl shadow-lg p-8">
+              <div className="card">
                 <h2 className="text-3xl font-bold text-gray-900 mb-6">
                   Send Us a Message
                 </h2>
@@ -287,7 +286,7 @@ const Contact = () => {
               className="space-y-8"
             >
               {/* Map Placeholder */}
-              <div className="bg-white rounded-2xl shadow-lg p-8">
+              <div className="card">
                 <h3 className="text-2xl font-semibold text-gray-900 mb-6">
                   Our Location
                 </h3>
@@ -313,7 +312,7 @@ const Contact = () => {
               </div>
 
               {/* Emergency Information */}
-              <div className="bg-red-50 border border-red-200 rounded-2xl shadow-lg p-8">
+              <div className="card bg-red-50 border-red-200">
                 <div className="flex items-start">
                   <AlertCircle className="w-6 h-6 text-red-600 mr-3 mt-1 flex-shrink-0" />
                   <div>
@@ -336,7 +335,7 @@ const Contact = () => {
               </div>
 
               {/* Quick Contact */}
-              <div className="bg-white rounded-2xl shadow-lg p-8">
+              <div className="card">
                 <h3 className="text-2xl font-semibold text-gray-900 mb-6">
                   Quick Contact
                 </h3>
@@ -377,7 +376,7 @@ const Contact = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="bg-white rounded-2xl shadow-lg p-8"
+              className="card"
             >
               <h3 className="text-xl font-semibold text-gray-900 mb-3">
                 How do I schedule an appointment?
@@ -392,7 +391,7 @@ const Contact = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="bg-white rounded-2xl shadow-lg p-8"
+              className="card"
             >
               <h3 className="text-xl font-semibold text-gray-900 mb-3">
                 Do you offer same-day appointments?
@@ -407,7 +406,7 @@ const Contact = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
-              className="bg-white rounded-2xl shadow-lg p-8"
+              className="card"
             >
               <h3 className="text-xl font-semibold text-gray-900 mb-3">
                 What should I bring to my first appointment?

@@ -16,8 +16,6 @@ import {
     CheckCircle,
 } from "lucide-react"
 import { getAllServicesAsync } from "../data/services"
-import ServiceIcon from "../components/ServiceIcon"
-import CtaIllustration from "../components/CtaIllustration"
 
 const Services = () => {
 	const [services, setServices] = useState([])
@@ -26,19 +24,19 @@ const Services = () => {
     useEffect(() => {
         // Load services and map icons
 		const iconMap = {
-			Heart: "Heart",
-			Stethoscope: "Stethoscope",
-			Shield: "Shield",
-			Syringe: "Syringe",
-			Activity: "Activity",
-			Eye: "Eye",
+			Heart: Heart,
+			Stethoscope: Stethoscope,
+			Shield: Shield,
+			Syringe: Syringe,
+			Activity: Activity,
+			Eye: Eye,
 		}
 
         ;(async () => {
             const list = await getAllServicesAsync()
             const mappedServices = list.map((service) => ({
                 ...service,
-                icon: iconMap[service.icon] || "Stethoscope",
+                icon: React.createElement(iconMap[service.icon], { className: "w-8 h-8" }),
             }))
             setServices(mappedServices)
             setLoading(false)
@@ -115,29 +113,27 @@ const Services = () => {
 								initial={{ opacity: 0, y: 50 }}
 								animate={{ opacity: 1, y: 0 }}
 								transition={{ duration: 0.6, delay: index * 0.1 }}
-								className="bg-white rounded-2xl shadow-lg p-8 flex flex-col justify-between hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
-								<div>
-									<div className="flex justify-center mb-6">
-										<ServiceIcon icon={service.icon} />
-									</div>
-									<h3 className="text-2xl font-semibold text-gray-900 mb-3 text-center">
-										{service.title}
-									</h3>
-									<p className="text-gray-600 mb-6 text-center">{service.description}</p>
+								className="card hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
+								<div className="w-16 h-16 bg-primary-100 rounded-lg flex items-center justify-center text-primary-600 mb-6">
+									{service.icon}
+								</div>
+								<h3 className="text-2xl font-semibold text-gray-900 mb-3">
+									{service.title}
+								</h3>
+								<p className="text-gray-600 mb-6">{service.description}</p>
 
-									<div className="space-y-4 mb-6">
-										<h4 className="font-semibold text-gray-900">
-											What's Included:
-										</h4>
-										<ul className="space-y-2">
-											{service.features.map((feature, featureIndex) => (
-												<li key={featureIndex} className="flex items-start">
-													<CheckCircle className="w-5 h-5 text-medical-500 mr-3 mt-0.5 flex-shrink-0" />
-													<span className="text-gray-600">{feature}</span>
-												</li>
-											))}
-										</ul>
-									</div>
+								<div className="space-y-4 mb-6">
+									<h4 className="font-semibold text-gray-900">
+										What's Included:
+									</h4>
+									<ul className="space-y-2">
+										{service.features.map((feature, featureIndex) => (
+											<li key={featureIndex} className="flex items-start">
+												<CheckCircle className="w-5 h-5 text-medical-500 mr-3 mt-0.5 flex-shrink-0" />
+												<span className="text-gray-600">{feature}</span>
+											</li>
+										))}
+									</ul>
 								</div>
 
 								<div className="border-t border-gray-200 pt-4">
@@ -147,7 +143,7 @@ const Services = () => {
 											<span className="text-sm">{service.duration}</span>
 										</div>
                                         <div className="flex items-center text-gray-600">
-                                            <span className="text-lg font-bold text-primary-700">
+                                            <span className="text-sm font-medium">
                                                 {formatPrice(service.price)}
                                             </span>
                                         </div>
@@ -207,37 +203,37 @@ const Services = () => {
 							initial={{ opacity: 0, x: 50 }}
 							animate={{ opacity: 1, x: 0 }}
 							transition={{ duration: 0.8, delay: 0.2 }}
-							className="bg-gray-50 rounded-2xl shadow-lg p-8">
+							className="bg-white rounded-2xl shadow-xl p-8">
 							<h3 className="text-2xl font-semibold text-gray-900 mb-6">
 								Why Choose Us?
 							</h3>
 							<div className="space-y-4">
 								<div className="flex items-center">
-									<Star className="w-5 h-5 text-accent-500 fill-current mr-3" />
+									<Star className="w-5 h-5 text-yellow-400 fill-current mr-3" />
 									<span className="text-gray-700">
 										Licensed speech-language pathologist
 									</span>
 								</div>
 								<div className="flex items-center">
-									<Star className="w-5 h-5 text-accent-500 fill-current mr-3" />
+									<Star className="w-5 h-5 text-yellow-400 fill-current mr-3" />
 									<span className="text-gray-700">
 										Flexible appointment scheduling
 									</span>
 								</div>
 								<div className="flex items-center">
-									<Star className="w-5 h-5 text-accent-500 fill-current mr-3" />
+									<Star className="w-5 h-5 text-yellow-400 fill-current mr-3" />
 									<span className="text-gray-700">
 										Child-friendly therapy environment
 									</span>
 								</div>
 								<div className="flex items-center">
-									<Star className="w-5 h-5 text-accent-500 fill-current mr-3" />
+									<Star className="w-5 h-5 text-yellow-400 fill-current mr-3" />
 									<span className="text-gray-700">
 										Therapy for all age groups
 									</span>
 								</div>
 								<div className="flex items-center">
-									<Star className="w-5 h-5 text-accent-500 fill-current mr-3" />
+									<Star className="w-5 h-5 text-yellow-400 fill-current mr-3" />
 									<span className="text-gray-700">Telepractice available</span>
 								</div>
 							</div>
@@ -247,9 +243,8 @@ const Services = () => {
 			</section>
 
 			{/* CTA Section */}
-			<section className="section-padding bg-primary-600 relative overflow-hidden">
-				<CtaIllustration />
-				<div className="max-w-4xl mx-auto text-center relative z-10">
+			<section className="section-padding bg-primary-600">
+				<div className="max-w-4xl mx-auto text-center">
 					<h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
 						Ready to Schedule Your Therapy Session?
 					</h2>
