@@ -93,14 +93,12 @@ const Navbar = () => {
                                     </button>
                                 </>
                             ) : (
-                                <>
-                                    <NavLink to="/login" isActive={isActive("/login")}>Log in</NavLink>
-                                    <Link to="/appointment" className="btn-primary text-sm flex items-center">
-                                        <Calendar className="w-4 h-4 mr-2" />
-                                        Book Appointment
-                                    </Link>
-                                </>
+                                <NavLink to="/login" isActive={isActive("/login")}>Log in</NavLink>
                             )}
+                            <Link to="/appointment" className="btn-primary text-sm flex items-center">
+                                <Calendar className="w-4 h-4 mr-2" />
+                                Book Appointment
+                            </Link>
                         </div>
                     </div>
 
@@ -136,36 +134,36 @@ const Navbar = () => {
                         ))}
                     </div>
                     <div className="pt-4 pb-3 border-t border-gray-200">
-                        {user ? (
-                            <div className="px-4 space-y-2">
-                                 <MobileNavLink to="/dashboard" onClick={handleLinkClick}>
-                                    <User className="w-5 h-5 inline-block mr-2" />
-                                    Dashboard
-                                </MobileNavLink>
-                                <button
-                                    onClick={() => {
-                                        signOut();
-                                        handleLinkClick();
-                                    }}
-                                    className="block w-full text-left px-4 py-2 text-base font-medium text-red-600 hover:bg-red-50"
-                                >
-                                    <LogOut className="w-5 h-5 inline-block mr-2" />
-                                    Log out
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="px-4 space-y-2">
+                        <div className="px-4 space-y-2">
+                            {user ? (
+                                <>
+                                    <MobileNavLink to="/dashboard" onClick={handleLinkClick}>
+                                        <User className="w-5 h-5 inline-block mr-2" />
+                                        Dashboard
+                                    </MobileNavLink>
+                                    <button
+                                        onClick={() => {
+                                            signOut();
+                                            handleLinkClick();
+                                        }}
+                                        className="block w-full text-left px-4 py-2 text-base font-medium text-red-600 hover:bg-red-50"
+                                    >
+                                        <LogOut className="w-5 h-5 inline-block mr-2" />
+                                        Log out
+                                    </button>
+                                </>
+                            ) : (
                                 <MobileNavLink to="/login" onClick={handleLinkClick}>Log in</MobileNavLink>
-                                <Link
-                                    to="/appointment"
-                                    onClick={handleLinkClick}
-                                    className="block w-full text-center btn-primary flex items-center justify-center"
-                                >
-                                    <Calendar className="w-4 h-4 mr-2" />
-                                    Book Appointment
-                                </Link>
-                            </div>
-                        )}
+                            )}
+                            <Link
+                                to="/appointment"
+                                onClick={handleLinkClick}
+                                className="block w-full text-center btn-primary flex items-center justify-center"
+                            >
+                                <Calendar className="w-4 h-4 mr-2" />
+                                Book Appointment
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </Transition>

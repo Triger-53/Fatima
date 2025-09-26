@@ -10,6 +10,29 @@ import {
   AlertCircle
 } from 'lucide-react';
 
+const contactInfo = [
+  {
+    icon: <Phone className="w-6 h-6" />,
+    title: "Phone",
+    details: ["(555) 123-4567", "(555) 123-4568 (Emergency)"],
+  },
+  {
+    icon: <Mail className="w-6 h-6" />,
+    title: "Email",
+    details: ["info@drfatimakasamnath.com", "appointments@drfatimakasamnath.com"],
+  },
+  {
+    icon: <MapPin className="w-6 h-6" />,
+    title: "Address",
+    details: ["123 Medical Center Dr", "Suite 100", "New York, NY 10001"],
+  },
+  {
+    icon: <Clock className="w-6 h-6" />,
+    title: "Office Hours",
+    details: ["Mon-Fri: 8:00 AM - 6:00 PM", "Sat: 9:00 AM - 2:00 PM", "Sun: Closed"],
+  }
+];
+
 const Contact = () => {
   const [formData, setFormData] = useState({
     name: '',
@@ -46,33 +69,6 @@ const Contact = () => {
     }, 2000);
   };
 
-  const contactInfo = [
-    {
-      icon: <Phone className="w-6 h-6" />,
-      title: "Phone",
-      details: ["(555) 123-4567", "(555) 123-4568 (Emergency)"],
-      action: "tel:5551234567"
-    },
-    {
-      icon: <Mail className="w-6 h-6" />,
-      title: "Email",
-      details: ["info@drfatimakasamnath.com", "appointments@drfatimakasamnath.com"],
-              action: "mailto:info@drfatimakasamnath.com"
-    },
-    {
-      icon: <MapPin className="w-6 h-6" />,
-      title: "Address",
-      details: ["123 Medical Center Dr", "Suite 100", "New York, NY 10001"],
-      action: "https://maps.google.com"
-    },
-    {
-      icon: <Clock className="w-6 h-6" />,
-      title: "Office Hours",
-      details: ["Mon-Fri: 8:00 AM - 6:00 PM", "Sat: 9:00 AM - 2:00 PM", "Sun: Closed"],
-      action: null
-    }
-  ];
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
@@ -94,46 +90,7 @@ const Contact = () => {
         </div>
       </section>
 
-      {/* Contact Information */}
-      <section className="section-padding bg-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {contactInfo.map((info, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="card text-center hover:shadow-xl transition-shadow duration-300"
-              >
-                <div className="w-16 h-16 bg-primary-100 rounded-full mx-auto mb-6 flex items-center justify-center text-primary-600">
-                  {info.icon}
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                  {info.title}
-                </h3>
-                <div className="space-y-2">
-                  {info.details.map((detail, detailIndex) => (
-                    <p key={detailIndex} className="text-gray-600">
-                      {detail}
-                    </p>
-                  ))}
-                </div>
-                {info.action && (
-                  <a
-                    href={info.action}
-                    className="inline-block mt-4 text-primary-600 hover:text-primary-700 font-medium transition-colors duration-200"
-                  >
-                    Contact Now
-                  </a>
-                )}
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Contact Form & Map */}
+      {/* Contact Form & Details */}
       <section className="section-padding">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -311,6 +268,41 @@ const Contact = () => {
                 </div>
               </div>
 
+              {/* Contact Details */}
+              <div className="card">
+                <h3 className="text-2xl font-semibold text-gray-900 mb-6">
+                  Contact Details
+                </h3>
+                <div className="space-y-6">
+                  {contactInfo.map(info => (
+                    <div key={info.title} className="flex items-start">
+                      <div className="flex-shrink-0 w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center text-primary-600 mr-4">
+                        {info.icon}
+                      </div>
+                      <div>
+                        <h4 className="text-lg font-semibold text-gray-900">{info.title}</h4>
+                        <div className="text-gray-600">
+                          {info.title === 'Phone' && info.details.map((phone, i) => (
+                            <p key={i}><a href={`tel:${phone.replace(/\D/g, '')}`} className="hover:text-primary-600">{phone}</a></p>
+                          ))}
+                          {info.title === 'Email' && info.details.map((email, i) => (
+                            <p key={i}><a href={`mailto:${email}`} className="hover:text-primary-600 break-all">{email}</a></p>
+                          ))}
+                          {info.title === 'Address' && (
+                            <a href="https://maps.google.com" target="_blank" rel="noopener noreferrer" className="hover:text-primary-600">
+                              {info.details.map((line, i) => <span className="block" key={i}>{line}</span>)}
+                            </a>
+                          )}
+                          {info.title === 'Office Hours' && info.details.map((line, i) => (
+                            <p key={i}>{line}</p>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               {/* Emergency Information */}
               <div className="card bg-red-50 border-red-200">
                 <div className="flex items-start">
@@ -330,27 +322,6 @@ const Contact = () => {
                         <strong>After Hours:</strong> (555) 123-4569
                       </p>
                     </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Quick Contact */}
-              <div className="card">
-                <h3 className="text-2xl font-semibold text-gray-900 mb-6">
-                  Quick Contact
-                </h3>
-                <div className="space-y-4">
-                  <div className="flex items-center">
-                    <Phone className="w-5 h-5 text-primary-600 mr-3" />
-                    <span className="text-gray-700">(555) 123-4567</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Mail className="w-5 h-5 text-primary-600 mr-3" />
-                    <span className="text-gray-700">info@drfatimakasamnath.com</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Clock className="w-5 h-5 text-primary-600 mr-3" />
-                    <span className="text-gray-700">Mon-Fri: 8:00 AM - 6:00 PM</span>
                   </div>
                 </div>
               </div>

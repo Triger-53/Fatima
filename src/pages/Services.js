@@ -139,9 +139,9 @@ const Services = () => {
 
 								<div className="border-t border-gray-200 pt-4">
 									<div className="flex justify-between items-center mb-4">
-										<div className="flex items-center text-gray-600">
+										<div className="flex items-center text-blue-600">
 											<Clock className="w-4 h-4 mr-2" />
-											<span className="text-sm">{service.duration}</span>
+											<span className="text-sm font-semibold">{service.duration}</span>
 										</div>
 										<div className="flex items-center text-gray-600">
 											<span className="text-sm font-medium">
