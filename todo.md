@@ -1,5 +1,4 @@
 ## ***bug todo***
-- ***appointment booking logic not proper*** 
 - ***session management***
 - ***doctor interface*** 
 - ***admin panel*** 
