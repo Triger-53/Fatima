@@ -694,7 +694,7 @@ const Appointment = () => {
 			currentService = getServiceByAppointmentType(formData.appointmentType)
 		}
 		
-		if (currentService && currentService.price) {
+		if (currentService && currentService.price != null) {
 			// Handle both old format (price object) and new format (single number)
 			if (typeof currentService.price === 'number') {
 				paymentAmount = currentService.price * 100 // Convert to paise
@@ -1022,11 +1022,13 @@ const Appointment = () => {
 														<Calendar className="w-5 h-5 mr-2" />
 														Pay ₹{(() => {
 															const currentService = selectedService || getServiceByAppointmentType(formData.appointmentType)
-															// Handle both old format (price object) and new format (single number)
-															if (typeof currentService?.price === 'number') {
-																return currentService.price
+															if (currentService && currentService.price != null) {
+																if (typeof currentService.price === 'number') {
+																	return currentService.price
+																}
+																return currentService.price.inr?.min ?? currentService.price.min
 															}
-															return currentService?.price?.inr?.min || currentService?.price?.min || 500
+															return 500
 														})()} & Confirm
 													</>
 												)}
