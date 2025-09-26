@@ -1,14 +1,14 @@
 import { supabase } from "../supabase";
 
-export const addReviewAsync = async (reviewText) => {
-  if (!reviewText) {
-    throw new Error("Review text cannot be empty.");
+export const addReviewAsync = async ({ name, review }) => {
+  if (!name || !review) {
+    throw new Error("Name and review text cannot be empty.");
   }
 
   const { data, error } = await supabase
     .from("review")
-    .insert([{ review: reviewText }])
-    .select(); // Use .select() to get the inserted row back
+    .insert([{ name, review }])
+    .select();
 
   if (error) {
     console.error("Error adding review:", error);
