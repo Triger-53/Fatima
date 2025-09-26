@@ -1,9 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react"
 import {
-	getAllServices,
 	getAllServicesAsync,
 	saveAllServices,
-	resetServicesToDefault,
 	publishAllServices,
 	deleteServiceById,
 	updateServiceById,
@@ -17,6 +15,7 @@ import {
 	Eye,
 	Clock,
 	CheckCircle,
+	PlusCircle,
 } from "lucide-react"
 
 const emptyService = {
@@ -36,7 +35,6 @@ const AdminServices = () => {
 	const [services, setServices] = useState([])
 	const [editingIndex, setEditingIndex] = useState(-1)
 	const [draft, setDraft] = useState(emptyService)
-	const [isEditorOpen, setIsEditorOpen] = useState(false)
 	const [featuresText, setFeaturesText] = useState("")
 	const isEditing = useMemo(() => editingIndex >= 0, [editingIndex])
 
@@ -44,7 +42,11 @@ const AdminServices = () => {
 		let mounted = true
 		;(async () => {
 			const fresh = await getAllServicesAsync()
-			if (mounted) setServices(fresh)
+			if (mounted) {
+				setServices(fresh)
+				// Start with the editor in "add new" mode
+				startAdd()
+			}
 		})()
 		return () => {
 			mounted = false
@@ -54,104 +56,82 @@ const AdminServices = () => {
 	const startAdd = () => {
 		setEditingIndex(-1)
 		setDraft(emptyService)
-		setIsEditorOpen(true)
 		setFeaturesText("")
 	}
+
 	const startEdit = (index) => {
 		setEditingIndex(index)
-		setDraft(JSON.parse(JSON.stringify(services[index] || emptyService)))
-		setIsEditorOpen(true)
-		const ft = (services[index]?.features || []).join("\n")
-		setFeaturesText(ft)
+		const serviceToEdit = services[index]
+		setDraft(JSON.parse(JSON.stringify(serviceToEdit || emptyService)))
+		setFeaturesText((serviceToEdit?.features || []).join("\n"))
 	}
+
 	const cancelEdit = () => {
-		setEditingIndex(-1)
-		setDraft(emptyService)
-		setIsEditorOpen(false)
-		setFeaturesText("")
+		// "Cancel" now resets the form to "add new" mode
+		startAdd()
 	}
+
 	const removeAt = async (index) => {
 		const service = services[index]
-		if (!service?.id) {
-			const next = services.filter((_, i) => i !== index)
-			setServices(next)
-			saveAllServices(next)
-			return
-		}
-
-		try {
-			await deleteServiceById(service.id)
-			const freshServices = await getAllServicesAsync()
-			setServices(freshServices)
-			alert("Service deleted successfully.")
-		} catch (e) {
-			console.error(e)
-			alert(e?.message || "Failed to delete service")
+		if (window.confirm(`Are you sure you want to delete "${service.title}"?`)) {
+			try {
+				await deleteServiceById(service.id)
+				const freshServices = await getAllServicesAsync()
+				setServices(freshServices)
+				startAdd() // Reset form to "add new"
+				alert("Service deleted successfully. Remember to publish your changes.")
+			} catch (e) {
+				console.error(e)
+				alert(e?.message || "Failed to delete service")
+			}
 		}
 	}
+
 	const handleChange = (e) => {
 		const { name, value } = e.target
 		setDraft((p) => ({ ...p, [name]: value }))
 	}
+
 	const handlePriceChange = (value) => {
 		setDraft((p) => ({ ...p, price: Number(value) || 0 }))
 	}
+
 	const handleFeaturesChange = (value) => {
 		setFeaturesText(value)
 	}
+
 	const saveDraft = async () => {
 		const sanitized = { ...draft }
-		// Normalize features from raw multiline text
-		const lines = (featuresText || "")
+		sanitized.features = (featuresText || "")
 			.split("\n")
 			.map((s) => s.trim())
 			.filter(Boolean)
-		sanitized.features = lines
 
-		if (
-			isEditing &&
-			services[editingIndex]?.id &&
-			/^[0-9a-fA-F-]{36}$/.test(services[editingIndex].id)
-		) {
-			try {
+		try {
+			if (isEditing) {
 				await updateServiceById(services[editingIndex].id, sanitized)
-				const freshServices = await getAllServicesAsync()
-				setServices(freshServices)
-				setEditingIndex(-1)
-				setDraft(emptyService)
-				setIsEditorOpen(false)
-				alert("Service updated successfully.")
-				return
-			} catch (e) {
-				console.error(e)
-				alert(e?.message || "Failed to update service")
+				alert("Service updated. Press 'Publish' to deploy your changes.")
+			} else {
+				// Create a temporary local ID for the new service
+				const newService = { ...sanitized, id: `local-${Date.now()}` }
+				const nextServices = [...services, newService]
+				setServices(nextServices)
+				saveAllServices(nextServices)
+				alert("New service added. Press 'Publish' to deploy your changes.")
+				startAdd()
 				return
 			}
-		}
 
-		if (!sanitized.id || !/^[0-9a-fA-F-]{36}$/.test(sanitized.id)) {
-			delete sanitized.id
+			const freshServices = await getAllServicesAsync()
+			setServices(freshServices)
+			// Keep the editor open with the updated data
+			if (isEditing) {
+				setDraft(JSON.parse(JSON.stringify(freshServices[editingIndex] || emptyService)))
+			}
+		} catch (e) {
+			console.error(e)
+			alert(e?.message || "Failed to save service")
 		}
-
-		let next
-		if (isEditing) {
-			next = services.map((s, i) => (i === editingIndex ? sanitized : s))
-		} else {
-			next = [...services, sanitized]
-		}
-		setServices(next)
-		saveAllServices(next)
-		setEditingIndex(-1)
-		setDraft(emptyService)
-		setIsEditorOpen(false)
-		setFeaturesText("")
-	}
-	const resetToDefault = () => {
-		resetServicesToDefault()
-		const base = getAllServices()
-		setServices(base)
-		setEditingIndex(-1)
-		setDraft(emptyService)
 	}
 
 	const publishNow = async () => {
@@ -166,239 +146,186 @@ const AdminServices = () => {
 		}
 	}
 
+	const iconMap = { Heart, Stethoscope, Shield, Syringe, Activity, Eye }
+
 	return (
-		<div className="p-6">
-			<div className="bg-white rounded-lg shadow p-6">
+		<div className="p-6 bg-gray-50 min-h-full">
+			<div className="bg-white rounded-lg shadow-md p-6">
 				<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
 					<h2 className="text-2xl font-semibold text-gray-900 mb-4 sm:mb-0">
 						Manage Services
 					</h2>
 					<div className="flex flex-wrap gap-3">
 						<button
-							onClick={startAdd}
-							className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-							Add Service
-						</button>
-						<button
-							onClick={resetToDefault}
-							className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
-							Reset to Default
-						</button>
-						<button
 							onClick={publishNow}
-							className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-							Publish
+							className="btn-primary bg-green-600 hover:bg-green-700">
+							Publish Changes
 						</button>
 					</div>
 				</div>
 
-				{/* Two-column layout: left = list, right = editor */}
-				<div className="mb-8">
-					<div className="flex gap-5 lg:flex-row flex-col">
-						{/* Left: Services List as cards (matching public UI) */}
-						<div className="w-full lg:w-2/3">
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-								{services.map((s, i) => {
-									const iconMap = {
-										Heart,
-										Stethoscope,
-										Shield,
-										Syringe,
-										Activity,
-										Eye,
-									}
-									const IconComp = iconMap[s.icon] || Heart
-									return (
-										<div
-											key={s.id || i}
-											className="card hover:shadow-xl w-full sm:w-[350px] transition-all duration-300">
-											<div className="flex items-center justify-between">
-												<div className="w-14 h-14 bg-primary-100 rounded-lg flex items-center justify-center text-primary-600 mb-4">
-													{IconComp
-														? React.createElement(IconComp, {
-																className: "w-8 h-8",
-														  })
-														: null}
-												</div>
-												<div className="flex space-x-2 self-start">
-													<button
-														onClick={() => startEdit(i)}
-														className="px-3 py-1 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 text-sm">
-														Edit
-													</button>
-													<button
-														onClick={() => removeAt(i)}
-														className="px-3 py-1 bg-red-600 text-white rounded-2xl hover:bg-red-700 text-sm">
-														Delete
-													</button>
-												</div>
+				<div className="flex gap-8 lg:flex-row flex-col">
+					{/* Left: Services List */}
+					<div className="w-full lg:w-7/12">
+						<div className="space-y-4 h-[70vh] overflow-y-auto pr-4 -mr-4">
+							{services.map((s, i) => {
+								const IconComp = iconMap[s.icon] || Heart
+								const isActive = i === editingIndex
+								return (
+									<div
+										key={s.id || i}
+										className={`card transition-all duration-300 w-full ${
+											isActive
+												? "border-2 border-primary-500 shadow-lg"
+												: "hover:shadow-xl hover:-translate-y-1"
+										}`}
+										onClick={() => startEdit(i)}>
+										<div className="flex items-start justify-between">
+											<div className="w-14 h-14 bg-primary-100 rounded-lg flex items-center justify-center text-primary-600 mb-4">
+												<IconComp className="w-8 h-8" />
 											</div>
-											<div className="flex items-start justify-between mb-2">
-												<div>
-													<h3 className="text-xl font-semibold text-gray-900">
-														{s.title}
-													</h3>
-													<p className="text-sm text-gray-600">
-														{s.appointmentType}
-													</p>
-												</div>
-											</div>
-											<p className="text-gray-600 mb-3">{s.description}</p>
-											<div className="space-y-2 mb-3">
-												<h4 className="font-semibold text-gray-900">
-													What's Included:
-												</h4>
-												<ul className="space-y-1">
-													{(s.features || []).map((f, idx) => (
-														<li key={idx} className="flex items-start">
-															<CheckCircle className="w-4 h-4 text-medical-500 mr-2 mt-0.5 flex-shrink-0" />
-															<span className="text-gray-600 text-sm">{f}</span>
-														</li>
-													))}
-												</ul>
-											</div>
-											<div className="border-t border-gray-200 pt-3 flex items-center justify-between text-gray-600">
-												<div className="flex items-center text-sm">
-													<Clock className="w-4 h-4 mr-2" />
-													{s.duration}
-												</div>
-												<div className="flex items-center text-sm font-medium">
-													<span className="">₹</span>
-													{Number(s.price || 0).toLocaleString()}
-												</div>
+											<div className="flex space-x-2 self-start">
+												<button
+													onClick={(e) => {
+														e.stopPropagation()
+														startEdit(i)
+													}}
+													className="px-3 py-1 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 text-sm">
+													Edit
+												</button>
+												<button
+													onClick={(e) => {
+														e.stopPropagation()
+														removeAt(i)
+													}}
+													className="px-3 py-1 bg-red-600 text-white rounded-2xl hover:bg-red-700 text-sm">
+													Delete
+												</button>
 											</div>
 										</div>
-									)
-								})}
-							</div>
-						</div>
-
-						{/* Right: Editor */}
-						<div className="w-full lg:w-1/3">
-							{isEditorOpen && (
-								<div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-xl transition-all duration-300">
-									<div className="flex items-center justify-between mb-2">
-										<div className="flex items-center space-x-3">
-											<div className="w-16 h-16 bg-primary-100 rounded-lg flex items-center justify-center text-primary-600">
-												{React.createElement(
-													{
-														Heart,
-														Stethoscope,
-														Shield,
-														Syringe,
-														Activity,
-														Eye,
-													}[draft.icon] || Heart,
-													{ className: "w-8 h-8" }
-												)}
-											</div>
-										</div>
-									</div>
-
-									{/* Icon and Title Row */}
-									<div className="flex items-start mb-6">
-										<div className="flex-1">
-											<input
-												name="title"
-												value={draft.title}
-												onChange={handleChange}
-												className="w-full text-[17px] font-semibold text-gray-900 bg-transparent border-none outline-none"
-												placeholder="Service Title"
-											/>
-											<input
-												name="appointmentType"
-												value={draft.appointmentType}
-												onChange={handleChange}
-												className="w-full text-sm text-gray-600 bg-transparent border-none outline-none"
-												placeholder="Appointment Type (e.g., speech, articulation)"
-											/>
-										</div>
-									</div>
-
-									{/* Description */}
-									<div className="mb-6">
-										<textarea
-											name="description"
-											value={draft.description}
-											onChange={handleChange}
-											className="w-full text-gray-600 bg-transparent border-none outline-none resize-none"
-											rows="2"
-											placeholder="Service description"
-										/>
-									</div>
-									<div className="-mb-[9px]" />
-
-									{/* Features Section */}
-									<div className="mb-6">
-										<h4 className="font-semibold text-gray-900 mb-3">
-											What's Included:
-										</h4>
-										<textarea
-											value={featuresText}
-											onChange={(e) => handleFeaturesChange(e.target.value)}
-											className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-											rows="4"
-											placeholder="Feature 1&#10;Feature 2&#10;Feature 3"
-										/>
-									</div>
-
-									{/* Bottom Section with Duration, Price, and Icon Selector */}
-									<div className="border-t border-gray-200 pt-4">
-										<div className="flex justify-between items-center mb-4">
-											<div className="flex items-center text-gray-600">
+										<h3 className="text-xl font-semibold text-gray-900">
+											{s.title}
+										</h3>
+										<p className="text-sm text-gray-600 mb-3">
+											{s.appointmentType}
+										</p>
+										<p className="text-gray-600 mb-4">{s.description}</p>
+										<div className="border-t border-gray-200 pt-3 flex items-center justify-between">
+											<div className="flex items-center text-sm text-blue-600">
 												<Clock className="w-4 h-4 mr-2" />
-												<input
-													name="duration"
-													value={draft.duration}
-													onChange={handleChange}
-													className="bg-transparent border-none outline-none text-sm"
-													placeholder="Duration (e.g., 45-60 minutes)"
-												/>
+												<span className="font-semibold">{s.duration}</span>
 											</div>
-											<div className="flex items-center text-gray-600">
-												<input
-													type="number"
-													value={draft.price || ""}
-													onChange={(e) => handlePriceChange(e.target.value)}
-													className="bg-transparent border-none outline-none text-sm font-medium w-20"
-													placeholder={String(pricePlaceholder)}
-												/>
-											</div>
-										</div>
-										<div className="flex items-center justify-between space-x-4">
-											<div>
-												<span className="text-sm mr-1 text-gray-600">
-													Icon:
-												</span>
-												<select
-													name="icon"
-													value={draft.icon}
-													onChange={handleChange}
-													className="border border-gray-300 rounded px-3 py-1 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-													<option value="Heart">Heart</option>
-													<option value="Stethoscope">Stethoscope</option>
-													<option value="Shield">Shield</option>
-													<option value="Syringe">Syringe</option>
-													<option value="Activity">Activity</option>
-													<option value="Eye">Eye</option>
-												</select>
-											</div>
-											<div className="flex space-x-3">
-												<button
-													onClick={cancelEdit}
-													className="px-1 py-0.5 text-sm bg-gray-100 text-gray-700 rounded-3xl hover:bg-gray-200 transition-colors">
-													Cancel
-												</button>
-												<button
-													onClick={saveDraft}
-													className="px-1 py-0 text-sm bg-green-600 text-white rounded-3xl hover:bg-green-700 transition-colors">
-													Save
-												</button>
+											<div className="flex items-center text-sm font-medium text-gray-600">
+												<span>₹</span>
+												{Number(s.price || 0).toLocaleString()}
 											</div>
 										</div>
 									</div>
+								)
+							})}
+						</div>
+					</div>
+
+					{/* Right: Editor */}
+					<div className="w-full lg:w-5/12">
+						<div className="sticky top-24 bg-white border border-gray-200 rounded-lg p-6 shadow-lg">
+							<div className="flex items-center justify-between mb-4">
+								<h3 className="text-2xl font-bold text-gray-900">
+									{isEditing ? "Edit Service" : "Add New Service"}
+								</h3>
+								{!isEditing && (
+									<button
+										onClick={startAdd}
+										className="text-sm text-primary-600 hover:text-primary-800 flex items-center">
+										<PlusCircle className="w-4 h-4 mr-1" />
+										New Service
+									</button>
+								)}
+							</div>
+
+							{/* Form Fields */}
+							<div className="space-y-4">
+								<input
+									name="title"
+									value={draft.title}
+									onChange={handleChange}
+									className="form-input"
+									placeholder="Service Title"
+								/>
+								<input
+									name="appointmentType"
+									value={draft.appointmentType}
+									onChange={handleChange}
+									className="form-input"
+									placeholder="Appointment Type (e.g., speech, articulation)"
+								/>
+								<textarea
+									name="description"
+									value={draft.description}
+									onChange={handleChange}
+									className="form-input"
+									rows="3"
+									placeholder="Service description"
+								/>
+								<div>
+									<label className="block text-sm font-medium text-gray-700 mb-1">
+										What's Included (one feature per line):
+									</label>
+									<textarea
+										value={featuresText}
+										onChange={(e) => handleFeaturesChange(e.target.value)}
+										className="form-input"
+										rows="4"
+										placeholder="Feature 1&#10;Feature 2&#10;Feature 3"
+									/>
 								</div>
-							)}
+								<div className="flex gap-4">
+									<input
+										name="duration"
+										value={draft.duration}
+										onChange={handleChange}
+										className="form-input"
+										placeholder="Duration (e.g., 45-60 min)"
+									/>
+									<input
+										type="number"
+										value={draft.price || ""}
+										onChange={(e) => handlePriceChange(e.target.value)}
+										className="form-input"
+										placeholder={`Price (e.g., ${pricePlaceholder})`}
+									/>
+								</div>
+								<div>
+									<label className="block text-sm font-medium text-gray-700 mb-1">
+										Icon:
+									</label>
+									<select
+										name="icon"
+										value={draft.icon}
+										onChange={handleChange}
+										className="form-input">
+										{Object.keys(iconMap).map((iconName) => (
+											<option key={iconName} value={iconName}>
+												{iconName}
+											</option>
+										))}
+									</select>
+								</div>
+							</div>
+
+							{/* Action Buttons */}
+							<div className="border-t border-gray-200 mt-6 pt-4 flex justify-end space-x-3">
+								{isEditing && (
+									<button onClick={cancelEdit} className="btn-secondary">
+										Cancel
+									</button>
+								)}
+								<button
+									onClick={saveDraft}
+									className="btn-primary">
+									{isEditing ? "Save Changes" : "Add Service"}
+								</button>
+							</div>
 						</div>
 					</div>
 				</div>

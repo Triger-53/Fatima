@@ -143,54 +143,80 @@ const About = () => {
 			{/* Doctor's Story */}
 			<section className="section-padding bg-white">
 				<div className="max-w-7xl mx-auto">
-					<div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+					<div className="text-center mb-12">
+						<h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+							My Story & Philosophy
+						</h2>
+						<p className="text-xl text-gray-600 max-w-3xl mx-auto">
+							Discover the passion and principles that drive my practice.
+						</p>
+					</div>
+					<div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center">
 						<motion.div
-							initial={{ opacity: 0, y: 30 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ duration: 0.8 }}>
-							<h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-								My Story
-							</h2>
-							<div className="space-y-6 text-lg text-gray-600">
-								<p>
-									I've always been passionate about helping people communicate
-									effectively and confidently. After completing my Master's
-									degree in Speech-Language Pathology and becoming certified by
-									the American Speech-Language-Hearing Association, I knew I
-									wanted to specialize in helping patients of all ages improve
-									their communication skills.
-								</p>
-								<p>
-									What drives me is the opportunity to help patients find their
-									voice and build confidence in their communication abilities. I
-									believe that effective communication is fundamental to quality
-									of life, and I'm committed to providing evidence-based
-									therapy.
-								</p>
-								<p>
-									Over the past 15 years, I've had the privilege of working with
-									patients from all walks of life, from toddlers learning their
-									first words to seniors recovering from stroke. Every patient's
-									journey is unique, and I'm committed to providing the highest
-									quality speech therapy possible.
-								</p>
+							initial={{ opacity: 0, scale: 0.8 }}
+							animate={{ opacity: 1, scale: 1 }}
+							transition={{ duration: 0.8 }}
+							className="lg:col-span-2">
+							<div className="relative">
+								<div className="aspect-w-1 aspect-h-1">
+									<div className="w-full h-full bg-primary-100 rounded-3xl flex items-center justify-center text-8xl shadow-lg">
+										👩‍⚕️
+									</div>
+								</div>
+								<div className="absolute -bottom-6 -right-6 bg-white p-4 rounded-2xl shadow-xl">
+									<div className="flex items-center space-x-3">
+										<div className="w-12 h-12 bg-medical-100 rounded-full flex items-center justify-center text-medical-500">
+											<Heart className="w-6 h-6" />
+										</div>
+										<div>
+											<p className="font-semibold text-gray-900">
+												Compassionate Care
+											</p>
+											<p className="text-gray-600 text-sm">Since 1999</p>
+										</div>
+									</div>
+								</div>
 							</div>
 						</motion.div>
 						<motion.div
 							initial={{ opacity: 0, y: 30 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ duration: 0.8, delay: 0.2 }}
-							className="bg-gray-50 rounded-2xl p-8">
-							<h3 className="text-2xl font-semibold text-gray-900 mb-6">
-								Credentials & Education
-							</h3>
-							<div className="space-y-4">
-								{credentials.map((credential, index) => (
-									<div key={index} className="flex items-start">
-										<Award className="w-6 h-6 text-primary-600 mr-3 mt-1 flex-shrink-0" />
-										<span className="text-gray-700">{credential}</span>
-									</div>
-								))}
+							className="lg:col-span-3">
+							<div className="space-y-6 text-lg text-gray-700">
+								<p className="text-2xl font-semibold text-gray-900 leading-snug">
+									"My passion is helping individuals find their voice and
+									communicate with confidence."
+								</p>
+								<p>
+									From a young age, I was fascinated by the power of
+									communication. This led me to pursue a Master's degree in
+									Speech-Language Pathology and become certified by the American
+									Speech-Language-Hearing Association. For over two decades,
+									I've dedicated my career to helping patients of all ages
+									overcome communication challenges.
+								</p>
+								<p>
+									I believe that effective therapy is built on a foundation of
+									trust, empathy, and evidence-based practices. Whether working
+									with a child learning their first words or an adult recovering
+									from a neurological event, I am committed to providing
+									personalized care that empowers each patient to reach their
+									full potential.
+								</p>
+							</div>
+							<div className="mt-8 pt-6 border-t border-gray-200">
+								<h3 className="text-xl font-semibold text-gray-900 mb-4">
+									Credentials & Education
+								</h3>
+								<div className="space-y-3">
+									{credentials.map((credential, index) => (
+										<div key={index} className="flex items-center">
+											<Award className="w-5 h-5 text-primary-600 mr-3 flex-shrink-0" />
+											<span className="text-gray-700">{credential}</span>
+										</div>
+									))}
+								</div>
 							</div>
 						</motion.div>
 					</div>
