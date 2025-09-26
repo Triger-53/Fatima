@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react"
+import CtaIllustration from "../components/CtaIllustration"
 import { Link } from "react-router-dom"
 import { motion } from "framer-motion"
 import {
@@ -142,19 +143,21 @@ const Services = () => {
 											<Clock className="w-4 h-4 mr-2" />
 											<span className="text-sm">{service.duration}</span>
 										</div>
-                                        <div className="flex items-center text-gray-600">
-                                            <span className="text-sm font-medium">
-                                                {formatPrice(service.price)}
-                                            </span>
-                                        </div>
+										<div className="flex items-center text-gray-600">
+											<span className="text-sm font-medium">
+												{formatPrice(service.price)}
+											</span>
+										</div>
 									</div>
 									<Link
-										to={`/appointment?service=${encodeURIComponent(JSON.stringify({
-											id: service.id,
-											title: service.title,
-											price: service.price,
-											appointmentType: service.appointmentType
-										}))}`}
+										to={`/appointment?service=${encodeURIComponent(
+											JSON.stringify({
+												id: service.id,
+												title: service.title,
+												price: service.price,
+												appointmentType: service.appointmentType,
+											})
+										)}`}
 										className="btn-primary w-full flex items-center justify-center">
 										<Calendar className="w-4 h-4 mr-2" />
 										Book This Service
@@ -165,7 +168,7 @@ const Services = () => {
 					</div>
 				</div>
 			</section>
-						{/* Payment */}
+			{/* Payment */}
 			<section className="section-padding bg-white">
 				<div className="max-w-7xl mx-auto">
 					<div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -243,8 +246,9 @@ const Services = () => {
 			</section>
 
 			{/* CTA Section */}
-			<section className="section-padding bg-primary-600">
-				<div className="max-w-4xl mx-auto text-center">
+			<section className="section-padding bg-primary-600 relative overflow-hidden">
+				<CtaIllustration />
+				<div className="max-w-4xl mx-auto text-center relative z-10">
 					<h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
 						Ready to Schedule Your Therapy Session?
 					</h2>

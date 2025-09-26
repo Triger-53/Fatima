@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import CtaIllustration from "../components/CtaIllustration"
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
@@ -401,8 +402,9 @@ const Home = () => {
 			</section>
 
 			{/* CTA Section */}
-			<section className="section-padding bg-primary-600">
-				<div className="max-w-4xl mx-auto text-center">
+			<section className="section-padding bg-primary-600 relative overflow-hidden">
+				<CtaIllustration />
+				<div className="max-w-4xl mx-auto text-center relative z-10">
 					<h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
 						Ready to Improve Your Communication?
 					</h2>
