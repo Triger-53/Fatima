@@ -1,10 +1,15 @@
 // supabase.js
 import { createClient } from "@supabase/supabase-js"
 
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL
-const supabaseKey = process.env.REACT_APP_SUPABASE_SERVICE_ROLE_KEY
+const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
 
-console.log("Supabase URL:", supabaseUrl)
-console.log("Supabase Key:", supabaseKey ? "Loaded ✅" : "❌ Missing")
+if (!supabaseUrl) {
+  throw new Error("Supabase URL is missing. Please set REACT_APP_SUPABASE_URL environment variable.");
+}
 
-export const supabase = createClient(supabaseUrl, supabaseKey)
+if (!supabaseAnonKey) {
+  throw new Error("Supabase anon key is missing. Please set REACT_APP_SUPABASE_ANON_KEY environment variable.");
+}
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
