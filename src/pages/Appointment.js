@@ -3,7 +3,8 @@ import React, { useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { Calendar, CheckCircle, ChevronRight, ChevronLeft } from "lucide-react"
 import { supabase } from "../supabase"
-import { getAllServices, getServiceByAppointmentType as getServiceByType, getServicePrice } from "../data/services"
+// Import the async fetcher and remove sync dependencies
+import { getAllServicesAsync, getServicePrice } from "../data/services"
 import { MEDICAL_CENTERS, ONLINE_SLOTS } from '../data/appointmentData';
 import { slotManager } from '../utils/slotManager';
 
@@ -23,6 +24,11 @@ const Appointment = () => {
 
 	// Selected service from URL parameters
 	const [selectedService, setSelectedService] = useState(null)
+
+	// State for services list, loading, and error handling
+	const [services, setServices] = useState([])
+	const [loadingServices, setLoadingServices] = useState(true)
+	const [servicesError, setServicesError] = useState(null)
 
 	const [formData, setFormData] = useState({
 		firstName: "",
@@ -106,6 +112,25 @@ const Appointment = () => {
 	// grace timer ref so we can clear it if appointment confirmed
 	const graceTimerRef = useRef(null)
 
+	// ------------------- Fetch services on component mount -------------------
+	useEffect(() => {
+		const fetchServices = async () => {
+			try {
+				setLoadingServices(true)
+				const data = await getAllServicesAsync()
+				setServices(data || [])
+				setServicesError(null)
+			} catch (err) {
+				console.error("Failed to fetch services:", err)
+				setServicesError("Could not load services. Please try again later.")
+				setServices([]) // Set to empty array on error
+			} finally {
+				setLoadingServices(false)
+			}
+		}
+		fetchServices()
+	}, [])
+
 	// ------------------- Parse URL parameters for selected service -------------------
 	useEffect(() => {
 		const urlParams = new URLSearchParams(window.location.search)
@@ -148,15 +173,16 @@ const Appointment = () => {
 	}, [])
 
 	// ------------------- Keep selected service synced with appointment type -------------------
+	// This now depends on the `services` state as well.
 	useEffect(() => {
-		if (formData.appointmentType) {
-			const service = getServiceByAppointmentType(formData.appointmentType)
+		if (formData.appointmentType && services.length > 0) {
+			const service = services.find(s => s.appointmentType === formData.appointmentType)
 			if (service) setSelectedService(service)
 			else setSelectedService(null)
 		} else {
 			setSelectedService(null)
 		}
-	}, [formData.appointmentType])
+	}, [formData.appointmentType, services])
 
 	// ------------------- Load available slots when consultation method, date, or medical center changes -------------------
 	useEffect(() => {
@@ -794,13 +820,17 @@ const Appointment = () => {
 		</div>
 	)
 
-    const appointmentTypes = getAllServices().map(service => ({
+    // Appointment types are now derived from the services state
+	const appointmentTypes = services.map(service => ({
 		value: service.appointmentType,
 		label: service.title
 	}))
 
-	// Function to get service details by appointment type
-    const getServiceByAppointmentType = (appointmentType) => getServiceByType(appointmentType)
+	// Function to get service details by appointment type from the state
+    const getServiceByAppointmentType = (appointmentType) => {
+		if (!services || services.length === 0) return null
+		return services.find((s) => s.appointmentType === appointmentType)
+	}
 
 	const renderStepIndicator = () => (
 		<div className="flex items-center justify-center mb-8 flex-wrap">
@@ -896,15 +926,25 @@ const Appointment = () => {
 								)}
 								{viewStep === 1 && <PersonalInfoStep formData={formData} handleChange={handleChange} />}
 								{viewStep === 2 && (
-									<AppointmentDetailsStep
-										formData={formData}
-										handleChange={handleChange}
-										appointmentTypes={appointmentTypes}
-										selectedService={selectedService}
-										availableDates={availableDates}
-										loadingSlots={loadingSlots}
-										availableSlots={availableSlots}
-									/>
+									<>
+										{loadingServices && <LoadingSpinner />}
+										{servicesError && (
+											<div className="text-red-600 bg-red-50 p-3 rounded-md">
+												{servicesError}
+											</div>
+										)}
+										{!loadingServices && !servicesError && (
+											<AppointmentDetailsStep
+												formData={formData}
+												handleChange={handleChange}
+												appointmentTypes={appointmentTypes}
+												selectedService={selectedService}
+												availableDates={availableDates}
+												loadingSlots={loadingSlots}
+												availableSlots={availableSlots}
+											/>
+										)}
+									</>
 								)}
 								{viewStep === 3 && <MedicalInfoStep formData={formData} handleChange={handleChange} />}
 								{viewStep === 4 && <ConfirmationStep formData={formData} selectedService={selectedService} />}
