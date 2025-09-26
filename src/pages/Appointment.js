@@ -739,7 +739,7 @@ const Appointment = () => {
 						lastName: formData.lastName,
 						email: formData.email,
 						phone: formData.phone,
-						dateOfBirth: formData.dateOfBirth,
+						dateOfBirth: formData.dateOfBirth || null, // Ensure null for empty string
 						gender: formData.gender,
 						appointmentType: formData.appointmentType,
 						consultationMethod: formData.consultationMethod,
@@ -753,6 +753,7 @@ const Appointment = () => {
 						allergies: formData.allergies,
 						medicalHistory: formData.medicalHistory,
 						paymentId: response.razorpay_payment_id,
+						user_id: user.id, // Include user_id directly
 					}
 
 					const { data, error: insertError } = await supabase
@@ -785,17 +786,6 @@ const Appointment = () => {
 				}
 
 				setConfirmationData({ appointment: appointmentRow })
-
-				try {
-					if (user?.id) {
-						await supabase
-							.from("Appointment")
-							.update({ user_id: user.id })
-							.eq("id", appointmentRow.id)
-					}
-				} catch (err) {
-					console.error("Failed to attach user_id:", err)
-				}
 
 				setIsSubmitted(true)
 				setIsSubmitting(false)
