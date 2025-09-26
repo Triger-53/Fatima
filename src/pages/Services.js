@@ -3,27 +3,29 @@ import CtaIllustration from "../components/CtaIllustration"
 import { Link } from "react-router-dom"
 import { motion } from "framer-motion"
 import {
-    Heart,
-    Stethoscope,
-    Shield,
-    Syringe,
-    Activity,
-    Eye,
-    Baby,
-    Brain,
-    Star,
-    Calendar,
-    Clock,
-    CheckCircle,
+	Heart,
+	Stethoscope,
+	Shield,
+	Syringe,
+	Activity,
+	Eye,
+	Baby,
+	Brain,
+	Star,
+	Calendar,
+	Clock,
+	CheckCircle,
 } from "lucide-react"
 import { getAllServicesAsync } from "../data/services"
+import ServiceDetails from "../components/ServiceDetails"
 
 const Services = () => {
 	const [services, setServices] = useState([])
 	const [loading, setLoading] = useState(true)
+	const [selectedService, setSelectedService] = useState(null)
 
-    useEffect(() => {
-        // Load services and map icons
+	useEffect(() => {
+		// Load services and map icons
 		const iconMap = {
 			Heart: Heart,
 			Stethoscope: Stethoscope,
@@ -33,22 +35,22 @@ const Services = () => {
 			Eye: Eye,
 		}
 
-        ;(async () => {
-            const list = await getAllServicesAsync()
-            const mappedServices = list.map((service) => ({
-                ...service,
-                icon: React.createElement(iconMap[service.icon], { className: "w-8 h-8" }),
-            }))
-            setServices(mappedServices)
-            setLoading(false)
-        })()
-    }, [])
+		;(async () => {
+			const list = await getAllServicesAsync()
+			const mappedServices = list.map((service) => ({
+				...service,
+				icon: React.createElement(iconMap[service.icon], { className: "w-8 h-8" }),
+			}))
+			setServices(mappedServices)
+			setLoading(false)
+		})()
+	}, [])
 
 	// helper to format prices
 	const formatPrice = (price) => {
 		if (!price) return ""
 		// Handle both old format (price object) and new format (single number)
-		if (typeof price === 'number') {
+		if (typeof price === "number") {
 			return `₹${price.toLocaleString()}`
 		}
 		// Use INR pricing for display
@@ -114,34 +116,25 @@ const Services = () => {
 								initial={{ opacity: 0, y: 50 }}
 								animate={{ opacity: 1, y: 0 }}
 								transition={{ duration: 0.6, delay: index * 0.1 }}
-								className="card hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
+								className="card hover:shadow-xl transition-all duration-300 hover:-translate-y-2 flex flex-col"
+								onClick={() => setSelectedService(service)}>
 								<div className="w-16 h-16 bg-primary-100 rounded-lg flex items-center justify-center text-primary-600 mb-6">
 									{service.icon}
 								</div>
 								<h3 className="text-2xl font-semibold text-gray-900 mb-3">
 									{service.title}
 								</h3>
-								<p className="text-gray-600 mb-6">{service.description}</p>
+								<p className="text-gray-600 mb-6 flex-grow">
+									{service.description}
+								</p>
 
-								<div className="space-y-4 mb-6">
-									<h4 className="font-semibold text-gray-900">
-										What's Included:
-									</h4>
-									<ul className="space-y-2">
-										{service.features.map((feature, featureIndex) => (
-											<li key={featureIndex} className="flex items-start">
-												<CheckCircle className="w-5 h-5 text-medical-500 mr-3 mt-0.5 flex-shrink-0" />
-												<span className="text-gray-600">{feature}</span>
-											</li>
-										))}
-									</ul>
-								</div>
-
-								<div className="border-t border-gray-200 pt-4">
+								<div className="border-t border-gray-200 pt-4 mt-auto">
 									<div className="flex justify-between items-center mb-4">
 										<div className="flex items-center text-blue-600">
 											<Clock className="w-4 h-4 mr-2" />
-											<span className="text-sm font-semibold">{service.duration}</span>
+											<span className="text-sm font-semibold">
+												{service.duration}
+											</span>
 										</div>
 										<div className="flex items-center text-gray-600">
 											<span className="text-sm font-medium">
@@ -149,6 +142,11 @@ const Services = () => {
 											</span>
 										</div>
 									</div>
+									<button
+										onClick={() => setSelectedService(service)}
+										className="btn-secondary w-full flex items-center justify-center mb-2">
+										View Details
+									</button>
 									<Link
 										to={`/appointment?service=${encodeURIComponent(
 											JSON.stringify({
@@ -272,6 +270,10 @@ const Services = () => {
 					</div>
 				</div>
 			</section>
+			<ServiceDetails
+				service={selectedService}
+				onClose={() => setSelectedService(null)}
+			/>
 		</div>
 	)
 }

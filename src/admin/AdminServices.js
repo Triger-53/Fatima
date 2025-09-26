@@ -17,6 +17,7 @@ import {
 	CheckCircle,
 	PlusCircle,
 } from "lucide-react"
+import ServiceDetails from "../components/ServiceDetails"
 
 const emptyService = {
 	id: "",
@@ -34,6 +35,7 @@ const pricePlaceholder = 0
 const AdminServices = () => {
 	const [services, setServices] = useState([])
 	const [editingIndex, setEditingIndex] = useState(-1)
+	const [viewingService, setViewingService] = useState(null)
 	const [draft, setDraft] = useState(emptyService)
 	const [featuresText, setFeaturesText] = useState("")
 	const isEditing = useMemo(() => editingIndex >= 0, [editingIndex])
@@ -188,6 +190,14 @@ const AdminServices = () => {
 												<button
 													onClick={(e) => {
 														e.stopPropagation()
+														setViewingService(s)
+													}}
+													className="px-3 py-1 bg-blue-600 text-white rounded-2xl hover:bg-blue-700 text-sm">
+													View
+												</button>
+												<button
+													onClick={(e) => {
+														e.stopPropagation()
 														startEdit(i)
 													}}
 													className="px-3 py-1 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 text-sm">
@@ -330,6 +340,10 @@ const AdminServices = () => {
 					</div>
 				</div>
 			</div>
+			<ServiceDetails
+				service={viewingService}
+				onClose={() => setViewingService(null)}
+			/>
 		</div>
 	)
 }
