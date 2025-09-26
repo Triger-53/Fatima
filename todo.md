@@ -1,6 +1,5 @@
 ## ***bug todo***
 - ***rewive***
-***
 - ***appointment booking logic not proper*** 
 - ***session managment***
 - ***doctor interface*** 
