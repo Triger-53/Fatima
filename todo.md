@@ -1,7 +1,4 @@
 ## ***bug todo***
-- ***broken pages*** 
-- ***user dashboard [edit op]***
-- ***services more detail***
 - ***rewive***
 ***
 - ***appointment booking logic not proper*** 
@@ -19,3 +16,4 @@
 - ***fallback system***
 - ***terms*** 
 - ***polices*** 
+- ***dashboard***

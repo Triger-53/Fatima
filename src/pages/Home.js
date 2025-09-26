@@ -1,102 +1,106 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import CtaIllustration from "../components/CtaIllustration";
-import ReviewModal from "../components/ReviewModal";
-import FloatingReviewButton from "../components/FloatingReviewButton";
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { 
-  Calendar, 
-  Phone, 
-  MapPin, 
-  Clock, 
-  Heart, 
-  Stethoscope, 
-  Shield, 
-  Users,
-  Activity,
-  Eye,
-  Star,
-  ArrowRight,
-  CheckCircle
-} from 'lucide-react';
-import { getAllServicesAsync } from "../data/services";
-import { getAllReviewsAsync } from "../data/reviews";
+import React, { useEffect, useState } from "react"
+import CtaIllustration from "../components/CtaIllustration"
+import ReviewModal from "../components/ReviewModal"
+import FloatingReviewButton from "../components/FloatingReviewButton"
+import { Link } from "react-router-dom"
+import { motion } from "framer-motion"
+import {
+	Calendar,
+	Phone,
+	MapPin,
+	Clock,
+	Heart,
+	Stethoscope,
+	Shield,
+	Users,
+	Activity,
+	Eye,
+	Star,
+	ArrowRight,
+	CheckCircle,
+} from "lucide-react"
+import { getAllServicesAsync } from "../data/services"
+import { getAllReviewsAsync } from "../data/reviews"
 
 const Home = () => {
-  const [services, setServices] = useState([]);
-  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-  const [reviews, setReviews] = useState([]);
+	const [services, setServices] = useState([])
+	const [isReviewModalOpen, setIsReviewModalOpen] = useState(false)
+	const [reviews, setReviews] = useState([])
 
-  const handleOpenReviewModal = () => {
-    setIsReviewModalOpen(true);
-  };
+	const handleOpenReviewModal = () => {
+		setIsReviewModalOpen(true)
+	}
 
-  const handleCloseReviewModal = () => {
-    setIsReviewModalOpen(false);
-  };
+	const handleCloseReviewModal = () => {
+		setIsReviewModalOpen(false)
+	}
 
-  useEffect(() => {
-    let mounted = true;
-    const iconMap = {
-      Heart: Heart,
-      Stethoscope: Stethoscope,
-      Shield: Shield,
-      Syringe: Shield,
-      Activity: Activity,
-      Eye: Eye,
-    };
+	useEffect(() => {
+		let mounted = true
+		const iconMap = {
+			Heart: Heart,
+			Stethoscope: Stethoscope,
+			Shield: Shield,
+			Syringe: Shield,
+			Activity: Activity,
+			Eye: Eye,
+		}
 
-    const fetchServices = async () => {
-      try {
-        const list = await getAllServicesAsync();
-        if (!mounted) return;
-        const mapped = list.slice(0, 3).map((s) => ({
-          icon: React.createElement(iconMap[s.icon] || Heart, {
-            className: "w-8 h-8",
-          }),
-          title: s.title,
-          description: s.description,
-        }));
-        setServices(mapped);
-      } catch (_) {
-        setServices([]);
-      }
-    };
+		const fetchServices = async () => {
+			try {
+				const list = await getAllServicesAsync()
+				if (!mounted) return
+				const mapped = list.slice(0, 3).map((s) => ({
+					icon: React.createElement(iconMap[s.icon] || Heart, {
+						className: "w-8 h-8",
+					}),
+					title: s.title,
+					description: s.description,
+				}))
+				setServices(mapped)
+			} catch (_) {
+				setServices([])
+			}
+		}
 
-    const fetchReviews = async () => {
-      try {
-        const reviewList = await getAllReviewsAsync();
-        if (mounted) {
-          const reviewsWithRating = reviewList.map((r) => ({ ...r, rating: 5 }));
-          setReviews(reviewsWithRating);
-        }
-      } catch (error) {
-        console.error("Failed to fetch reviews:", error);
-        setReviews([]);
-      }
-    };
+		const fetchReviews = async () => {
+			try {
+				const reviewList = await getAllReviewsAsync()
+				if (mounted) {
+					const reviewsWithRating = reviewList.map((r) => ({
+						...r,
+						rating: 5,
+					}))
+					setReviews(reviewsWithRating)
+				}
+			} catch (error) {
+				console.error("Failed to fetch reviews:", error)
+				setReviews([])
+			}
+		}
 
-    fetchServices();
-    fetchReviews();
+		fetchServices()
+		fetchReviews()
 
-    return () => {
-      mounted = false;
-    };
-  }, []);
+		return () => {
+			mounted = false
+		}
+	}, [])
 
-  const handleReviewSubmitted = (newReview) => {
-    const reviewWithRating = { ...newReview, rating: 5 };
-    setReviews((prevReviews) => [reviewWithRating, ...prevReviews]);
-  };
+	const handleReviewSubmitted = (newReview) => {
+		const reviewWithRating = { ...newReview, rating: 5 }
+		setReviews((prevReviews) => [reviewWithRating, ...prevReviews])
+	}
 
-  return (
-    <div className="min-h-screen">
-      <FloatingReviewButton onClick={handleOpenReviewModal} />
-      <ReviewModal
-        isOpen={isReviewModalOpen}
-        onClose={handleCloseReviewModal}
-        onReviewSubmitted={handleReviewSubmitted}
-      />
+	return (
+		<div className="min-h-screen">
+			<FloatingReviewButton onClick={handleOpenReviewModal} />
+			<ReviewModal
+				isOpen={isReviewModalOpen}
+				onClose={handleCloseReviewModal}
+				onReviewSubmitted={handleReviewSubmitted}
+			/>
+
 			{/* Hero Section */}
 			<section className="bg-gradient-to-br from-primary-50 to-blue-50 section-padding">
 				<div className="max-w-7xl mx-auto">
@@ -213,97 +217,6 @@ const Home = () => {
 				</div>
 			</section>
 
-			{/* Online Section */}
-			<section className="bg-gradient-to-br from-primary-50 to-blue-50 section-padding">
-				<div className="max-w-7xl mx-auto">
-					<div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-						<motion.div
-							initial={{ opacity: 0, x: -50 }}
-							animate={{ opacity: 1, x: 0 }}
-							transition={{ duration: 0.8 }}>
-							<h1 className="text-4xl md:text-5xl lg:text-5xl font-bold text-gray-900 mb-6">
-								Our Online{" "}
-								<span className="text-primary-600">
-									Consultation & Sessions
-								</span>
-							</h1>
-							<p className="text-xl text-gray-600 mb-8">
-								We offer Consultation and interactive speech & Language Therapy
-								Sessions online through zoom that are efficient and creative
-							</p>
-							<div className="flex flex-col sm:flex-row gap-4">
-								<Link
-									to="/appointment"
-									className="btn-primary flex items-center justify-center">
-									<Calendar className="w-5 h-5 mr-2" />
-									Book Appointment
-								</Link>
-								<Link
-									to="/contact"
-									className="btn-secondary flex items-center justify-center">
-									<Phone className="w-5 h-5 mr-2" />
-									Call Now
-								</Link>
-							</div>
-						</motion.div>
-						<motion.div
-							initial={{ opacity: 0, x: 50 }}
-							animate={{ opacity: 1, x: 0 }}
-							transition={{ duration: 0.8, delay: 0.2 }}
-							className="relative">
-							<div className="bg-white rounded-2xl shadow-2xl p-8">
-								<h3 className="text-2xl font-bold text-gray-900 mb-6">
-									Our Online Services
-								</h3>
-
-								<div className="space-y-4">
-									{[
-										{
-											title: "Speech & Language Therapy",
-											desc: "Comprehensive assessment and treatment for speech and language disorders.",
-										},
-										{
-											title: "Articulation Therapy",
-											desc: "Specialized treatment for speech sound disorders and pronunciation issues.",
-										},
-										{
-											title: "Adult Communication Therapy",
-											desc: "Therapy for adults with communication challenges.",
-										},
-										{
-											title: "Child Language Development",
-											desc: "Early intervention for children with language delays.",
-										},
-									].map((service, idx) => (
-										<div
-											key={idx}
-											className="border-b border-gray-200 pb-3 last:border-0">
-											<h4 className="font-medium text-lg text-gray-900">
-												{service.title}
-											</h4>
-											<p className="text-gray-600 text-sm mt-1">
-												{service.desc}
-											</p>
-										</div>
-									))}
-
-									<div className="mt-6 p-4 bg-primary-50 rounded-lg">
-										<div className="flex items-center justify-center">
-											<Link
-												to="/appointment"
-												className="btn-primary flex items-center justify-center">
-												<Calendar className="w-5 h-5 mr-2" />
-												Book Appointment
-											</Link>
-										</div>
-									</div>
-								</div>
-							</div>
-						</motion.div>
-					</div>
-				</div>
-			</section>
-
 			{/* Why Choose Us */}
 			<section className="section-padding bg-gray-50">
 				<div className="max-w-7xl mx-auto">
@@ -404,7 +317,7 @@ const Home = () => {
 					<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
 						{reviews.map((testimonial, index) => (
 							<motion.div
-								key={testimonial.id}
+								key={testimonial.id || index}
 								initial={{ opacity: 0, y: 30 }}
 								animate={{ opacity: 1, y: 0 }}
 								transition={{ duration: 0.6, delay: index * 0.1 }}
@@ -457,7 +370,7 @@ const Home = () => {
 				</div>
 			</section>
 		</div>
-	);
-};
+	)
+}
 
-export default Home;
+export default Home
