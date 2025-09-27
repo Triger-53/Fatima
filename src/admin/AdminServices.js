@@ -74,6 +74,17 @@ const AdminServices = () => {
 	const removeAt = async (index) => {
 		const service = services[index]
 		if (window.confirm(`Are you sure you want to delete "${service.title}"?`)) {
+			// If the service is local-only, just remove it from the state
+			if (String(service.id).startsWith("local-")) {
+				const nextServices = services.filter((_, i) => i !== index)
+				setServices(nextServices)
+				saveAllServices(nextServices) // Update local storage override
+				startAdd() // Reset form
+				alert("Local service removed. Remember to publish your changes to sync.")
+				return
+			}
+
+			// Otherwise, proceed with DB deletion
 			try {
 				await deleteServiceById(service.id)
 				const freshServices = await getAllServicesAsync()
@@ -109,6 +120,19 @@ const AdminServices = () => {
 
 		try {
 			if (isEditing) {
+				const serviceToUpdate = services[editingIndex]
+				// If the service is local, just update the state
+				if (String(serviceToUpdate.id).startsWith("local-")) {
+					const nextServices = [...services]
+					nextServices[editingIndex] = { ...sanitized, id: serviceToUpdate.id }
+					setServices(nextServices)
+					saveAllServices(nextServices)
+					alert("Local service updated. Remember to publish your changes.")
+					setDraft(JSON.parse(JSON.stringify(nextServices[editingIndex])))
+					return
+				}
+
+				// Otherwise, it's a real service, update via API
 				await updateServiceById(services[editingIndex].id, sanitized)
 				alert("Service updated. Press 'Publish' to deploy your changes.")
 			} else {
