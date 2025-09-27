@@ -1,17 +1,19 @@
 ## ***bug todo***
 - ***session management***
-- ***doctor interface*** 
-- ***admin panel*** 
 - ***user live*** 
-***
+- ***doctor interface*** 
 - ***config system*** 
-- ***routes***
+- ***admin panel*** 
+- ***dashboard***
+***
 - ***ai***
+- ***fallback system***
+- ***routes***
 - ***security*** 
 - ***seo*** 
 ***
-- ***fallback system***
+- ***info links***
 - ***terms*** 
 - ***policies*** 
-- ***dashboard***
+***
 - ***production***
