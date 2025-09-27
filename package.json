@@ -28,6 +28,8 @@
   },
   "scripts": {
     "start": "react-scripts start",
+    "start:backend": "npm start --prefix backend",
+    "dev": "concurrently \"npm start\" \"npm run start:backend\"",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
@@ -51,6 +53,7 @@
     ]
   },
   "devDependencies": {
+    "concurrently": "^9.2.1",
     "playwright": "^1.55.1"
   }
 }
