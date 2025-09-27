@@ -58,6 +58,24 @@ export class SlotManager {
 		}
 
 		try {
+            // Check for sessions first, as they block all types for that time
+            const { count: sessionCount, error: sessionError } = await supabase
+                .from('sessions')
+                .select('id', { count: 'exact', head: true })
+                .eq('date', dateString)
+                .eq('time', timeSlot);
+
+            if (sessionError) {
+                console.error('Error checking for sessions:', sessionError);
+                return false; // Fail safe
+            }
+
+            if (sessionCount > 0) {
+                this.cache.set(cacheKey, { available: false, timestamp: Date.now() });
+                return false; // Slot is booked by a session
+            }
+
+			// Check for appointments of the specific type
 			let query = supabase
 				.from('Appointment')
 				.select('id', { count: 'exact', head: true })
@@ -93,6 +111,43 @@ export class SlotManager {
 		}
 	}
 
+    async isTimeSlotCompletelyFree(dateString, timeSlot) {
+        try {
+            // Check for sessions
+            const { count: sessionCount, error: sessionError } = await supabase
+                .from('sessions')
+                .select('id', { count: 'exact', head: true })
+                .eq('date', dateString)
+                .eq('time', timeSlot);
+
+            if (sessionError) {
+                console.error('Error checking for sessions:', sessionError);
+                return false; // Fail safe
+            }
+            if (sessionCount > 0) {
+                return false; // Booked by a session
+            }
+
+            // Check for appointments
+            const { count: appointmentCount, error: appointmentError } = await supabase
+                .from('Appointment')
+                .select('id', { count: 'exact', head: true })
+                .eq('preferredDate', dateString)
+                .eq('preferredTime', timeSlot);
+
+            if (appointmentError) {
+                console.error('Error checking for appointments:', appointmentError);
+                return false; // Fail safe
+            }
+
+            return appointmentCount === 0; // Free if no appointments found
+
+        } catch (error) {
+            console.error('Error checking if time slot is free:', error);
+            return false;
+        }
+    }
+
 	// Get all available slots for a date by fetching booked slots and filtering
 	async getAvailableSlotsForDate(dateString, consultationMethod, medicalCenter = null) {
 		const allPossibleSlots = this.getAvailableSlots(dateString, consultationMethod, medicalCenter);
@@ -120,7 +175,20 @@ export class SlotManager {
 				return []; // Fail safe, return no slots
 			}
 
-			const bookedSlots = new Set(bookedAppointments.map(a => a.preferredTime));
+            const { data: bookedSessions, error: sessionError } = await supabase
+                .from('sessions')
+                .select('time')
+                .eq('date', dateString);
+
+            if (sessionError) {
+                console.error('Error fetching booked sessions:', sessionError);
+                return []; // Fail safe
+            }
+
+			const bookedSlots = new Set([
+                ...bookedAppointments.map(a => a.preferredTime),
+                ...bookedSessions.map(s => s.time)
+            ]);
 			const availableSlots = allPossibleSlots.filter(slot => !bookedSlots.has(slot));
 
 			return availableSlots;
@@ -132,14 +200,50 @@ export class SlotManager {
 
 	// Get slot availability summary for admin dashboard
 	async getSlotAvailabilitySummary(bookingRange = this.bookingRange) {
-		const dates = this.getAvailableDates(bookingRange);
-		const summary = {
-			totalSlots: 0,
-			bookedSlots: 0,
-			availableSlots: 0,
-			byDate: {},
-			byCenter: {}
-		};
+        const dates = this.getAvailableDates(bookingRange);
+        const summary = {
+            totalSlots: 0,
+            bookedSlots: 0,
+            availableSlots: 0,
+            byDate: {},
+            byCenter: {}
+        };
+
+        // Fetch all booked appointments and sessions in the range to optimize queries
+        const { data: bookedAppointments, error: apptError } = await supabase
+            .from('Appointment')
+            .select('preferredDate, preferredTime, consultationMethod, medicalCenter')
+            .in('preferredDate', dates);
+
+        if (apptError) {
+            console.error("Error fetching appointments for summary:", apptError);
+            return summary;
+        }
+
+        const { data: bookedSessions, error: sessionError } = await supabase
+            .from('sessions')
+            .select('date, time')
+            .in('date', dates);
+
+        if (sessionError) {
+            console.error("Error fetching sessions for summary:", sessionError);
+            return summary;
+        }
+
+        const bookedSlotsSet = new Set();
+        bookedAppointments.forEach(a => {
+            const key = `${a.preferredDate}_${a.preferredTime}_${a.consultationMethod}_${a.medicalCenter || 'online'}`;
+            bookedSlotsSet.add(key);
+        });
+        bookedSessions.forEach(s => {
+            // Sessions block all types of slots at that time, so we need to account for this
+            const onlineKey = `${s.date}_${s.time}_online_online`;
+            bookedSlotsSet.add(onlineKey);
+            Object.values(MEDICAL_CENTERS).forEach(center => {
+                const offlineKey = `${s.date}_${s.time}_offline_${center.id}`;
+                bookedSlotsSet.add(offlineKey);
+            });
+        });
 
 		// Initialize center tracking
 		Object.values(MEDICAL_CENTERS).forEach(center => {
@@ -159,69 +263,58 @@ export class SlotManager {
 			availableSlots: 0
 		};
 
-		// Make the function async and parallelize slot availability checks for speed
 		for (const date of dates) {
-			summary.byDate[date] = {
-				online: { total: 0, booked: 0, available: 0 },
-				offline: {}
-			};
+            summary.byDate[date] = {
+                online: { total: 0, booked: 0, available: 0 },
+                offline: {}
+            };
 
-			// Check online slots in parallel
-			const onlineSlots = this.getAvailableSlots(date, 'online');
-			const onlineSlotChecks = onlineSlots.map(slot =>
-				this.isSlotAvailable(date, slot, 'online').then(isAvailable => ({
-					slot,
-					isAvailable
-				}))
-			);
-			const onlineResults = await Promise.all(onlineSlotChecks);
-			for (const { isAvailable } of onlineResults) {
-				summary.totalSlots++;
-				summary.byCenter['online'].totalSlots++;
-				summary.byDate[date].online.total++;
+            // Process online slots
+            const onlineSlots = this.getAvailableSlots(date, 'online');
+            for (const slot of onlineSlots) {
+                const key = `${date}_${slot}_online_online`;
+                const isAvailable = !bookedSlotsSet.has(key);
 
-				if (isAvailable) {
-					summary.availableSlots++;
-					summary.byCenter['online'].availableSlots++;
-					summary.byDate[date].online.available++;
-				} else {
-					summary.bookedSlots++;
-					summary.byCenter['online'].bookedSlots++;
-					summary.byDate[date].online.booked++;
-				}
-			}
+                summary.totalSlots++;
+                summary.byCenter['online'].totalSlots++;
+                summary.byDate[date].online.total++;
 
-			// Check offline slots for each center in parallel
-			await Promise.all(
-				Object.values(MEDICAL_CENTERS).map(async center => {
-					summary.byDate[date].offline[center.id] = { total: 0, booked: 0, available: 0 };
+                if (isAvailable) {
+                    summary.availableSlots++;
+                    summary.byCenter['online'].availableSlots++;
+                    summary.byDate[date].online.available++;
+                } else {
+                    summary.bookedSlots++;
+                    summary.byCenter['online'].bookedSlots++;
+                    summary.byDate[date].online.booked++;
+                }
+            }
 
-					const offlineSlots = this.getAvailableSlots(date, 'offline', center.id);
-					const offlineSlotChecks = offlineSlots.map(slot =>
-						this.isSlotAvailable(date, slot, 'offline', center.id).then(isAvailable => ({
-							slot,
-							isAvailable
-						}))
-					);
-					const offlineResults = await Promise.all(offlineSlotChecks);
-					for (const { isAvailable } of offlineResults) {
-						summary.totalSlots++;
-						summary.byCenter[center.id].totalSlots++;
-						summary.byDate[date].offline[center.id].total++;
+            // Process offline slots
+            for (const center of Object.values(MEDICAL_CENTERS)) {
+                summary.byDate[date].offline[center.id] = { total: 0, booked: 0, available: 0 };
+                const offlineSlots = this.getAvailableSlots(date, 'offline', center.id);
 
-						if (isAvailable) {
-							summary.availableSlots++;
-							summary.byCenter[center.id].availableSlots++;
-							summary.byDate[date].offline[center.id].available++;
-						} else {
-							summary.bookedSlots++;
-							summary.byCenter[center.id].bookedSlots++;
-							summary.byDate[date].offline[center.id].booked++;
-						}
-					}
-				})
-			);
-		}
+                for (const slot of offlineSlots) {
+                    const key = `${date}_${slot}_offline_${center.id}`;
+                    const isAvailable = !bookedSlotsSet.has(key);
+
+                    summary.totalSlots++;
+                    summary.byCenter[center.id].totalSlots++;
+                    summary.byDate[date].offline[center.id].total++;
+
+                    if (isAvailable) {
+                        summary.availableSlots++;
+                        summary.byCenter[center.id].availableSlots++;
+                        summary.byDate[date].offline[center.id].available++;
+                    } else {
+                        summary.bookedSlots++;
+                        summary.byCenter[center.id].bookedSlots++;
+                        summary.byDate[date].offline[center.id].booked++;
+                    }
+                }
+            }
+        }
 
 		return summary;
 	}
