@@ -140,7 +140,16 @@ const AdminServices = () => {
 
 	const publishNow = async () => {
 		try {
-			await publishAllServices(services)
+			// Sanitize services before publishing to remove local-only IDs
+			const servicesToPublish = services.map(s => {
+				if (s.id && String(s.id).startsWith("local-")) {
+					const { id, ...rest } = s
+					return rest // Return service without the temporary ID
+				}
+				return s
+			})
+
+			await publishAllServices(servicesToPublish)
 			const fresh = await getAllServicesAsync()
 			setServices(fresh)
 			alert("Services published successfully.")

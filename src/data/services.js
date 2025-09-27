@@ -206,6 +206,7 @@ export async function publishAllServices(services) {
         // Invalidate caches so consumers pick up fresh data
         inMemoryCache = null
         localStorage.removeItem(LS_CACHE_KEY)
+        localStorage.removeItem(LS_OVERRIDE_KEY) // Also clear admin override
     } catch (_) {}
 
     return true
@@ -220,6 +221,7 @@ export async function deleteServiceById(id) {
     // Invalidate caches
     inMemoryCache = null
     localStorage.removeItem(LS_CACHE_KEY)
+    localStorage.removeItem(LS_OVERRIDE_KEY) // Also clear admin override
     return true
 }
 
@@ -246,6 +248,7 @@ export async function updateServiceById(id, serviceData) {
     // Invalidate caches
     inMemoryCache = null
     localStorage.removeItem(LS_CACHE_KEY)
+    localStorage.removeItem(LS_OVERRIDE_KEY) // Also clear admin override
     return true
 }
 
