@@ -89,6 +89,11 @@ const NavLinks = ({ isMobile }) => (
 				Analytics
 			</NavLink>
 		</li>
+		<li>
+			<NavLink to="/admin/sessions" className="hover:bg-cyan-100 rounded-3xl p-2">
+				Sessions
+			</NavLink>
+		</li>
 	</ul>
 )
 

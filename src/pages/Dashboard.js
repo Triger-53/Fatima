@@ -24,6 +24,7 @@ export default function Dashboard() {
 	const { user, signOut } = useAuth()
 	const [profile, setProfile] = useState(null)
 	const [appointments, setAppointments] = useState([])
+    const [sessions, setSessions] = useState([]);
 	const [dashboardData, setDashboardData] = useState(null);
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState(null)
@@ -46,6 +47,16 @@ export default function Dashboard() {
 			if (apptError) throw apptError;
 
 			setAppointments(apptData || []);
+
+            const { data: sessionsData, error: sessionsError } = await supabase
+                .from('sessions')
+                .select('*')
+                .eq('user_id', user.id)
+                .order('date', { ascending: false });
+
+            if (sessionsError) throw sessionsError;
+
+            setSessions(sessionsData || []);
 
 			if (apptData && apptData.length > 0) {
 				const aggregatedProfile = apptData.reduce((acc, curr) => {
@@ -173,8 +184,12 @@ export default function Dashboard() {
 								</div>
 							</Section>
 
-							<Section title="Appointment History" icon={<FaCalendarAlt className="text-purple-600" />}>
+							<Section title="Upcoming Appointments" icon={<FaCalendarAlt className="text-purple-600" />}>
 								<AppointmentList appointments={appointments} />
+							</Section>
+
+							<Section title="Session History" icon={<FaChalkboardTeacher className="text-indigo-600" />}>
+								<SessionList sessions={sessions} />
 							</Section>
 						</div>
 					</motion.div>
@@ -230,6 +245,34 @@ const AppointmentList = ({ appointments }) => {
 			))}
 		</div>
 	)
+}
+
+const SessionList = ({ sessions }) => {
+    if (sessions.length === 0) {
+        return (
+            <div className="text-center py-12 bg-gray-100 rounded-2xl">
+                <FaChalkboardTeacher className="text-5xl text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-800">No sessions found</h3>
+                <p className="text-gray-500 mt-2">Your assigned sessions will appear here.</p>
+            </div>
+        )
+    }
+    return (
+        <div className="space-y-4">
+            {sessions.map((session, index) => (
+                <motion.div key={session.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.1 }} className="bg-white p-5 rounded-xl border border-gray-200 flex justify-between items-center">
+                    <div>
+                        <p className="font-bold text-lg text-indigo-700">{session.title}</p>
+                        <p className="text-gray-600">{new Date(session.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} at {session.time}</p>
+                        <p className="text-gray-500">{session.duration} minutes</p>
+                    </div>
+                    <div className="text-right">
+                        <span className="text-sm bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full font-medium">Scheduled</span>
+                    </div>
+                </motion.div>
+            ))}
+        </div>
+    )
 }
 
 const Notification = ({ msg }) => (
