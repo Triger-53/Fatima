@@ -1,4 +1,4 @@
-## ***bug todo***
+## ***bugs todo***
 - ***session management***
 - ***user live*** 
 - ***doctor interface*** 
