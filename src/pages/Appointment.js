@@ -759,6 +759,68 @@ const Appointment = () => {
 
 					appointmentRow = data
 					console.log("✅ Appointment saved successfully:", appointmentRow)
+
+					// If it's an online consultation, generate the meeting link
+					if (appointmentRow && appointmentData.consultationMethod === 'online') {
+						try {
+							console.log("Attempting to create Google Meet link...");
+
+							// 1. Construct date-time strings
+							const time24h = ((time) => {
+								let [hours, minutesPart] = time.split(':');
+								let [minutes, modifier] = minutesPart.split(' ');
+								hours = parseInt(hours, 10);
+								if (modifier === 'PM' && hours < 12) hours += 12;
+								if (modifier === 'AM' && hours === 12) hours = 0; // Midnight case
+								return `${String(hours).padStart(2, '0')}:${minutes}`;
+							})(appointmentData.preferredTime);
+
+							const startDateTime = new Date(`${appointmentData.preferredDate}T${time24h}:00`);
+							const endDateTime = new Date(startDateTime.getTime() + 30 * 60 * 1000); // 30-minute duration
+
+							// 2. Call the backend to create the meeting
+							const meetingResponse = await fetch('http://localhost:3001/create-meeting', {
+								method: 'POST',
+								headers: { 'Content-Type': 'application/json' },
+								body: JSON.stringify({
+									patientEmail: appointmentData.email,
+									startDateTime: startDateTime.toISOString(),
+									endDateTime: endDateTime.toISOString(),
+								}),
+							});
+
+							if (!meetingResponse.ok) {
+								const errorBody = await meetingResponse.text();
+								throw new Error(`Backend error: ${meetingResponse.statusText}. ${errorBody}`);
+							}
+
+							const { meetLink } = await meetingResponse.json();
+							console.log("✅ Google Meet link generated:", meetLink);
+
+							// 3. Update the appointment with the meeting link
+							if (meetLink) {
+								const { error: updateError } = await supabase
+									.from('Appointment')
+									.update({ "meeting_link": meetLink })
+									.eq('id', appointmentRow.id);
+
+								if (updateError) {
+									throw new Error(`Failed to save meeting link: ${updateError.message}`);
+								}
+
+								// Also update the local state for the success screen
+								appointmentRow.meeting_link = meetLink;
+								console.log("✅ Appointment updated with meeting link.");
+							}
+
+						} catch (meetError) {
+							console.error("❌ Failed to create or save Google Meet link:", meetError);
+							// Non-fatal error. The appointment is booked, but the link failed.
+							setError("Your appointment is confirmed, but we couldn't generate a meeting link. Please contact us.");
+						}
+					}
+
+
 				} catch (err) {
 					console.error("❌ Appointment save error:", err)
 					setError(`Failed to save appointment: ${err.message}`)
