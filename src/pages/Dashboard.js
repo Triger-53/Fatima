@@ -16,6 +16,8 @@ import {
 	FaChalkboardTeacher,
 	FaHourglassHalf,
 	FaPrescriptionBottle,
+	FaVideo,
+	FaHospital,
 } from "react-icons/fa"
 import EditProfileModal from "../components/EditProfileModal"
 import { motion, AnimatePresence } from "framer-motion"
@@ -220,32 +222,74 @@ const InfoCard = ({ icon, label, value, fullWidth }) => (
 )
 
 const AppointmentList = ({ appointments }) => {
-	if (appointments.length === 0) {
+	if (!appointments || appointments.length === 0) {
 		return (
 			<div className="text-center py-12 bg-gray-100 rounded-2xl">
 				<FaCalendarAlt className="text-5xl text-gray-400 mx-auto mb-4" />
 				<h3 className="text-xl font-semibold text-gray-800">No appointments found</h3>
 				<p className="text-gray-500 mt-2">Book your first appointment to see it here.</p>
 			</div>
-		)
+		);
 	}
+
+	const upcomingAppointments = appointments.filter(appt => new Date(appt.preferredDate) >= new Date());
+
+	if (upcomingAppointments.length === 0) {
+		return (
+			<div className="text-center py-12 bg-gray-100 rounded-2xl">
+				<FaCalendarAlt className="text-5xl text-gray-400 mx-auto mb-4" />
+				<h3 className="text-xl font-semibold text-gray-800">No upcoming appointments</h3>
+				<p className="text-gray-500 mt-2">Your past appointments are hidden. Book a new one to see it here.</p>
+			</div>
+		);
+	}
+
 	return (
 		<div className="space-y-4">
-			{appointments.map((appt, index) => (
-				<motion.div key={appt.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.1 }} className="bg-white p-5 rounded-xl border border-gray-200 flex justify-between items-center">
-					<div>
+			{upcomingAppointments.map((appt, index) => (
+				<motion.div
+					key={appt.id}
+					initial={{ opacity: 0, x: -20 }}
+					animate={{ opacity: 1, x: 0 }}
+					transition={{ delay: index * 0.1 }}
+					className="bg-white p-5 rounded-xl border border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+				>
+					<div className="flex-grow">
 						<p className="font-bold text-lg text-primary-700">{appt.appointmentType}</p>
-						<p className="text-gray-600">{new Date(appt.preferredDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} at {appt.preferredTime}</p>
-						<p className={`capitalize font-semibold ${appt.consultationMethod === 'online' ? 'text-blue-600' : 'text-green-600'}`}>{appt.consultationMethod}</p>
+						<p className="text-gray-600 font-medium">
+							{new Date(appt.preferredDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+						</p>
+						<p className="text-gray-800 font-semibold text-lg">{appt.preferredTime}</p>
+
+						<div className="flex items-center gap-2 mt-2">
+							{appt.consultationMethod === 'online' ? <FaVideo className="text-blue-600" /> : <FaHospital className="text-green-600" />}
+							<p className={`capitalize font-semibold ${appt.consultationMethod === 'online' ? 'text-blue-600' : 'text-green-600'}`}>
+								{appt.consultationMethod} Consultation
+								{appt.consultationMethod === 'offline' && appt.medicalCenter && ` at ${appt.medicalCenter}`}
+							</p>
+						</div>
 					</div>
-					<div className="text-right">
-						<span className="text-sm bg-green-100 text-green-800 px-3 py-1 rounded-full font-medium">Confirmed</span>
+					<div className="text-right w-full sm:w-auto">
+						{appt.consultationMethod === 'online' && appt.meeting_link ? (
+							<a
+								href={appt.meeting_link}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="inline-block px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold shadow-md transition-all hover:shadow-lg flex items-center gap-2"
+							>
+								<FaVideo /> Join Meeting
+							</a>
+						) : (
+							<span className="text-sm bg-green-100 text-green-800 px-3 py-1 rounded-full font-medium">
+								Confirmed
+							</span>
+						)}
 					</div>
 				</motion.div>
 			))}
 		</div>
-	)
-}
+	);
+};
 
 const SessionList = ({ sessions }) => {
     if (sessions.length === 0) {
