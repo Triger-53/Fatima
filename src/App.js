@@ -18,6 +18,7 @@ import ResetPassword from "./pages/ResetPassword"
 import ProtectedRoute from "./auth/ProtectedRoute"
 import UpdatePassword from "./pages/UpdatePassword"
 import Dashboard from "./pages/Dashboard"
+import SessionDetail from "./pages/SessionDetail"
 import AuthLayout from "./pages/authLayout"
 
 import AdminLogin from "./admin/AdminLogin"
@@ -91,6 +92,14 @@ function AppContent() {
 						element={
 							<ProtectedRoute>
 								<Dashboard />
+							</ProtectedRoute>
+						}
+					/>
+					<Route
+						path="/session/:id"
+						element={
+							<ProtectedRoute>
+								<SessionDetail />
 							</ProtectedRoute>
 						}
 					/>
