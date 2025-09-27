@@ -1,6 +1,5 @@
 import { google } from 'googleapis';
 import { auth } from 'google-auth-library';
-import 'dotenv/config';
 
 // Define the scope for Google Calendar API
 const SCOPES = ['https://www.googleapis.com/auth/calendar'];
