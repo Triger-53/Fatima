@@ -48,15 +48,15 @@ export default function Dashboard() {
 
 			setAppointments(apptData || []);
 
-            const { data: sessionsData, error: sessionsError } = await supabase
-                .from('sessions')
-                .select('*')
-                .eq('user_id', user.id)
-                .order('date', { ascending: false });
+			const { data: sessionsData, error: sessionsError } = await supabase
+				.from("sessions")
+				.select("*")
+				.eq("user_id", user.id)
+				.order("scheduled_at", { ascending: true }); // Show upcoming sessions first
 
-            if (sessionsError) throw sessionsError;
+			if (sessionsError) throw sessionsError;
 
-            setSessions(sessionsData || []);
+			setSessions(sessionsData || []);
 
 			if (apptData && apptData.length > 0) {
 				const aggregatedProfile = apptData.reduce((acc, curr) => {
@@ -248,31 +248,61 @@ const AppointmentList = ({ appointments }) => {
 }
 
 const SessionList = ({ sessions }) => {
-    if (sessions.length === 0) {
-        return (
-            <div className="text-center py-12 bg-gray-100 rounded-2xl">
-                <FaChalkboardTeacher className="text-5xl text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-800">No sessions found</h3>
-                <p className="text-gray-500 mt-2">Your assigned sessions will appear here.</p>
-            </div>
-        )
-    }
-    return (
-        <div className="space-y-4">
-            {sessions.map((session, index) => (
-                <motion.div key={session.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.1 }} className="bg-white p-5 rounded-xl border border-gray-200 flex justify-between items-center">
-                    <div>
-                        <p className="font-bold text-lg text-indigo-700">{session.title}</p>
-                        <p className="text-gray-600">{new Date(session.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} at {session.time}</p>
-                        <p className="text-gray-500">{session.duration} minutes</p>
-                    </div>
-                    <div className="text-right">
-                        <span className="text-sm bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full font-medium">Scheduled</span>
-                    </div>
-                </motion.div>
-            ))}
-        </div>
-    )
+	if (sessions.length === 0) {
+		return (
+			<div className="text-center py-12 bg-gray-100 rounded-2xl">
+				<FaChalkboardTeacher className="text-5xl text-gray-400 mx-auto mb-4" />
+				<h3 className="text-xl font-semibold text-gray-800">No sessions found</h3>
+				<p className="text-gray-500 mt-2">Your assigned sessions will appear here.</p>
+			</div>
+		)
+	}
+	return (
+		<div className="space-y-4">
+			{sessions.map((session, index) => {
+				const isUpcoming = new Date(session.scheduled_at) > new Date();
+				return (
+					<motion.div
+						key={session.id}
+						initial={{ opacity: 0, x: -20 }}
+						animate={{ opacity: 1, x: 0 }}
+						transition={{ delay: index * 0.1 }}
+						className="bg-white p-5 rounded-xl border border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+						<div>
+							<p className="font-bold text-lg text-indigo-700">{session.title}</p>
+							<p className="text-gray-600">
+								{new Date(session.scheduled_at).toLocaleString("en-US", {
+									year: "numeric",
+									month: "long",
+									day: "numeric",
+									hour: "2-digit",
+									minute: "2-digit",
+								})}
+							</p>
+							<p className="text-gray-500 capitalize">
+								Via: {session.meeting_provider}
+							</p>
+						</div>
+						<div className="text-right">
+							{session.status === "scheduled" && isUpcoming ? (
+								<a
+									href={session.meeting_link}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold shadow-md transition-all">
+									Join Meeting
+								</a>
+							) : (
+								<span className="text-sm bg-gray-200 text-gray-700 px-3 py-1 rounded-full font-medium capitalize">
+									{session.status}
+								</span>
+							)}
+						</div>
+					</motion.div>
+				);
+			})}
+		</div>
+	)
 }
 
 const Notification = ({ msg }) => (

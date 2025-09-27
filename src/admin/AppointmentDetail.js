@@ -6,26 +6,110 @@ const AppointmentDetail = () => {
 	const { id } = useParams()
 	const navigate = useNavigate()
 	const [appointment, setAppointment] = useState(null)
+	const [session, setSession] = useState(null)
 	const [editing, setEditing] = useState(false)
 	const [formData, setFormData] = useState({})
+	const [provider, setProvider] = useState("zoom")
+	const [isCreating, setIsCreating] = useState(false)
+	const [error, setError] = useState("")
 
-	useEffect(() => {
-		const fetchAppointment = async () => {
-			const { data, error } = await supabase
-				.from("Appointment")
-				.select("*")
-				.eq("id", id)
-				.single()
+	const fetchAppointmentAndSession = async () => {
+		// Fetch appointment details
+		const { data: apptData, error: apptError } = await supabase
+			.from("Appointment")
+			.select("*")
+			.eq("id", id)
+			.single()
 
-			if (error) console.error(error)
-			else {
-				setAppointment(data)
-				setFormData(data) // preload form for editing
-			}
+		if (apptError) {
+			console.error("Error fetching appointment:", apptError)
+			setError("Failed to load appointment.")
+			return
 		}
 
-		fetchAppointment()
+		setAppointment(apptData)
+		setFormData(apptData)
+
+		// Fetch existing session for this appointment
+		const { data: sessionData, error: sessionError } = await supabase
+			.from("sessions")
+			.select("*")
+			.eq("appointment_id", id)
+			.single()
+
+		if (sessionError && sessionError.code !== "PGRST116") {
+			// Ignore "single row not found" errors, but log others
+			console.error("Error fetching session:", sessionError)
+		}
+
+		if (sessionData) {
+			setSession(sessionData)
+		}
+	}
+
+	useEffect(() => {
+		fetchAppointmentAndSession()
 	}, [id])
+
+	const handleCreateSession = async () => {
+		setIsCreating(true)
+		setError("")
+
+		try {
+			// 1. Invoke the 'create-session' edge function
+			const { data: functionData, error: functionError } =
+				await supabase.functions.invoke("create-session", {
+					body: {
+						provider,
+						appointmentDetails: {
+							firstName: appointment.firstName,
+							scheduled_at: `${appointment.preferredDate}T${appointment.preferredTime}`,
+						},
+					},
+				})
+
+			if (functionError) throw functionError
+
+			const { meetingLink } = functionData
+
+			// 2. Save the new session to the 'sessions' table
+			const { data: newSession, error: insertError } = await supabase
+				.from("sessions")
+				.insert({
+					appointment_id: appointment.id,
+					user_id: appointment.user_id,
+					// NOTE: This assumes the currently logged-in admin is the doctor creating the session.
+					// In a multi-doctor setup, you might need a dropdown to select the doctor.
+					doctor_id: (await supabase.auth.getUser()).data.user.id,
+					title: `Consultation for ${appointment.firstName}`,
+					scheduled_at: `${appointment.preferredDate}T${appointment.preferredTime}`,
+					meeting_provider: provider,
+					meeting_link: meetingLink,
+					status: "scheduled",
+				})
+				.select()
+				.single()
+
+			if (insertError) throw insertError
+
+			setSession(newSession)
+
+			// 3. (Optional) Trigger notification function
+			await supabase.functions.invoke("send-meeting-notification", {
+				body: {
+					patientEmail: appointment.email,
+					meetingLink: newSession.meeting_link,
+					scheduledAt: newSession.scheduled_at,
+					doctorName: "Your Doctor", // You can customize this
+				},
+			})
+		} catch (e) {
+			console.error("Session creation failed:", e)
+			setError(`Error: ${e.message || "An unknown error occurred."}`)
+		} finally {
+			setIsCreating(false)
+		}
+	}
 
 	const handleDelete = async () => {
 		if (!window.confirm("Are you sure you want to delete this appointment?"))
@@ -54,6 +138,7 @@ const AppointmentDetail = () => {
 	return (
 		<div className="p-6 bg-gray-50 min-h-screen">
 			<div className="bg-white shadow-md rounded-lg p-6 space-y-4">
+				{error && <p className="text-red-500 bg-red-100 p-3 rounded">{error}</p>}
 				<h2 className="text-2xl font-bold">
 					{appointment.firstName} {appointment.lastName}
 				</h2>
@@ -117,6 +202,50 @@ const AppointmentDetail = () => {
 								Delete
 							</button>
 						</div>
+
+						{/* Session Creation Section */}
+						{appointment.consultationMethod === "online" && (
+							<div className="mt-6 border-t pt-6">
+								<h3 className="text-xl font-semibold mb-4">Online Session</h3>
+								{session ? (
+									<div>
+										<p>
+											<strong>Provider:</strong> {session.meeting_provider}
+										</p>
+										<p>
+											<strong>Status:</strong> {session.status}
+										</p>
+										<p>
+											<strong>Link:</strong>{" "}
+											<a
+												href={session.meeting_link}
+												target="_blank"
+												rel="noopener noreferrer"
+												className="text-blue-500 hover:underline">
+												{session.meeting_link}
+											</a>
+										</p>
+									</div>
+								) : (
+									<div className="flex items-center gap-4">
+										<select
+											value={provider}
+											onChange={(e) => setProvider(e.target.value)}
+											className="border p-2 rounded-lg"
+											disabled={isCreating}>
+											<option value="zoom">Zoom</option>
+											<option value="google">Google Meet</option>
+										</select>
+										<button
+											onClick={handleCreateSession}
+											disabled={isCreating}
+											className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 disabled:bg-gray-400">
+											{isCreating ? "Creating..." : "Create Session"}
+										</button>
+									</div>
+								)}
+							</div>
+						)}
 					</>
 				) : (
 					/* Edit form */
