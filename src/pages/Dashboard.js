@@ -17,6 +17,7 @@ import {
 	FaHourglassHalf,
 	FaPrescriptionBottle,
 } from "react-icons/fa"
+import { Link } from "react-router-dom"
 import EditProfileModal from "../components/EditProfileModal"
 import { motion, AnimatePresence } from "framer-motion"
 
@@ -260,16 +261,18 @@ const SessionList = ({ sessions }) => {
     return (
         <div className="space-y-4">
             {sessions.map((session, index) => (
-                <motion.div key={session.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.1 }} className="bg-white p-5 rounded-xl border border-gray-200 flex justify-between items-center">
-                    <div>
-                        <p className="font-bold text-lg text-indigo-700">{session.title}</p>
-                        <p className="text-gray-600">{new Date(session.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} at {session.time}</p>
-                        <p className="text-gray-500">{session.duration} minutes</p>
-                    </div>
-                    <div className="text-right">
-                        <span className="text-sm bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full font-medium">Scheduled</span>
-                    </div>
-                </motion.div>
+                <Link to={`/session/${session.id}`} key={session.id} className="block hover:bg-gray-50 transition-colors duration-200 rounded-xl">
+                    <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.1 }} className="bg-white p-5 rounded-xl border border-gray-200 flex justify-between items-center">
+                        <div>
+                            <p className="font-bold text-lg text-indigo-700">{session.title}</p>
+                            <p className="text-gray-600">{new Date(session.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} at {session.time}</p>
+                            <p className="text-gray-500">{session.duration} minutes</p>
+                        </div>
+                        <div className="text-right">
+                            <span className="text-sm bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full font-medium">Scheduled</span>
+                        </div>
+                    </motion.div>
+                </Link>
             ))}
         </div>
     )
