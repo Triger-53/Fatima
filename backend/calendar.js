@@ -21,15 +21,21 @@ export function setOAuthToken(token) {
 	oAuth2Client.setCredentials(TOKEN)
 }
 
-// Create a Google Calendar event with Meet link
-export async function createMeeting(patientEmail, startDateTime, endDateTime) {
-	if (!TOKEN) throw new Error("OAuth token not set. Authorize first.")
+// Create a Google Calendar event with a Meet link
+export async function createMeeting(
+	patientEmail,
+	startDateTime,
+	endDateTime,
+	summary = "Patient Consultation", // Default summary
+	description = "Private consultation" // Default description
+) {
+	if (!TOKEN) throw new Error("OAuth token not set. Authorize first.");
 
-	const calendar = google.calendar({ version: "v3", auth: oAuth2Client })
+	const calendar = google.calendar({ version: "v3", auth: oAuth2Client });
 
 	const event = {
-		summary: "Patient Consultation",
-		description: "Private consultation",
+		summary,
+		description,
 		start: { dateTime: startDateTime, timeZone: "Asia/Kolkata" },
 		end: { dateTime: endDateTime, timeZone: "Asia/Kolkata" },
 		attendees: [{ email: patientEmail }],
@@ -39,18 +45,18 @@ export async function createMeeting(patientEmail, startDateTime, endDateTime) {
 				conferenceSolutionKey: { type: "hangoutsMeet" },
 			},
 		},
-	}
+	};
 
 	try {
 		const response = await calendar.events.insert({
 			calendarId: "primary", // Use personal Gmail calendar
 			resource: event,
 			conferenceDataVersion: 1,
-		})
+		});
 
-		return response.data.hangoutLink
+		return response.data.hangoutLink;
 	} catch (error) {
-		console.error("Error creating calendar event:", error)
-		throw new Error("Failed to create calendar event.")
+		console.error("Error creating calendar event:", error);
+		throw new Error("Failed to create calendar event.");
 	}
 }

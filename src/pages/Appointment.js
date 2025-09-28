@@ -778,7 +778,7 @@ const Appointment = () => {
 							const startDateTime = new Date(`${appointmentData.preferredDate}T${time24h}:00`);
 							const endDateTime = new Date(startDateTime.getTime() + 30 * 60 * 1000); // 30-minute duration
 
-							// 2. Call the backend to create the meeting
+							// 2. Call the backend to create the meeting with a detailed summary
 							const meetingResponse = await fetch('http://localhost:3001/create-meeting', {
 								method: 'POST',
 								headers: { 'Content-Type': 'application/json' },
@@ -786,6 +786,8 @@ const Appointment = () => {
 									patientEmail: appointmentData.email,
 									startDateTime: startDateTime.toISOString(),
 									endDateTime: endDateTime.toISOString(),
+									summary: `Appointment: ${appointmentData.appointmentType}`,
+									description: `Online consultation for ${appointmentData.firstName} ${appointmentData.lastName}.`,
 								}),
 							});
 

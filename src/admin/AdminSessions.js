@@ -115,7 +115,13 @@ const AdminSessions = () => {
                 const response = await fetch('http://localhost:3001/create-meeting', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ patientEmail, startDateTime, endDateTime }),
+                    body: JSON.stringify({
+                        patientEmail,
+                        startDateTime,
+                        endDateTime,
+                        summary: `Session: ${title}`,
+                        description: `Admin-booked session for ${patientEmail}.`
+                    }),
                 });
 
                 if (!response.ok) {
