@@ -801,7 +801,7 @@ const Appointment = () => {
 							if (meetLink) {
 								const { error: updateError } = await supabase
 									.from('Appointment')
-									.update({ "meeting_link": meetLink })
+									.update({ "meet_link": meetLink })
 									.eq('id', appointmentRow.id);
 
 								if (updateError) {
@@ -809,7 +809,7 @@ const Appointment = () => {
 								}
 
 								// Also update the local state for the success screen
-								appointmentRow.meeting_link = meetLink;
+								appointmentRow.meet_link = meetLink;
 								console.log("✅ Appointment updated with meeting link.");
 							}
 

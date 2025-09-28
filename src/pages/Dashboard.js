@@ -271,9 +271,9 @@ const AppointmentList = ({ appointments }) => {
 						</div>
 					</div>
 					<div className="text-right w-full sm:w-auto">
-						{appt.consultationMethod === 'online' && appt.meeting_link ? (
+						{appt.consultationMethod === 'online' && appt.meet_link ? (
 							<a
-								href={appt.meeting_link}
+								href={appt.meet_link}
 								target="_blank"
 								rel="noopener noreferrer"
 								className="inline-block px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold shadow-md transition-all hover:shadow-lg flex items-center gap-2"

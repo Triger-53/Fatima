@@ -14,6 +14,10 @@ export const oAuth2Client = new google.auth.OAuth2(
 )
 
 // Store token after user authorizes
+// IMPORTANT: This is a short-term, in-memory token store. If the server restarts,
+// the token will be lost and re-authorization will be required. For a production
+// environment, it is highly recommended to store the refresh token in a secure
+// database and use it to generate new access tokens as needed.
 let TOKEN = null
 
 export function setOAuthToken(token) {
