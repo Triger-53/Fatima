@@ -5,7 +5,6 @@ import { Calendar, CheckCircle, ChevronRight, ChevronLeft } from "lucide-react"
 import { supabase } from "../supabase"
 // Import the async fetcher and remove sync dependencies
 import { getAllServicesAsync, getServicePrice } from "../data/services"
-import { MEDICAL_CENTERS, ONLINE_SLOTS } from '../data/appointmentData';
 import { slotManager } from '../utils/slotManager';
 
 import AuthStep from '../components/appointment/AuthStep';
@@ -55,6 +54,7 @@ const Appointment = () => {
 	const [error, setError] = useState(null)
 	
 	// New state for enhanced appointment system
+	const [locations, setLocations] = useState([])
 	const [availableSlots, setAvailableSlots] = useState([])
 	const [availableDates, setAvailableDates] = useState([])
 	const [loadingSlots, setLoadingSlots] = useState(false)
@@ -167,9 +167,14 @@ const Appointment = () => {
 		}
 	}, [])
 
-	// ------------------- Load available dates on component mount -------------------
+	// ------------------- Load available dates and locations on component mount -------------------
 	useEffect(() => {
-		setAvailableDates(slotManager.getAvailableDates())
+		const fetchInitialData = async () => {
+			await slotManager.ensureInitialized()
+			setAvailableDates(slotManager.getAvailableDates())
+			setLocations(slotManager.locations)
+		}
+		fetchInitialData()
 	}, [])
 
 	// ------------------- Keep selected service synced with appointment type -------------------
@@ -942,6 +947,7 @@ const Appointment = () => {
 												availableDates={availableDates}
 												loadingSlots={loadingSlots}
 												availableSlots={availableSlots}
+												locations={locations}
 											/>
 										)}
 									</>

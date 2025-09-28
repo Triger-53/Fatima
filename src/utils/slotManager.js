@@ -1,12 +1,51 @@
-import { supabase } from '../supabase'
-import { MEDICAL_CENTERS, ONLINE_SLOTS } from '../data/appointmentData'
+import { supabase } from "../supabase"
 
 // Enhanced slot management utilities
 export class SlotManager {
 	constructor() {
-		this.bookingRange = 30; // Default 30 days
-		this.cache = new Map();
-		this.cacheTimeout = 5 * 60 * 1000; // 5 minutes cache
+		this.bookingRange = 30 // Default 30 days
+		this.cache = new Map()
+		this.cacheTimeout = 5 * 60 * 1000 // 5 minutes cache
+		this.locations = []
+		this.schedules = new Map()
+		this.isInitialized = false
+		this.initialize()
+	}
+
+	async initialize() {
+		try {
+			const { data: locations, error: locationsError } = await supabase
+				.from("locations")
+				.select("*")
+			if (locationsError) throw locationsError
+			this.locations = locations
+
+			const { data: schedules, error: schedulesError } = await supabase
+				.from("availability_schedules")
+				.select("*")
+			if (schedulesError) throw schedulesError
+
+			this.schedules.clear()
+			schedules.forEach((schedule) => {
+				if (!this.schedules.has(schedule.location_id)) {
+					this.schedules.set(schedule.location_id, {})
+				}
+				this.schedules.get(schedule.location_id)[schedule.day_of_week] =
+					schedule
+			})
+
+			this.isInitialized = true
+			console.log("SlotManager initialized with data from Supabase.")
+		} catch (error) {
+			console.error("Failed to initialize SlotManager:", error)
+			this.isInitialized = false
+		}
+	}
+
+	async ensureInitialized() {
+		if (!this.isInitialized) {
+			await this.initialize()
+		}
 	}
 
 	// Get day of week from date string
@@ -30,19 +69,31 @@ export class SlotManager {
 	}
 
 	// Get available slots for a specific date and consultation method
-	getAvailableSlots(dateString, consultationMethod, medicalCenter = null) {
-		const dayOfWeek = this.getDayOfWeek(dateString);
+	async getAvailableSlots(
+		dateString,
+		consultationMethod,
+		locationId = null
+	) {
+		await this.ensureInitialized()
+		const dayOfWeek = this.getDayOfWeek(dateString)
 
-		if (consultationMethod === 'online') {
-			return (ONLINE_SLOTS[dayOfWeek] && ONLINE_SLOTS[dayOfWeek].slots) ? ONLINE_SLOTS[dayOfWeek].slots : [];
-		} else if (consultationMethod === 'offline' && medicalCenter) {
-			const center = Object.values(MEDICAL_CENTERS).find(c => String(c.id) === String(medicalCenter));
-			return (center && center.doctorSchedule[dayOfWeek] && center.doctorSchedule[dayOfWeek].slots)
-				? center.doctorSchedule[dayOfWeek].slots
-				: [];
+		let targetLocation
+		if (consultationMethod === "online") {
+			targetLocation = this.locations.find((loc) => loc.type === "online")
+		} else {
+			targetLocation = this.locations.find((loc) => loc.id === locationId)
 		}
 
-		return [];
+		if (!targetLocation) return []
+
+		const locationSchedules = this.schedules.get(targetLocation.id)
+		const daySchedule = locationSchedules ? locationSchedules[dayOfWeek] : null
+
+		if (daySchedule && daySchedule.is_active) {
+			return daySchedule.slots || []
+		}
+
+		return []
 	}
 
 	// Check if a slot is available (with database check)
@@ -200,123 +251,125 @@ export class SlotManager {
 
 	// Get slot availability summary for admin dashboard
 	async getSlotAvailabilitySummary(bookingRange = this.bookingRange) {
-        const dates = this.getAvailableDates(bookingRange);
-        const summary = {
-            totalSlots: 0,
-            bookedSlots: 0,
-            availableSlots: 0,
-            byDate: {},
-            byCenter: {}
-        };
-
-        // Fetch all booked appointments and sessions in the range to optimize queries
-        const { data: bookedAppointments, error: apptError } = await supabase
-            .from('Appointment')
-            .select('preferredDate, preferredTime, consultationMethod, medicalCenter')
-            .in('preferredDate', dates);
-
-        if (apptError) {
-            console.error("Error fetching appointments for summary:", apptError);
-            return summary;
-        }
-
-        const { data: bookedSessions, error: sessionError } = await supabase
-            .from('sessions')
-            .select('date, time')
-            .in('date', dates);
-
-        if (sessionError) {
-            console.error("Error fetching sessions for summary:", sessionError);
-            return summary;
-        }
-
-        const bookedSlotsSet = new Set();
-        bookedAppointments.forEach(a => {
-            const key = `${a.preferredDate}_${a.preferredTime}_${a.consultationMethod}_${a.medicalCenter || 'online'}`;
-            bookedSlotsSet.add(key);
-        });
-        bookedSessions.forEach(s => {
-            // Sessions block all types of slots at that time, so we need to account for this
-            const onlineKey = `${s.date}_${s.time}_online_online`;
-            bookedSlotsSet.add(onlineKey);
-            Object.values(MEDICAL_CENTERS).forEach(center => {
-                const offlineKey = `${s.date}_${s.time}_offline_${center.id}`;
-                bookedSlotsSet.add(offlineKey);
-            });
-        });
-
-		// Initialize center tracking
-		Object.values(MEDICAL_CENTERS).forEach(center => {
-			summary.byCenter[center.id] = {
-				name: center.name,
-				totalSlots: 0,
-				bookedSlots: 0,
-				availableSlots: 0
-			};
-		});
-
-		// Add online center
-		summary.byCenter['online'] = {
-			name: 'Online Consultation',
+		await this.ensureInitialized()
+		const dates = this.getAvailableDates(bookingRange)
+		const summary = {
 			totalSlots: 0,
 			bookedSlots: 0,
-			availableSlots: 0
-		};
+			availableSlots: 0,
+			byDate: {},
+			byLocation: {},
+		}
+
+		// Fetch all booked appointments and sessions in the range
+		const { data: bookedAppointments, error: apptError } = await supabase
+			.from("Appointment")
+			.select("preferredDate, preferredTime, consultationMethod, medicalCenter")
+			.in("preferredDate", dates)
+		if (apptError) {
+			console.error("Error fetching appointments for summary:", apptError)
+			return summary
+		}
+
+		const { data: bookedSessions, error: sessionError } = await supabase
+			.from("sessions")
+			.select("date, time")
+			.in("date", dates)
+		if (sessionError) {
+			console.error("Error fetching sessions for summary:", sessionError)
+			return summary
+		}
+
+		const bookedSlotsSet = new Set()
+		bookedAppointments.forEach((a) => {
+			const key = `${a.preferredDate}_${a.preferredTime}_${
+				a.consultationMethod
+			}_${a.medicalCenter || "online"}`
+			bookedSlotsSet.add(key)
+		})
+		bookedSessions.forEach((s) => {
+			this.locations.forEach((loc) => {
+				const key = `${s.date}_${s.time}_${loc.type}_${
+					loc.type === "offline" ? loc.id : "online"
+				}`
+				bookedSlotsSet.add(key)
+			})
+		})
+
+		// Initialize location tracking
+		this.locations.forEach((loc) => {
+			summary.byLocation[loc.id] = {
+				name: loc.name,
+				totalSlots: 0,
+				bookedSlots: 0,
+				availableSlots: 0,
+				type: loc.type,
+			}
+		})
 
 		for (const date of dates) {
-            summary.byDate[date] = {
-                online: { total: 0, booked: 0, available: 0 },
-                offline: {}
-            };
+			summary.byDate[date] = {
+				online: { total: 0, booked: 0, available: 0, locationId: null },
+				offline: {},
+			}
 
-            // Process online slots
-            const onlineSlots = this.getAvailableSlots(date, 'online');
-            for (const slot of onlineSlots) {
-                const key = `${date}_${slot}_online_online`;
-                const isAvailable = !bookedSlotsSet.has(key);
+			for (const loc of this.locations) {
+				const locationSchedules = this.schedules.get(loc.id)
+				if (!locationSchedules) continue
 
-                summary.totalSlots++;
-                summary.byCenter['online'].totalSlots++;
-                summary.byDate[date].online.total++;
+				const dayOfWeek = this.getDayOfWeek(date)
+				const daySchedule = locationSchedules[dayOfWeek]
 
-                if (isAvailable) {
-                    summary.availableSlots++;
-                    summary.byCenter['online'].availableSlots++;
-                    summary.byDate[date].online.available++;
-                } else {
-                    summary.bookedSlots++;
-                    summary.byCenter['online'].bookedSlots++;
-                    summary.byDate[date].online.booked++;
-                }
-            }
+				if (daySchedule && daySchedule.is_active) {
+					const slots = daySchedule.slots || []
+					if (loc.type === "online") {
+						summary.byDate[date].online.locationId = loc.id
+					} else {
+						summary.byDate[date].offline[loc.id] = {
+							total: 0,
+							booked: 0,
+							available: 0,
+						}
+					}
 
-            // Process offline slots
-            for (const center of Object.values(MEDICAL_CENTERS)) {
-                summary.byDate[date].offline[center.id] = { total: 0, booked: 0, available: 0 };
-                const offlineSlots = this.getAvailableSlots(date, 'offline', center.id);
+					for (const slot of slots) {
+						const key = `${date}_${slot}_${loc.type}_${
+							loc.type === "offline" ? loc.id : "online"
+						}`
+						const isBooked = bookedSlotsSet.has(key)
 
-                for (const slot of offlineSlots) {
-                    const key = `${date}_${slot}_offline_${center.id}`;
-                    const isAvailable = !bookedSlotsSet.has(key);
+						summary.totalSlots++
+						summary.byLocation[loc.id].totalSlots++
 
-                    summary.totalSlots++;
-                    summary.byCenter[center.id].totalSlots++;
-                    summary.byDate[date].offline[center.id].total++;
+						if (loc.type === "online") {
+							summary.byDate[date].online.total++
+						} else {
+							summary.byDate[date].offline[loc.id].total++
+						}
 
-                    if (isAvailable) {
-                        summary.availableSlots++;
-                        summary.byCenter[center.id].availableSlots++;
-                        summary.byDate[date].offline[center.id].available++;
-                    } else {
-                        summary.bookedSlots++;
-                        summary.byCenter[center.id].bookedSlots++;
-                        summary.byDate[date].offline[center.id].booked++;
-                    }
-                }
-            }
-        }
+						if (isBooked) {
+							summary.bookedSlots++
+							summary.byLocation[loc.id].bookedSlots++
+							if (loc.type === "online") {
+								summary.byDate[date].online.booked++
+							} else {
+								summary.byDate[date].offline[loc.id].booked++
+							}
+						} else {
+							summary.availableSlots++
+							summary.byLocation[loc.id].availableSlots++
+							if (loc.type === "online") {
+								summary.byDate[date].online.available++
+							} else {
+								summary.byDate[date].offline[loc.id].available++
+							}
+						}
+					}
+				}
+			}
+		}
 
-		return summary;
+		return summary
 	}
 
 	// Clear cache
@@ -338,12 +391,30 @@ export const getDayOfWeek = (dateString) => {
 	return slotManager.getDayOfWeek(dateString)
 }
 
-export const getAvailableSlots = (dateString, appointmentType, medicalCenter = null) => {
-	return slotManager.getAvailableSlots(dateString, appointmentType, medicalCenter)
+export const getAvailableSlots = (
+	dateString,
+	appointmentType,
+	medicalCenter = null
+) => {
+	return slotManager.getAvailableSlots(
+		dateString,
+		appointmentType,
+		medicalCenter
+	)
 }
 
-export const isSlotAvailable = async (dateString, timeSlot, appointmentType, medicalCenter = null) => {
-	return slotManager.isSlotAvailable(dateString, timeSlot, appointmentType, medicalCenter)
+export const isSlotAvailable = async (
+	dateString,
+	timeSlot,
+	appointmentType,
+	medicalCenter = null
+) => {
+	return slotManager.isSlotAvailable(
+		dateString,
+		timeSlot,
+		appointmentType,
+		medicalCenter
+	)
 }
 
 export const getAvailableDates = (bookingRange = 30) => {

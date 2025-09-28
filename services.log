@@ -1,0 +1,12 @@
+
+> doctor-website@1.0.0 dev
+> concurrently "npm start" "npm run start:backend"
+
+[1]
+[1] > doctor-website@1.0.0 start:backend
+[1] > npm start --prefix backend
+[1]
+[0]
+[0] > doctor-website@1.0.0 start
+[0] > react-scripts start
+[0]

@@ -1,5 +1,4 @@
-
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useCallback } from "react"
 import { supabase } from "../supabase"
 import {
 	Calendar,
@@ -11,20 +10,17 @@ import {
 	Edit3,
 	Save,
 	X,
+	Building,
+	Globe,
 } from "lucide-react"
-import { MEDICAL_CENTERS, ONLINE_SLOTS } from "../data/appointmentData"
 import { slotManager } from "../utils/slotManager"
 
 const AppointmentSlotManager = () => {
 	const [loading, setLoading] = useState(true)
-	const [appointments, setAppointments] = useState([])
-	const [bookingRange, setBookingRange] = useState(30) // Default 30 days
-	const [editingSlots, setEditingSlots] = useState(null)
+	const [bookingRange, setBookingRange] = useState(30)
+	const [editingSchedule, setEditingSchedule] = useState(null) // { locationId, schedules }
 	const [showSlotEditor, setShowSlotEditor] = useState(false)
-	const [slotConfig, setSlotConfig] = useState({
-		online: ONLINE_SLOTS,
-		offline: MEDICAL_CENTERS,
-	})
+	const [locations, setLocations] = useState([])
 	const [availability, setAvailability] = useState({})
 	const [summary, setSummary] = useState({
 		totalSlots: 0,
@@ -32,108 +28,72 @@ const AppointmentSlotManager = () => {
 		availableSlots: 0,
 	})
 
-	// Fetch all appointments and calculate availability
-	useEffect(() => {
-		const fetchData = async () => {
-			setLoading(true)
+	const fetchData = useCallback(async () => {
+		setLoading(true)
+		await slotManager.ensureInitialized()
 
-			// Fetch appointments
-			const { data, error } = await supabase
-				.from("Appointment")
-				.select("*")
-				.order("preferredDate", { ascending: true })
+		setLocations(slotManager.locations)
 
-			if (error) {
-				console.error("Error fetching appointments:", error)
-			} else {
-				setAppointments(data || [])
-			}
-
-			// Get slot availability summary
-			try {
-				const availabilitySummary =
-					await slotManager.getSlotAvailabilitySummary(bookingRange)
-				setSummary({
-					totalSlots: availabilitySummary.totalSlots,
-					bookedSlots: availabilitySummary.bookedSlots,
-					availableSlots: availabilitySummary.availableSlots,
-				})
-				setAvailability(availabilitySummary.byDate)
-			} catch (error) {
-				console.error("Error fetching slot availability:", error)
-			}
-
-			setLoading(false)
+		try {
+			const availabilitySummary =
+				await slotManager.getSlotAvailabilitySummary(bookingRange)
+			setSummary({
+				totalSlots: availabilitySummary.totalSlots,
+				bookedSlots: availabilitySummary.bookedSlots,
+				availableSlots: availabilitySummary.availableSlots,
+			})
+			setAvailability(availabilitySummary.byDate)
+		} catch (error) {
+			console.error("Error fetching slot availability:", error)
 		}
 
-		fetchData()
+		setLoading(false)
 	}, [bookingRange])
 
-	// Use enhanced slot manager for better slot management
-	const getAvailableDates = () => {
-		return slotManager.getAvailableDates(bookingRange)
-	}
+	useEffect(() => {
+		fetchData()
+	}, [fetchData])
 
-	// Get day of week from date string
-	const getDayOfWeek = (dateString) => {
-		return slotManager.getDayOfWeek(dateString)
-	}
-
-	// Get available slots for a specific date and consultation method
-	const getAvailableSlots = (
-		date,
-		consultationMethod,
-		medicalCenter = null
-	) => {
-		return slotManager.getAvailableSlots(
-			date,
-			consultationMethod,
-			medicalCenter
-		)
-	}
-
-	// Calculate slot availability for a date range using enhanced slot manager
-	const getSlotAvailability = async () => {
-		const summary = await slotManager.getSlotAvailabilitySummary(bookingRange)
-		return summary.byDate
-	}
-
-	// Update booking range
 	const handleBookingRangeChange = (newRange) => {
 		setBookingRange(newRange)
 		slotManager.setBookingRange(newRange)
 	}
 
-	// Edit slot configuration
-	const handleEditSlots = (type, centerId = null) => {
-		setEditingSlots({ type, centerId })
+	const handleEditSchedule = (locationId) => {
+		const locationSchedules = slotManager.schedules.get(locationId) || {}
+		setEditingSchedule({ locationId, schedules: locationSchedules })
 		setShowSlotEditor(true)
 	}
 
-	// Save slot configuration
-	const handleSaveSlots = (newSlots) => {
-		if (editingSlots.type === "online") {
-			setSlotConfig((prev) => ({
-				...prev,
-				online: newSlots,
-			}))
-		} else {
-			setSlotConfig((prev) => ({
-				...prev,
-				offline: {
-					...prev.offline,
-					[editingSlots.centerId]: {
-						...prev.offline[editingSlots.centerId],
-						doctorSchedule: newSlots,
-					},
-				},
-			}))
+	const handleSaveSchedule = async (locationId, newSchedules) => {
+		try {
+			for (const day in newSchedules) {
+				const schedule = newSchedules[day]
+				await supabase
+					.from("availability_schedules")
+					.update({
+						start_time: schedule.start_time,
+						end_time: schedule.end_time,
+						slots: schedule.slots,
+						is_active: schedule.is_active,
+					})
+					.eq("location_id", locationId)
+					.eq("day_of_week", day)
+			}
+
+			// Re-initialize slot manager and fetch data to reflect changes
+			await slotManager.initialize()
+			await fetchData()
+
+			setShowSlotEditor(false)
+			setEditingSchedule(null)
+			alert("Schedule updated successfully!")
+		} catch (error) {
+			console.error("Error saving schedule:", error)
+			alert("Failed to save schedule.")
 		}
-		setShowSlotEditor(false)
-		setEditingSlots(null)
 	}
 
-	// Format date for display
 	const formatDate = (dateString) => {
 		const date = new Date(dateString)
 		return date.toLocaleDateString("en-US", {
@@ -143,7 +103,10 @@ const AppointmentSlotManager = () => {
 		})
 	}
 
-	// Get availability summary (now using state)
+	const getDayOfWeek = (dateString) => {
+		return slotManager.getDayOfWeek(dateString)
+	}
+
 	const getAvailabilitySummary = () => {
 		return summary
 	}
@@ -161,6 +124,8 @@ const AppointmentSlotManager = () => {
 	}
 
 	const availabilitySummary = getAvailabilitySummary()
+	const onlineLocation = locations.find((loc) => loc.type === "online")
+	const offlineLocations = locations.filter((loc) => loc.type === "offline")
 
 	return (
 		<div className="p-6 bg-gray-50 min-h-screen">
@@ -251,43 +216,37 @@ const AppointmentSlotManager = () => {
 			<div className="bg-white rounded-lg shadow-md p-6 mb-6">
 				<h2 className="text-xl font-semibold mb-4 flex items-center">
 					<Settings className="w-5 h-5 mr-2" />
-					Slot Configuration
+					Location & Schedule Configuration
 				</h2>
 
-				{/* Online Slots */}
-				<div className="mb-6">
-					<div className="flex items-center justify-between mb-3">
-						<h3 className="text-lg font-medium text-gray-800">
-							Online Consultation Slots
-						</h3>
-						<button
-							onClick={() => handleEditSlots("online")}
-							className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
-							<Edit3 className="w-4 h-4 mr-1" />
-							Edit Slots
-						</button>
-					</div>
-					<div className="grid grid-cols-7 gap-2 text-sm">
-						{Object.entries(slotConfig.online).map(([day, schedule]) => (
-							<div key={day} className="text-center">
-								<div className="font-medium text-gray-700 capitalize mb-1">
-									{day}
-								</div>
-								<div className="text-xs text-gray-500">
-									{schedule ? `${schedule.slots.length} slots` : "Closed"}
-								</div>
+				{/* Online Location */}
+				{onlineLocation && (
+					<div className="mb-6 border border-gray-200 rounded-lg p-4">
+						<div className="flex items-center justify-between mb-3">
+							<div className="flex items-center">
+								<Globe className="w-5 h-5 mr-3 text-blue-600" />
+								<h3 className="text-lg font-medium text-gray-800">
+									{onlineLocation.name}
+								</h3>
 							</div>
-						))}
+							<button
+								onClick={() => handleEditSchedule(onlineLocation.id)}
+								className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+								<Edit3 className="w-4 h-4 mr-1" />
+								Edit Schedule
+							</button>
+						</div>
 					</div>
-				</div>
+				)}
 
-				{/* Offline Slots */}
+				{/* Offline Locations */}
 				<div>
-					<h3 className="text-lg font-medium text-gray-800 mb-3">
-						Offline Consultation Slots
+					<h3 className="text-lg font-medium text-gray-800 mb-3 flex items-center">
+						<Building className="w-5 h-5 mr-3 text-green-600" />
+						Medical Centers (Offline)
 					</h3>
 					<div className="space-y-4">
-						{Object.values(slotConfig.offline).map((center) => (
+						{offlineLocations.map((center) => (
 							<div
 								key={center.id}
 								className="border border-gray-200 rounded-lg p-4">
@@ -302,27 +261,11 @@ const AppointmentSlotManager = () => {
 										</div>
 									</div>
 									<button
-										onClick={() => handleEditSlots("offline", center.id)}
+										onClick={() => handleEditSchedule(center.id)}
 										className="flex items-center px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
 										<Edit3 className="w-4 h-4 mr-1" />
-										Edit Slots
+										Edit Schedule
 									</button>
-								</div>
-								<div className="grid grid-cols-7 gap-2 text-sm">
-									{Object.entries(center.doctorSchedule).map(
-										([day, schedule]) => (
-											<div key={day} className="text-center">
-												<div className="font-medium text-gray-700 capitalize mb-1">
-													{day}
-												</div>
-												<div className="text-xs text-gray-500">
-													{schedule
-														? `${schedule.slots.length} slots`
-														: "Closed"}
-												</div>
-											</div>
-										)
-									)}
 								</div>
 							</div>
 						))}
@@ -340,11 +283,17 @@ const AppointmentSlotManager = () => {
 				<div className="overflow-x-auto">
 					<div className="min-w-full">
 						{/* Header */}
-						<div className="grid grid-cols-8 gap-2 mb-4 p-3 bg-gray-100 rounded-lg">
+						<div
+							className="grid gap-2 mb-4 p-3 bg-gray-100 rounded-lg"
+							style={{
+								gridTemplateColumns: `repeat(${
+									3 + offlineLocations.length
+								}, minmax(0, 1fr))`,
+							}}>
 							<div className="font-medium text-gray-700">Date</div>
 							<div className="font-medium text-gray-700">Day</div>
-							<div className="font-medium text-gray-700">Online</div>
-							{Object.values(slotConfig.offline).map((center) => (
+							<div className="font-medium text-gray-700 text-center">Online</div>
+							{offlineLocations.map((center) => (
 								<div
 									key={center.id}
 									className="font-medium text-gray-700 text-center">
@@ -362,14 +311,19 @@ const AppointmentSlotManager = () => {
 								return (
 									<div
 										key={date}
-										className="grid grid-cols-8 gap-2 p-3 border-b border-gray-200 hover:bg-gray-50">
+										className="grid gap-2 p-3 border-b border-gray-200 hover:bg-gray-50"
+										style={{
+											gridTemplateColumns: `repeat(${
+												3 + offlineLocations.length
+											}, minmax(0, 1fr))`,
+										}}>
 										<div className="text-sm font-medium text-gray-800">
 											{formatDate(date)}
 										</div>
 										<div className="text-sm text-gray-600 capitalize">
 											{dayOfWeek}
 										</div>
-										<div className="text-sm">
+										<div className="text-sm text-center">
 											<span
 												className={`px-2 py-1 rounded-full text-xs ${
 													dateData.online.available === 0
@@ -382,7 +336,7 @@ const AppointmentSlotManager = () => {
 												{dateData.online.available}/{dateData.online.total}
 											</span>
 										</div>
-										{Object.values(slotConfig.offline).map((center) => {
+										{offlineLocations.map((center) => {
 											const centerData = dateData.offline[center.id] || {
 												total: 0,
 												available: 0,
@@ -424,12 +378,12 @@ const AppointmentSlotManager = () => {
 			{/* Slot Editor Modal */}
 			{showSlotEditor && (
 				<SlotEditor
-					editingSlots={editingSlots}
-					slotConfig={slotConfig}
-					onSave={handleSaveSlots}
+					editingSchedule={editingSchedule}
+					locations={locations}
+					onSave={handleSaveSchedule}
 					onClose={() => {
 						setShowSlotEditor(false)
-						setEditingSlots(null)
+						setEditingSchedule(null)
 					}}
 				/>
 			)}
@@ -438,72 +392,87 @@ const AppointmentSlotManager = () => {
 }
 
 // Slot Editor Component
-const SlotEditor = ({ editingSlots, slotConfig, onSave, onClose }) => {
-	const [editedSlots, setEditedSlots] = useState({})
-	const [newSlot, setNewSlot] = useState("")
+const SlotEditor = ({ editingSchedule, locations, onSave, onClose }) => {
+	const [editedSchedules, setEditedSchedules] = useState({})
+	const [newSlotTime, setNewSlotTime] = useState("")
 
 	useEffect(() => {
-		if (editingSlots.type === "online") {
-			setEditedSlots(slotConfig.online)
-		} else {
-			const center = Object.values(slotConfig.offline).find(
-				(c) => c.id === editingSlots.centerId
-			)
-			setEditedSlots(center?.doctorSchedule || {})
-		}
-	}, [editingSlots, slotConfig])
+		const initialSchedules = {}
+		const days = [
+			"monday",
+			"tuesday",
+			"wednesday",
+			"thursday",
+			"friday",
+			"saturday",
+			"sunday",
+		]
+		days.forEach((day) => {
+			initialSchedules[day] = editingSchedule.schedules[day] || {
+				start_time: "09:00",
+				end_time: "17:00",
+				slots: [],
+				is_active: false,
+			}
+		})
+		setEditedSchedules(initialSchedules)
+	}, [editingSchedule])
 
 	const handleDayToggle = (day) => {
-		setEditedSlots((prev) => ({
+		setEditedSchedules((prev) => ({
 			...prev,
-			[day]: prev[day] ? null : { start: "09:00", end: "17:00", slots: [] },
+			[day]: { ...prev[day], is_active: !prev[day].is_active },
 		}))
 	}
 
 	const handleAddSlot = (day) => {
-		if (!newSlot) return
+		if (!newSlotTime || !/^\d{2}:\d{2}$/.test(newSlotTime)) {
+			alert("Please enter a valid time in HH:MM format.")
+			return
+		}
 
-		setEditedSlots((prev) => ({
-			...prev,
-			[day]: {
-				...prev[day],
-				slots: [...(prev[day]?.slots || []), newSlot],
-			},
-		}))
-		setNewSlot("")
+		setEditedSchedules((prev) => {
+			const newSlots = [...(prev[day].slots || []), newSlotTime].sort()
+			return {
+				...prev,
+				[day]: {
+					...prev[day],
+					slots: newSlots,
+				},
+			}
+		})
+		setNewSlotTime("")
 	}
 
-	const handleRemoveSlot = (day, slot) => {
-		setEditedSlots((prev) => ({
+	const handleRemoveSlot = (day, slotToRemove) => {
+		setEditedSchedules((prev) => ({
 			...prev,
 			[day]: {
 				...prev[day],
-				slots: prev[day].slots.filter((s) => s !== slot),
+				slots: prev[day].slots.filter((s) => s !== slotToRemove),
 			},
 		}))
 	}
 
 	const handleSave = () => {
-		onSave(editedSlots)
+		onSave(editingSchedule.locationId, editedSchedules)
 	}
 
-	const days = [
-		"monday",
-		"tuesday",
-		"wednesday",
-		"thursday",
-		"friday",
-		"saturday",
-		"sunday",
-	]
+	const location = locations.find((loc) => loc.id === editingSchedule.locationId)
+	const days = Object.keys(editedSchedules)
 
 	return (
 		<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
 			<div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
 				<div className="flex items-center justify-between mb-6">
-					<h3 className="text-xl font-semibold">
-						Edit {editingSlots.type === "online" ? "Online" : "Offline"} Slots
-					</h3>
+					<div>
+						<h3 className="text-xl font-semibold">
+							Edit Schedule for {location?.name}
+						</h3>
+						<p className="text-sm text-gray-500">
+							Manage daily availability and time slots
+						</p>
+					</div>
 					<button
 						onClick={onClose}
 						className="text-gray-500 hover:text-gray-700">
@@ -513,46 +482,53 @@ const SlotEditor = ({ editingSlots, slotConfig, onSave, onClose }) => {
 
 				<div className="space-y-6">
 					{days.map((day) => (
-						<div key={day} className="border border-gray-200 rounded-lg p-4">
+						<div
+							key={day}
+							className={`border rounded-lg p-4 ${
+								editedSchedules[day]?.is_active
+									? "border-blue-300 bg-blue-50"
+									: "border-gray-200"
+							}`}>
 							<div className="flex items-center justify-between mb-3">
 								<div className="flex items-center">
-									<input
-										type="checkbox"
-										checked={!!editedSlots[day]}
-										onChange={() => handleDayToggle(day)}
-										className="mr-3"
-									/>
-									<span className="font-medium capitalize">{day}</span>
+									<label className="flex items-center cursor-pointer">
+										<input
+											type="checkbox"
+											checked={editedSchedules[day]?.is_active || false}
+											onChange={() => handleDayToggle(day)}
+											className="form-checkbox h-5 w-5 text-blue-600 rounded"
+										/>
+										<span className="ml-3 font-medium capitalize">{day}</span>
+									</label>
 								</div>
-								{editedSlots[day] && (
+								{editedSchedules[day]?.is_active && (
 									<div className="text-sm text-gray-600">
-										{editedSlots[day].slots.length} slots
+										{editedSchedules[day].slots.length} slots
 									</div>
 								)}
 							</div>
 
-							{editedSlots[day] && (
-								<div className="ml-6">
+							{editedSchedules[day]?.is_active && (
+								<div className="ml-8 mt-4">
 									<div className="flex items-center space-x-2 mb-3">
 										<input
 											type="time"
-											value={newSlot}
-											onChange={(e) => setNewSlot(e.target.value)}
-											className="border border-gray-300 rounded px-3 py-1"
-											placeholder="Add new slot"
+											value={newSlotTime}
+											onChange={(e) => setNewSlotTime(e.target.value)}
+											className="border border-gray-300 rounded px-3 py-1 w-32"
 										/>
 										<button
 											onClick={() => handleAddSlot(day)}
-											className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">
-											<Plus className="w-4 h-4" />
+											className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center">
+											<Plus className="w-4 h-4 mr-1" /> Add Slot
 										</button>
 									</div>
 									<div className="flex flex-wrap gap-2">
-										{editedSlots[day].slots.map((slot) => (
+										{editedSchedules[day].slots.map((slot) => (
 											<div
 												key={slot}
-												className="flex items-center bg-gray-100 rounded px-3 py-1">
-												<span className="text-sm">{slot}</span>
+												className="flex items-center bg-gray-200 rounded px-3 py-1">
+												<span className="text-sm font-mono">{slot}</span>
 												<button
 													onClick={() => handleRemoveSlot(day, slot)}
 													className="ml-2 text-red-600 hover:text-red-800">
