@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react"
+import SEO from "../components/SEO"
 import CtaIllustration from "../components/CtaIllustration"
 import { Link } from "react-router-dom"
 import { motion } from "framer-motion"
@@ -68,38 +69,55 @@ const Services = () => {
 
 	if (loading) {
 		return (
-			<div className="min-h-screen bg-gray-50 flex items-center justify-center">
-				<div className="text-center">
-					<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-					<p className="text-gray-600">Loading services...</p>
+			<>
+				<SEO
+					title="Services - Dr. Fatima Kasamnath"
+					description="Explore the comprehensive speech therapy services offered by Dr. Fatima Kasamnath. We provide personalized therapy for children, teens, adults, and seniors."
+				/>
+				<div className="min-h-screen bg-gray-50 flex items-center justify-center">
+					<div className="text-center">
+						<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+						<p className="text-gray-600">Loading services...</p>
+					</div>
 				</div>
-			</div>
+			</>
 		)
 	}
 
 	if (error) {
 		return (
-			<div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-				<div className="text-center bg-red-50 border border-red-200 rounded-lg p-8 max-w-2xl">
-					<h1 className="text-2xl font-bold text-red-800 mb-4">Configuration Error</h1>
-					<p className="text-red-700 mb-4">
-						Could not load services. The following error occurred:
-					</p>
-					<pre className="bg-red-100 text-red-900 p-4 rounded-md text-left whitespace-pre-wrap">
-						<code>{error}</code>
-					</pre>
-					<p className="text-gray-600 mt-6">
-						This usually means you need to set your Supabase environment variables (REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_ANON_KEY) in your hosting provider (e.g., Vercel).
-					</p>
+			<>
+				<SEO
+					title="Services - Dr. Fatima Kasamnath"
+					description="Explore the comprehensive speech therapy services offered by Dr. Fatima Kasamnath. We provide personalized therapy for children, teens, adults, and seniors."
+				/>
+				<div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+					<div className="text-center bg-red-50 border border-red-200 rounded-lg p-8 max-w-2xl">
+						<h1 className="text-2xl font-bold text-red-800 mb-4">Configuration Error</h1>
+						<p className="text-red-700 mb-4">
+							Could not load services. The following error occurred:
+						</p>
+						<pre className="bg-red-100 text-red-900 p-4 rounded-md text-left whitespace-pre-wrap">
+							<code>{error}</code>
+						</pre>
+						<p className="text-gray-600 mt-6">
+							This usually means you need to set your Supabase environment variables (REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_ANON_KEY) in your hosting provider (e.g., Vercel).
+						</p>
+					</div>
 				</div>
-			</div>
+			</>
 		)
 	}
 
 	return (
-		<div className="min-h-screen bg-gray-50">
-			{/* Hero Section */}
-			<section className="bg-gradient-to-br from-primary-50 to-blue-50 section-padding">
+		<>
+			<SEO
+				title="Services - Dr. Fatima Kasamnath"
+				description="Explore the comprehensive speech therapy services offered by Dr. Fatima Kasamnath. We provide personalized therapy for children, teens, adults, and seniors."
+			/>
+			<div className="min-h-screen bg-gray-50">
+				{/* Hero Section */}
+				<section className="bg-gradient-to-br from-primary-50 to-blue-50 section-padding">
 				<div className="max-w-7xl mx-auto text-center">
 					<motion.div
 						initial={{ opacity: 0, y: 30 }}
@@ -302,6 +320,7 @@ const Services = () => {
 				</div>
 			</section>
 		</div>
+		</>
 	)
 }
 

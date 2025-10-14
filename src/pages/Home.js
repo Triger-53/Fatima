@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react"
+import SEO from "../components/SEO"
 import CtaIllustration from "../components/CtaIllustration"
 import ReviewModal from "../components/ReviewModal"
 import FloatingReviewButton from "../components/FloatingReviewButton"
@@ -95,8 +96,13 @@ const Home = () => {
 
 
   return (
-		<div className="min-h-screen">
-			<FloatingReviewButton onClick={handleOpenReviewModal} />
+		<>
+			<SEO
+				title="Dr. Fatima Kasamnath - Speech-Language Pathologist"
+				description="Compassionate and professional speech therapy services for all ages. Dr. Fatima Kasamnath is a licensed Speech-Language Pathologist with over 25 years of experience."
+			/>
+			<div className="min-h-screen">
+				<FloatingReviewButton onClick={handleOpenReviewModal} />
 			<ReviewModal
 				isOpen={isReviewModalOpen}
 				onClose={handleCloseReviewModal}
@@ -350,6 +356,7 @@ const Home = () => {
 				</div>
 			</section>
 		</div>
+		</>
 	)
 };
 
