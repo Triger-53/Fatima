@@ -18,6 +18,7 @@ import TermsOfService from "./pages/TermsOfService"
 import Login from "./pages/Login"
 import ResetPassword from "./pages/ResetPassword"
 import ProtectedRoute from "./auth/ProtectedRoute"
+import AdminProtectedRoute from "./auth/AdminProtectedRoute"
 import UpdatePassword from "./pages/UpdatePassword"
 import Dashboard from "./pages/Dashboard"
 import SessionDetail from "./pages/SessionDetail"
@@ -59,14 +60,6 @@ function AppContent() {
 					<Route path="/terms" element={<TermsOfService />} />
 
 					{/* Auth Routes */}
-					<Route
-						path="/admin/services"
-						element={
-							<AdminLayout>
-								<AdminServices />
-							</AdminLayout>
-						}
-					/>
 					<Route
 						path="/login"
 						element={
@@ -120,57 +113,81 @@ function AppContent() {
 					<Route
 						path="/admin/dashboard"
 						element={
-							<AdminLayout>
-								<AdminDashboard />
-							</AdminLayout>
+							<AdminProtectedRoute>
+								<AdminLayout>
+									<AdminDashboard />
+								</AdminLayout>
+							</AdminProtectedRoute>
 						}
 					/>
 					<Route
 						path="/admin/appointments"
 						element={
-							<AdminLayout>
-								<Appointments />
-							</AdminLayout>
+							<AdminProtectedRoute>
+								<AdminLayout>
+									<Appointments />
+								</AdminLayout>
+							</AdminProtectedRoute>
 						}
 					/>
 					<Route
 						path="/admin/appointments/:id"
 						element={
-							<AdminLayout>
-								<AppointmentDetail />
-							</AdminLayout>
+							<AdminProtectedRoute>
+								<AdminLayout>
+									<AppointmentDetail />
+								</AdminLayout>
+							</AdminProtectedRoute>
 						}
 					/>
 					<Route
 						path="/admin/slot-manager"
 						element={
-							<AdminLayout>
-								<AppointmentSlotManager />
-							</AdminLayout>
+							<AdminProtectedRoute>
+								<AdminLayout>
+									<AppointmentSlotManager />
+								</AdminLayout>
+							</AdminProtectedRoute>
 						}
 					/>
 					<Route
 						path="/admin/analytics"
 						element={
-							<AdminLayout>
-								<Analytics />
-							</AdminLayout>
+							<AdminProtectedRoute>
+								<AdminLayout>
+									<Analytics />
+								</AdminLayout>
+							</AdminProtectedRoute>
 						}
 					/>
 					<Route
 						path="/admin/diagnostics"
 						element={
-							<AdminLayout>
-								<Diagnostics />
-							</AdminLayout>
+							<AdminProtectedRoute>
+								<AdminLayout>
+									<Diagnostics />
+								</AdminLayout>
+							</AdminProtectedRoute>
+						}
+					/>
+					<Route
+						path="/admin/services"
+						element={
+							<AdminProtectedRoute>
+								<AdminLayout>
+									<AdminServices />
+								</AdminLayout>
+							</AdminProtectedRoute>
 						}
 					/>
 					<Route
 						path="/admin/sessions"
 						element={
-							<AdminLayout>
-								<AdminSessions />
-							</AdminLayout>
+							<AdminProtectedRoute>
+								<AdminLayout>
+									<AdminSessions />
+								</AdminLayout>
+							</AdminProtectedRoute>
 						}
 					/>
 				</Routes>
