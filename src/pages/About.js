@@ -1,4 +1,5 @@
 import React from 'react';
+import SEO from '../components/SEO';
 import CtaIllustration from "../components/CtaIllustration"
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -67,9 +68,14 @@ const About = () => {
   ];
 
   return (
-		<div className="min-h-screen bg-gray-50">
-			{/* Hero Section */}
-			<section className="bg-gradient-to-br from-primary-50 to-blue-50 section-padding">
+		<>
+			<SEO
+				title="About Dr. Fatima Kasamnath"
+				description="Learn about Dr. Fatima Kasamnath, a dedicated speech-language pathologist with over 25 years of experience. Discover her story, philosophy, and commitment to patient care."
+			/>
+			<div className="min-h-screen bg-gray-50">
+				{/* Hero Section */}
+				<section className="bg-gradient-to-br from-primary-50 to-blue-50 section-padding">
 				<div className="max-w-7xl mx-auto">
 					<div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
 						<motion.div
@@ -374,6 +380,7 @@ const About = () => {
 				</div>
 			</section>
 		</div>
+		</>
 	)
 };
 

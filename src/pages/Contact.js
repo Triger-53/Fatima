@@ -1,4 +1,5 @@
 import React, { useState } from "react"
+import SEO from "../components/SEO"
 import { motion } from "framer-motion"
 import {
 	Phone,
@@ -81,9 +82,14 @@ const Contact = () => {
 	]
 
 	return (
-		<div className="min-h-screen bg-gray-50">
-			{/* Hero Section */}
-			<section className="bg-gradient-to-br from-primary-50 to-blue-50 section-padding">
+		<>
+			<SEO
+				title="Contact Us - Dr. Fatima Kasamnath"
+				description="Get in touch with Dr. Fatima Kasamnath's office. Find our contact information, office hours, and send us a message through our contact form."
+			/>
+			<div className="min-h-screen bg-gray-50">
+				{/* Hero Section */}
+				<section className="bg-gradient-to-br from-primary-50 to-blue-50 section-padding">
 				<div className="max-w-7xl mx-auto text-center">
 					<motion.div
 						initial={{ opacity: 0, y: 30 }}
@@ -437,6 +443,7 @@ const Contact = () => {
 				</div>
 			</section>
 		</div>
+		</>
 	)
 }
 
