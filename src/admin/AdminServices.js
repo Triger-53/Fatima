@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react"
 import {
 	getAllServicesAsync,
-	saveAllServices,
 	publishAllServices,
 	deleteServiceById,
 	updateServiceById,
@@ -14,7 +13,6 @@ import {
 	Activity,
 	Eye,
 	Clock,
-	CheckCircle,
 	PlusCircle,
 } from "lucide-react"
 
@@ -38,19 +36,13 @@ const AdminServices = () => {
 	const [featuresText, setFeaturesText] = useState("")
 	const isEditing = useMemo(() => editingIndex >= 0, [editingIndex])
 
+	const fetchServices = async () => {
+		const fresh = await getAllServicesAsync()
+		setServices(fresh)
+	}
+
 	useEffect(() => {
-		let mounted = true
-		;(async () => {
-			const fresh = await getAllServicesAsync()
-			if (mounted) {
-				setServices(fresh)
-				// Start with the editor in "add new" mode
-				startAdd()
-			}
-		})()
-		return () => {
-			mounted = false
-		}
+		fetchServices()
 	}, [])
 
 	const startAdd = () => {
@@ -67,30 +59,19 @@ const AdminServices = () => {
 	}
 
 	const cancelEdit = () => {
-		// "Cancel" now resets the form to "add new" mode
 		startAdd()
 	}
 
 	const removeAt = async (index) => {
 		const service = services[index]
-		if (window.confirm(`Are you sure you want to delete "${service.title}"?`)) {
-			// If the service is local-only, just remove it from the state
-			if (String(service.id).startsWith("local-")) {
-				const nextServices = services.filter((_, i) => i !== index)
-				setServices(nextServices)
-				saveAllServices(nextServices) // Update local storage override
-				startAdd() // Reset form
-				alert("Local service removed. Remember to publish your changes to sync.")
-				return
-			}
-
-			// Otherwise, proceed with DB deletion
+		if (
+			window.confirm(`Are you sure you want to delete "${service.title}"?`)
+		) {
 			try {
 				await deleteServiceById(service.id)
-				const freshServices = await getAllServicesAsync()
-				setServices(freshServices)
-				startAdd() // Reset form to "add new"
-				alert("Service deleted successfully. Remember to publish your changes.")
+				await fetchServices()
+				startAdd()
+				alert("Service deleted successfully.")
 			} catch (e) {
 				console.error(e)
 				alert(e?.message || "Failed to delete service")
@@ -120,66 +101,19 @@ const AdminServices = () => {
 
 		try {
 			if (isEditing) {
-				const serviceToUpdate = services[editingIndex]
-				// If the service is local, just update the state
-				if (String(serviceToUpdate.id).startsWith("local-")) {
-					const nextServices = [...services]
-					nextServices[editingIndex] = { ...sanitized, id: serviceToUpdate.id }
-					setServices(nextServices)
-					saveAllServices(nextServices)
-					alert("Local service updated. Remember to publish your changes.")
-					setDraft(JSON.parse(JSON.stringify(nextServices[editingIndex])))
-					return
-				}
-
-				// Otherwise, it's a real service, update via API
 				await updateServiceById(services[editingIndex].id, sanitized)
-				alert("Service updated. Press 'Publish' to deploy your changes.")
+				alert("Service updated successfully.")
 			} else {
-				// Create a temporary local ID for the new service
-				const newService = { ...sanitized, id: `local-${Date.now()}` }
-				const nextServices = [...services, newService]
-				setServices(nextServices)
-				saveAllServices(nextServices)
-				alert("New service added. Press 'Publish' to deploy your changes.")
+				// For new services, we pass the sanitized data, excluding any temporary ID
+				const { id, ...newServiceData } = sanitized
+				await publishAllServices([newServiceData]) // Use publishAllServices for insert
+				alert("New service added successfully.")
 				startAdd()
-				return
 			}
-
-			const freshServices = await getAllServicesAsync()
-			setServices(freshServices)
-			// Keep the editor open with the updated data
-			if (isEditing) {
-				setDraft(
-					JSON.parse(
-						JSON.stringify(freshServices[editingIndex] || emptyService)
-					)
-				)
-			}
+			await fetchServices()
 		} catch (e) {
 			console.error(e)
 			alert(e?.message || "Failed to save service")
-		}
-	}
-
-	const publishNow = async () => {
-		try {
-			// Sanitize services before publishing to remove local-only IDs
-			const servicesToPublish = services.map(s => {
-				if (s.id && String(s.id).startsWith("local-")) {
-					const { id, ...rest } = s
-					return rest // Return service without the temporary ID
-				}
-				return s
-			})
-
-			await publishAllServices(servicesToPublish)
-			const fresh = await getAllServicesAsync()
-			setServices(fresh)
-			alert("Services published successfully.")
-		} catch (e) {
-			console.error(e)
-			alert(e?.message || "Failed to publish services")
 		}
 	}
 
@@ -192,13 +126,6 @@ const AdminServices = () => {
 					<h2 className="text-2xl font-semibold text-gray-900 mb-4 sm:mb-0">
 						Manage Services
 					</h2>
-					<div className="flex flex-wrap gap-3">
-						<button
-							onClick={publishNow}
-							className="btn-primary bg-green-600 hover:bg-green-700">
-							Publish Changes
-						</button>
-					</div>
 				</div>
 
 				<div className="flex gap-8 lg:flex-row flex-col">
@@ -313,7 +240,9 @@ const AdminServices = () => {
 										onChange={(e) => handleFeaturesChange(e.target.value)}
 										className="form-input"
 										rows="4"
-										placeholder="Feature 1&#10;Feature 2&#10;Feature 3"
+										placeholder="Feature 1
+Feature 2
+Feature 3"
 									/>
 								</div>
 								<div className="flex gap-4">
