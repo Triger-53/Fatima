@@ -81,7 +81,7 @@ const PersonalInfoStep = ({ formData, handleChange }) => {
               }}
             />
           </div>
-          <p className="text-xs text-gray-500 mt-1">Select your date of birth</p>
+          <p className="text-xs text-gray-700 mt-1">Select your date of birth</p>
         </div>
 
         <div>
@@ -103,7 +103,7 @@ const PersonalInfoStep = ({ formData, handleChange }) => {
               </svg>
             </div>
           </div>
-          <p className="text-xs text-gray-500 mt-1">Select your gender</p>
+          <p className="text-xs text-gray-700 mt-1">Select your gender</p>
         </div>
       </div>
     </motion.div>

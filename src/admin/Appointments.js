@@ -33,9 +33,9 @@ const Appointments = () => {
 
 			{/* Loading */}
 			{loading ? (
-				<p className="text-gray-600">Loading appointments...</p>
+				<p className="text-gray-700">Loading appointments...</p>
 			) : appointments.length === 0 ? (
-				<p className="text-gray-600">No appointments found.</p>
+				<p className="text-gray-700">No appointments found.</p>
 			) : (
 				<div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
 					{appointments.map((appt) => (
@@ -47,22 +47,22 @@ const Appointments = () => {
 								<h2 className="text-xl font-semibold text-gray-800">
 									{appt.firstName} {appt.lastName}
 								</h2>
-								<span className="text-sm text-gray-500">
+								<span className="text-sm text-gray-700">
 									{appt.isNewPatient === "yes" ? "New Patient" : "Existing"}
 								</span>
 							</div>
 
-							<div className="flex items-center text-gray-600 text-sm mb-2">
+							<div className="flex items-center text-gray-700 text-sm mb-2">
 								<Calendar className="w-4 h-4 mr-1" />
 								<span>{appt.preferredDate}</span>
 							</div>
 
-							<div className="flex items-center text-gray-600 text-sm mb-2">
+							<div className="flex items-center text-gray-700 text-sm mb-2">
 								<Clock className="w-4 h-4 mr-1" />
 								<span>{appt.preferredTime}</span>
 							</div>
 
-							<div className="flex items-center text-gray-600 text-sm mb-2">
+							<div className="flex items-center text-gray-700 text-sm mb-2">
 								<FileText className="w-4 h-4 mr-1" />
 								<span>{appt.appointmentType}</span>
 							</div>

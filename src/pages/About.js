@@ -85,7 +85,7 @@ const About = () => {
 							<h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
 								Meet Dr. Fatima Kasamnath
 							</h1>
-							<p className="text-xl text-gray-600 mb-8">
+							<p className="text-xl text-gray-700 mb-8">
 								A dedicated speech-language pathologist with over 15 years of
 								experience providing compassionate, comprehensive speech therapy
 								to patients of all ages.
@@ -118,7 +118,7 @@ const About = () => {
 									<h3 className="text-2xl font-semibold text-gray-900 mb-2">
 										Dr. Fatima Kasamnath, SLP
 									</h3>
-									<p className="text-gray-600 mb-4">
+									<p className="text-gray-700 mb-4">
 										Speech-Language Pathologist
 									</p>
 									<div className="space-y-3 text-left">
@@ -153,7 +153,7 @@ const About = () => {
 						<h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
 							My Story & Philosophy
 						</h2>
-						<p className="text-xl text-gray-600 max-w-3xl mx-auto">
+						<p className="text-xl text-gray-700 max-w-3xl mx-auto">
 							Discover the passion and principles that drive my practice.
 						</p>
 					</div>
@@ -178,7 +178,7 @@ const About = () => {
 											<p className="font-semibold text-gray-900">
 												Compassionate Care
 											</p>
-											<p className="text-gray-600 text-sm">Since 1999</p>
+											<p className="text-gray-700 text-sm">Since 1999</p>
 										</div>
 									</div>
 								</div>
@@ -236,7 +236,7 @@ const About = () => {
 						<h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
 							Our Practice Philosophy
 						</h2>
-						<p className="text-xl text-gray-600 max-w-3xl mx-auto">
+						<p className="text-xl text-gray-700 max-w-3xl mx-auto">
 							We believe in providing comprehensive, compassionate care that
 							puts our patients first.
 						</p>
@@ -255,7 +255,7 @@ const About = () => {
 								<h3 className="text-xl font-semibold text-gray-900 mb-3">
 									{value.title}
 								</h3>
-								<p className="text-gray-600">{value.description}</p>
+								<p className="text-gray-700">{value.description}</p>
 							</motion.div>
 						))}
 					</div>
@@ -273,7 +273,7 @@ const About = () => {
 							<h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
 								Our Office
 							</h2>
-							<p className="text-lg text-gray-600 mb-8">
+							<p className="text-lg text-gray-700 mb-8">
 								Located in the heart of the city, our modern medical facility is
 								designed to provide a comfortable and welcoming environment for
 								all our patients.
@@ -285,7 +285,7 @@ const About = () => {
 										<p className="font-medium text-gray-900">
 											123 Medical Center Dr
 										</p>
-										<p className="text-gray-600">
+										<p className="text-gray-700">
 											Suite 100, New York, NY 10001
 										</p>
 									</div>
@@ -304,7 +304,7 @@ const About = () => {
 										<p className="font-medium text-gray-900">
 											Mon-Fri: 8:00 AM - 6:00 PM
 										</p>
-										<p className="text-gray-600">Sat: 9:00 AM - 2:00 PM</p>
+										<p className="text-gray-700">Sat: 9:00 AM - 2:00 PM</p>
 									</div>
 								</div>
 							</div>

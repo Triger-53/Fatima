@@ -14,7 +14,7 @@ const SuccessScreen = ({ formData, confirmationData, signupEmail, loginEmail }) 
         <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
           Appointment Confirmed! 🎉
         </h2>
-        <p className="text-lg sm:text-xl text-gray-600 mb-6">
+        <p className="text-lg sm:text-xl text-gray-700 mb-6">
           Thank you, {formData.firstName}! Your appointment has been
           successfully booked.
         </p>
@@ -63,7 +63,7 @@ const SuccessScreen = ({ formData, confirmationData, signupEmail, loginEmail }) 
             <strong>Email:</strong>{" "}
             {signupEmail || loginEmail || formData.email}
           </p>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-700">
             You can log in to view your appointments (if not already signed
             in).
           </p>

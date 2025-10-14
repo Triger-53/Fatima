@@ -58,7 +58,7 @@ const SessionDetail = () => {
             >
                 <header className="border-b pb-6 mb-8">
                     <h1 className="text-4xl font-bold text-gray-900">{session.title}</h1>
-                    <p className="text-lg text-gray-600 mt-2">Session Details</p>
+                    <p className="text-lg text-gray-700 mt-2">Session Details</p>
                 </header>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -84,7 +84,7 @@ const InfoBlock = ({ icon, label, value }) => (
     <div className="flex items-start gap-4 p-4 bg-gray-50 rounded-xl">
         <div className="text-2xl mt-1">{icon}</div>
         <div>
-            <p className="text-sm text-gray-500 font-medium">{label}</p>
+            <p className="text-sm text-gray-700 font-medium">{label}</p>
             <div className="text-lg font-semibold text-gray-900">{value}</div>
         </div>
     </div>

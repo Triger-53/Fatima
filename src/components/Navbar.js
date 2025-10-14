@@ -11,7 +11,7 @@ const NavLink = ({ to, children, isActive, onClick }) => (
         className={`text-sm font-medium transition-colors duration-200 ${
             isActive
                 ? "text-primary-600"
-                : "text-gray-500 hover:text-primary-600"
+                : "text-gray-700 hover:text-primary-600"
         }`}
     >
         {children}
@@ -59,7 +59,7 @@ const Navbar = () => {
 								<span className="block text-lg font-bold text-gray-900">
 									Dr. Fatima Kassamanath
 								</span>
-								<span className="block text-xs text-gray-500">
+								<span className="block text-xs text-gray-700">
 									Speech & Hearing Therapist
 								</span>
 							</div>
@@ -95,7 +95,7 @@ const Navbar = () => {
 										</NavLink>
 										<button
 											onClick={signOut}
-											className="text-sm font-medium text-gray-500 hover:text-primary-600">
+											className="text-sm font-medium text-gray-700 hover:text-primary-600">
 											<LogOut className="w-4 h-4 inline-block mr-1" />
 											Logout
 										</button>

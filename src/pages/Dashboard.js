@@ -131,7 +131,7 @@ export default function Dashboard() {
 
 	if (loading) return <div className="flex justify-center items-center h-screen"><div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary-600"></div></div>
 	if (error) return <div className="max-w-6xl mx-auto px-4 py-10 text-center text-red-500"><p>Error: {error}</p></div>
-	if (!user) return <p className="text-center mt-10 text-gray-600">Please log in to view your dashboard.</p>
+	if (!user) return <p className="text-center mt-10 text-gray-700">Please log in to view your dashboard.</p>
 
 	const fullName = profile ? [profile.firstName, profile.lastName].filter(Boolean).join(" ") : user.email.split('@')[0]
 
@@ -146,7 +146,7 @@ export default function Dashboard() {
 								<FaUserCircle className="text-6xl text-primary-500" />
 								<div>
 									<h1 className="text-3xl font-bold text-gray-900">Welcome, {fullName}</h1>
-									<p className="text-gray-600">Here's your personal health overview.</p>
+									<p className="text-gray-700">Here's your personal health overview.</p>
 								</div>
 							</div>
 							<div className="flex items-center gap-3">
@@ -214,7 +214,7 @@ const InfoCard = ({ icon, label, value, fullWidth }) => (
 	<motion.div whileHover={{ y: -5, boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)' }} className={`bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex items-start gap-4 ${fullWidth ? 'col-span-1 md:col-span-2' : ''}`}>
 		<div className="text-2xl text-primary-500 mt-1">{icon}</div>
 		<div>
-			<p className="text-sm text-gray-500 font-medium">{label}</p>
+			<p className="text-sm text-gray-700 font-medium">{label}</p>
 			<p className="text-lg font-semibold text-gray-900 break-words">{value || <span className="text-gray-400">Not provided</span>}</p>
 		</div>
 	</motion.div>
@@ -226,7 +226,7 @@ const AppointmentList = ({ appointments }) => {
 			<div className="text-center py-12 bg-gray-100 rounded-2xl">
 				<FaCalendarAlt className="text-5xl text-gray-400 mx-auto mb-4" />
 				<h3 className="text-xl font-semibold text-gray-800">No appointments found</h3>
-				<p className="text-gray-500 mt-2">Book your first appointment to see it here.</p>
+				<p className="text-gray-700 mt-2">Book your first appointment to see it here.</p>
 			</div>
 		)
 	}
@@ -236,7 +236,7 @@ const AppointmentList = ({ appointments }) => {
 				<motion.div key={appt.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.1 }} className="bg-white p-5 rounded-xl border border-gray-200 flex justify-between items-center">
 					<div>
 						<p className="font-bold text-lg text-primary-700">{appt.appointmentType}</p>
-						<p className="text-gray-600">{new Date(appt.preferredDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} at {appt.preferredTime}</p>
+						<p className="text-gray-700">{new Date(appt.preferredDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} at {appt.preferredTime}</p>
 						<p className={`capitalize font-semibold ${appt.consultationMethod === 'online' ? 'text-blue-600' : 'text-green-600'}`}>{appt.consultationMethod}</p>
 					</div>
 					<div className="text-right">
@@ -254,7 +254,7 @@ const SessionList = ({ sessions }) => {
             <div className="text-center py-12 bg-gray-100 rounded-2xl">
                 <FaChalkboardTeacher className="text-5xl text-gray-400 mx-auto mb-4" />
                 <h3 className="text-xl font-semibold text-gray-800">No sessions found</h3>
-                <p className="text-gray-500 mt-2">Your assigned sessions will appear here.</p>
+                <p className="text-gray-700 mt-2">Your assigned sessions will appear here.</p>
             </div>
         )
     }
@@ -265,8 +265,8 @@ const SessionList = ({ sessions }) => {
                     <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.1 }} className="bg-white p-5 rounded-xl border border-gray-200 flex justify-between items-center">
                         <div>
                             <p className="font-bold text-lg text-indigo-700">{session.title}</p>
-                            <p className="text-gray-600">{new Date(session.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} at {session.time}</p>
-                            <p className="text-gray-500">{session.duration} minutes</p>
+                            <p className="text-gray-700">{new Date(session.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} at {session.time}</p>
+                            <p className="text-gray-700">{session.duration} minutes</p>
                         </div>
                         <div className="text-right">
                             <span className="text-sm bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full font-medium">Scheduled</span>

@@ -152,7 +152,7 @@ const AppointmentSlotManager = () => {
 		return (
 			<div className="p-6 bg-gray-50 min-h-screen">
 				<div className="flex items-center justify-center h-64">
-					<div className="text-lg text-gray-600">
+					<div className="text-lg text-gray-700">
 						Loading appointment data...
 					</div>
 				</div>
@@ -196,7 +196,7 @@ const AppointmentSlotManager = () => {
 						<option value={60}>60 days</option>
 						<option value={90}>90 days</option>
 					</select>
-					<span className="text-sm text-gray-600">
+					<span className="text-sm text-gray-700">
 						Currently showing {bookingRange} days from today
 					</span>
 				</div>
@@ -210,7 +210,7 @@ const AppointmentSlotManager = () => {
 							<Calendar className="w-6 h-6" />
 						</div>
 						<div className="ml-4">
-							<p className="text-sm font-medium text-gray-600">Total Slots</p>
+							<p className="text-sm font-medium text-gray-700">Total Slots</p>
 							<p className="text-2xl font-bold text-gray-900">
 								{availabilitySummary.totalSlots}
 							</p>
@@ -223,7 +223,7 @@ const AppointmentSlotManager = () => {
 							<Clock className="w-6 h-6" />
 						</div>
 						<div className="ml-4">
-							<p className="text-sm font-medium text-gray-600">
+							<p className="text-sm font-medium text-gray-700">
 								Available Slots
 							</p>
 							<p className="text-2xl font-bold text-gray-900">
@@ -238,7 +238,7 @@ const AppointmentSlotManager = () => {
 							<Settings className="w-6 h-6" />
 						</div>
 						<div className="ml-4">
-							<p className="text-sm font-medium text-gray-600">Booked Slots</p>
+							<p className="text-sm font-medium text-gray-700">Booked Slots</p>
 							<p className="text-2xl font-bold text-gray-900">
 								{availabilitySummary.bookedSlots}
 							</p>
@@ -273,7 +273,7 @@ const AppointmentSlotManager = () => {
 								<div className="font-medium text-gray-700 capitalize mb-1">
 									{day}
 								</div>
-								<div className="text-xs text-gray-500">
+								<div className="text-xs text-gray-700">
 									{schedule ? `${schedule.slots.length} slots` : "Closed"}
 								</div>
 							</div>
@@ -293,12 +293,12 @@ const AppointmentSlotManager = () => {
 								className="border border-gray-200 rounded-lg p-4">
 								<div className="flex items-center justify-between mb-3">
 									<div className="flex items-center">
-										<MapPin className="w-4 h-4 mr-2 text-gray-600" />
+										<MapPin className="w-4 h-4 mr-2 text-gray-700" />
 										<div>
 											<h4 className="font-medium text-gray-800">
 												{center.name}
 											</h4>
-											<p className="text-sm text-gray-600">{center.address}</p>
+											<p className="text-sm text-gray-700">{center.address}</p>
 										</div>
 									</div>
 									<button
@@ -315,7 +315,7 @@ const AppointmentSlotManager = () => {
 												<div className="font-medium text-gray-700 capitalize mb-1">
 													{day}
 												</div>
-												<div className="text-xs text-gray-500">
+												<div className="text-xs text-gray-700">
 													{schedule
 														? `${schedule.slots.length} slots`
 														: "Closed"}
@@ -366,7 +366,7 @@ const AppointmentSlotManager = () => {
 										<div className="text-sm font-medium text-gray-800">
 											{formatDate(date)}
 										</div>
-										<div className="text-sm text-gray-600 capitalize">
+										<div className="text-sm text-gray-700 capitalize">
 											{dayOfWeek}
 										</div>
 										<div className="text-sm">
@@ -506,7 +506,7 @@ const SlotEditor = ({ editingSlots, slotConfig, onSave, onClose }) => {
 					</h3>
 					<button
 						onClick={onClose}
-						className="text-gray-500 hover:text-gray-700">
+						className="text-gray-700 hover:text-gray-700">
 						<X className="w-6 h-6" />
 					</button>
 				</div>
@@ -525,7 +525,7 @@ const SlotEditor = ({ editingSlots, slotConfig, onSave, onClose }) => {
 									<span className="font-medium capitalize">{day}</span>
 								</div>
 								{editedSlots[day] && (
-									<div className="text-sm text-gray-600">
+									<div className="text-sm text-gray-700">
 										{editedSlots[day].slots.length} slots
 									</div>
 								)}

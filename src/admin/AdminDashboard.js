@@ -54,13 +54,13 @@ const AdminDashboard = () => {
 				<h1 className="text-4xl font-extrabold text-gray-800">
 					Welcome to Your Dashboard
 				</h1>
-				<p className="text-gray-500 mt-2">
+				<p className="text-gray-700 mt-2">
 					Quick snapshot of your appointments & patients
 				</p>
 			</motion.div>
 
 			{loading ? (
-				<p className="text-gray-600 animate-pulse">Loading dashboard...</p>
+				<p className="text-gray-700 animate-pulse">Loading dashboard...</p>
 			) : (
 				<div className="grid gap-6 sm:grid-cols-1 md:grid-cols-3 mb-10">
 					{cards.map((card, i) => (
@@ -92,7 +92,7 @@ const AdminDashboard = () => {
 							View Appointments
 						</h2>
 					</div>
-					<p className="text-gray-600 text-sm">
+					<p className="text-gray-700 text-sm">
 						Manage upcoming and past appointments in detail.
 					</p>
 				</NavLink>
@@ -106,7 +106,7 @@ const AdminDashboard = () => {
 							View Analytics
 						</h2>
 					</div>
-					<p className="text-gray-600 text-sm">
+					<p className="text-gray-700 text-sm">
 						Explore insights and trends from your appointments.
 					</p>
 				</NavLink>

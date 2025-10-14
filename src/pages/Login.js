@@ -65,7 +65,7 @@ export default function Login() {
 
 				{error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
-				<div className="mt-6 text-sm text-gray-600 space-y-2 text-center">
+				<div className="mt-6 text-sm text-gray-700 space-y-2 text-center">
 					<p>
 						<Link
 							to="/reset-password"

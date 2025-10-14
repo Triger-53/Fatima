@@ -14,7 +14,7 @@ const AdminNav = () => {
 	const linkClasses = ({ isActive }) =>
 		isActive
 			? "text-blue-600 font-semibold underline"
-			: "text-gray-600 font-semibold hover:text-blue-600"
+			: "text-gray-700 font-semibold hover:text-blue-600"
 
 	return (
 		<div className="bg-white shadow-md rounded-lg p-4 mb-6">

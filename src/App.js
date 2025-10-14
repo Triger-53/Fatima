@@ -1,4 +1,4 @@
-import React, { useEffect } from "react"
+import React, { useEffect, lazy, Suspense } from "react"
 import {
     BrowserRouter as Router,
     Routes,
@@ -7,33 +7,34 @@ import {
 } from "react-router-dom"
 import Navbar from "./components/Navbar"
 import Footer from "./components/Footer"
-import Home from "./pages/Home"
-import Services from "./pages/Services"
-import About from "./pages/About"
-import Contact from "./pages/Contact"
-import Appointment from "./pages/Appointment"
-import PrivacyPolicy from "./pages/PrivacyPolicy"
-import TermsOfService from "./pages/TermsOfService"
 
-import Login from "./pages/Login"
-import ResetPassword from "./pages/ResetPassword"
-import ProtectedRoute from "./auth/ProtectedRoute"
-import AdminProtectedRoute from "./auth/AdminProtectedRoute"
-import UpdatePassword from "./pages/UpdatePassword"
-import Dashboard from "./pages/Dashboard"
-import SessionDetail from "./pages/SessionDetail"
-import AuthLayout from "./pages/authLayout"
+const Home = lazy(() => import("./pages/Home"))
+const Services = lazy(() => import("./pages/Services"))
+const About = lazy(() => import("./pages/About"))
+const Contact = lazy(() => import("./pages/Contact"))
+const Appointment = lazy(() => import("./pages/Appointment"))
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"))
+const TermsOfService = lazy(() => import("./pages/TermsOfService"))
 
-import AdminLogin from "./admin/AdminLogin"
-import AdminLayout from "./admin/AdminLayout"
-import AdminDashboard from "./admin/AdminDashboard"
-import Appointments from "./admin/Appointments"
-import AppointmentDetail from "./admin/AppointmentDetail"
-import Analytics from "./admin/Analytics"
-import Diagnostics from "./admin/Diagnostics"
-import AdminServices from "./admin/AdminServices"
-import AppointmentSlotManager from "./admin/AppointmentSlotManager"
-import AdminSessions from "./admin/AdminSessions"
+const Login = lazy(() => import("./pages/Login"))
+const ResetPassword = lazy(() => import("./pages/ResetPassword"))
+const ProtectedRoute = lazy(() => import("./auth/ProtectedRoute"))
+const AdminProtectedRoute = lazy(() => import("./auth/AdminProtectedRoute"))
+const UpdatePassword = lazy(() => import("./pages/UpdatePassword"))
+const Dashboard = lazy(() => import("./pages/Dashboard"))
+const SessionDetail = lazy(() => import("./pages/SessionDetail"))
+const AuthLayout = lazy(() => import("./pages/authLayout"))
+
+const AdminLogin = lazy(() => import("./admin/AdminLogin"))
+const AdminLayout = lazy(() => import("./admin/AdminLayout"))
+const AdminDashboard = lazy(() => import("./admin/AdminDashboard"))
+const Appointments = lazy(() => import("./admin/Appointments"))
+const AppointmentDetail = lazy(() => import("./admin/AppointmentDetail"))
+const Analytics = lazy(() => import("./admin/Analytics"))
+const Diagnostics = lazy(() => import("./admin/Diagnostics"))
+const AdminServices = lazy(() => import("./admin/AdminServices"))
+const AppointmentSlotManager = lazy(() => import("./admin/AppointmentSlotManager"))
+const AdminSessions = lazy(() => import("./admin/AdminSessions"))
 
 function AppContent() {
 	const location = useLocation()
@@ -49,9 +50,10 @@ function AppContent() {
 			{!isAdminRoute && <Navbar />}
 
 			<main>
-				<Routes>
-					{/* Public Routes */}
-					<Route path="/" element={<Home />} />
+				<Suspense fallback={<div>Loading...</div>}>
+					<Routes>
+						{/* Public Routes */}
+						<Route path="/" element={<Home />} />
 					<Route path="/services" element={<Services />} />
 					<Route path="/about" element={<About />} />
 					<Route path="/contact" element={<Contact />} />
@@ -190,7 +192,8 @@ function AppContent() {
 							</AdminProtectedRoute>
 						}
 					/>
-				</Routes>
+					</Routes>
+				</Suspense>
 			</main>
 
 			{!isAdminRoute && <Footer />}

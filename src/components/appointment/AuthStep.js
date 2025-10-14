@@ -34,7 +34,7 @@ const AuthStep = ({
       <h3 className="text-2xl font-semibold text-gray-900 mb-2">
         Create an account or log in
       </h3>
-      <p className="text-sm text-gray-600">
+      <p className="text-sm text-gray-700">
         You must sign up or log in before booking. If you sign up here and the
         booking fails we will delete the created account.
       </p>
@@ -72,7 +72,7 @@ const AuthStep = ({
             </button>
           </div>
 
-          <p className="text-xs text-gray-500 mt-3">
+          <p className="text-xs text-gray-700 mt-3">
             If you want to book using a different account, choose "Book with
             another account".
           </p>
@@ -157,7 +157,7 @@ const AuthStep = ({
                 {authLoading ? "Creating account..." : "Create account"}
               </button>
 
-              <p className="text-xs text-gray-500 mt-2">
+              <p className="text-xs text-gray-700 mt-2">
                 If that email already exists, you will be prompted to log in
                 instead.
               </p>

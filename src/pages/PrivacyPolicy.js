@@ -13,7 +13,7 @@ const PrivacyPolicy = () => {
 
 			<section className="section-padding">
 				<div className="max-w-4xl mx-auto bg-white p-8 sm:p-12 rounded-2xl shadow-lg prose prose-lg lg:prose-xl">
-					<div className="mb-8 text-sm text-gray-500">
+					<div className="mb-8 text-sm text-gray-700">
 						<p>
 							<strong>Effective Date:</strong> October 13, 2025
 						</p>
@@ -63,7 +63,7 @@ const PrivacyPolicy = () => {
 								<li>Password</li>
 								<li>Phone Number</li>
 							</ul>
-							<blockquote className="mt-4 p-4 bg-gray-100 border-l-4 border-primary-500 text-gray-600 rounded-r-lg">
+							<blockquote className="mt-4 p-4 bg-gray-100 border-l-4 border-primary-500 text-gray-700 rounded-r-lg">
 								If a booking attempt fails during sign-up, we will delete the
 								temporary account created.
 							</blockquote>

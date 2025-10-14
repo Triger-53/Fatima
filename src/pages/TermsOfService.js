@@ -13,7 +13,7 @@ const TermsOfService = () => {
 
 			<section className="section-padding">
 				<div className="max-w-4xl mx-auto bg-white p-8 sm:p-12 rounded-2xl shadow-lg prose prose-lg lg:prose-xl">
-					<div className="mb-8 text-sm text-gray-500">
+					<div className="mb-8 text-sm text-gray-700">
 						<p>
 							<strong>Effective Date:</strong> October 14, 2025
 						</p>

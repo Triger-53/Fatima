@@ -41,7 +41,7 @@ const EditProfileModal = ({ profile, onClose, onSave, isSaving }) => {
       <div className="bg-white rounded-2xl shadow-xl p-8 max-w-3xl w-full m-4 transform transition-all duration-300 scale-95 hover:scale-100">
         <div className="flex justify-between items-center mb-6 border-b pb-4">
           <h2 className="text-3xl font-bold text-gray-800">Edit Profile</h2>
-          <button onClick={onClose} disabled={isSaving} className="text-gray-500 hover:text-gray-800 text-3xl disabled:opacity-50">&times;</button>
+          <button onClick={onClose} disabled={isSaving} className="text-gray-700 hover:text-gray-800 text-3xl disabled:opacity-50" aria-label="Close edit profile modal">&times;</button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6 max-h-[70vh] overflow-y-auto pr-4">

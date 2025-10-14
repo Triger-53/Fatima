@@ -56,7 +56,7 @@ export default function ResetPassword() {
 				{error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 				{message && <p className="mt-4 text-sm text-green-600">{message}</p>}
 
-				<p className="mt-6 text-center text-sm text-gray-600">
+				<p className="mt-6 text-center text-sm text-gray-700">
 					Remembered your password?{" "}
 					<Link
 						to="/login"

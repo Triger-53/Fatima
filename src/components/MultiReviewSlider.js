@@ -96,7 +96,7 @@ const MultiReviewSlider = ({ reviews }) => {
 								/>
 							))}
 						</div>
-						<p className="text-gray-600 mb-4 italic flex-grow review-text">"{review.review}"</p>
+						<p className="text-gray-700 mb-4 italic flex-grow review-text">"{review.review}"</p>
 						<p className="font-semibold text-gray-900">- {review.name}</p>
 					</div>
 				))}

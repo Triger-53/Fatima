@@ -170,16 +170,16 @@ const AdminServices = () => {
 										<h3 className="text-xl font-semibold text-gray-900">
 											{s.title}
 										</h3>
-										<p className="text-sm text-gray-600 mb-3">
+										<p className="text-sm text-gray-700 mb-3">
 											{s.appointmentType}
 										</p>
-										<p className="text-gray-600 mb-4">{s.description}</p>
+										<p className="text-gray-700 mb-4">{s.description}</p>
 										<div className="border-t border-gray-200 pt-3 flex items-center justify-between">
 											<div className="flex items-center text-sm text-blue-600">
 												<Clock className="w-4 h-4 mr-2" />
 												<span className="font-semibold">{s.duration}</span>
 											</div>
-											<div className="flex items-center text-sm font-medium text-gray-600">
+											<div className="flex items-center text-sm font-medium text-gray-700">
 												<span>₹</span>
 												{Number(s.price || 0).toLocaleString()}
 											</div>

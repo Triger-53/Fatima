@@ -77,7 +77,7 @@ const Services = () => {
 				<div className="min-h-screen bg-gray-50 flex items-center justify-center">
 					<div className="text-center">
 						<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-						<p className="text-gray-600">Loading services...</p>
+						<p className="text-gray-700">Loading services...</p>
 					</div>
 				</div>
 			</>
@@ -100,7 +100,7 @@ const Services = () => {
 						<pre className="bg-red-100 text-red-900 p-4 rounded-md text-left whitespace-pre-wrap">
 							<code>{error}</code>
 						</pre>
-						<p className="text-gray-600 mt-6">
+						<p className="text-gray-700 mt-6">
 							This usually means you need to set your Supabase environment variables (REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_ANON_KEY) in your hosting provider (e.g., Vercel).
 						</p>
 					</div>
@@ -126,7 +126,7 @@ const Services = () => {
 						<h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
 							Our Services
 						</h1>
-						<p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+						<p className="text-xl text-gray-700 max-w-3xl mx-auto mb-8">
 							Comprehensive speech therapy services designed to meet your
 							communication needs at every age. From children to seniors, we're
 							here to support your speech and language development.
@@ -166,7 +166,7 @@ const Services = () => {
 								<h3 className="text-2xl font-semibold text-gray-900 mb-3">
 									{service.title}
 								</h3>
-								<p className="text-gray-600 mb-6">{service.description}</p>
+								<p className="text-gray-700 mb-6">{service.description}</p>
 
 								<div className="space-y-4 mb-6">
 									<h4 className="font-semibold text-gray-900">
@@ -176,7 +176,7 @@ const Services = () => {
 										{service.features.map((feature, featureIndex) => (
 											<li key={featureIndex} className="flex items-start">
 												<CheckCircle className="w-5 h-5 text-medical-500 mr-3 mt-0.5 flex-shrink-0" />
-												<span className="text-gray-600">{feature}</span>
+												<span className="text-gray-700">{feature}</span>
 											</li>
 										))}
 									</ul>
@@ -190,7 +190,7 @@ const Services = () => {
 												{service.duration}
 											</span>
 										</div>
-										<div className="flex items-center text-gray-600">
+										<div className="flex items-center text-gray-700">
 											<span className="text-sm font-medium">
 												{formatPrice(service.price)}
 											</span>
@@ -226,7 +226,7 @@ const Services = () => {
 							<h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
 								Payment Options
 							</h2>
-							<p className="text-lg text-gray-600 mb-8">
+							<p className="text-lg text-gray-700 mb-8">
 								We offer flexible payment options to ensure quality healthcare
 								is accessible to everyone.
 							</p>

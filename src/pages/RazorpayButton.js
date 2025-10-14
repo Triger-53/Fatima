@@ -54,7 +54,7 @@ const RazorpayButton = ({ amount, formData, onPaymentSuccess, selectedService })
 				className="btn-primary flex items-center">
 				Pay {formatPrice(selectedService)} & Confirm Appointment
 			</button>
-			<p className="text-xs text-gray-500 text-right">
+			<p className="text-xs text-gray-700 text-right">
 				Secure payment powered by Razorpay
 			</p>
 		</div>

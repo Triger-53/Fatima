@@ -816,7 +816,7 @@ const Appointment = () => {
 	const LoadingSpinner = () => (
 		<div className="flex items-center justify-center">
 			<div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
-			<span className="ml-2 text-sm text-gray-600">Loading...</span>
+			<span className="ml-2 text-sm text-gray-700">Loading...</span>
 		</div>
 	)
 
@@ -840,7 +840,7 @@ const Appointment = () => {
 						className={`w-10 h-10 rounded-full flex items-center justify-center ${
 							step <= viewStep
 								? "bg-primary-600 text-white"
-								: "bg-gray-200 text-gray-600"
+								: "bg-gray-200 text-gray-700"
 						}` }>
 						{step === 0 ? (
 							"🔒"
@@ -875,7 +875,7 @@ const Appointment = () => {
 							<h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
 								Book Your Appointment
 							</h1>
-							<p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
+							<p className="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto">
 								Schedule your visit with Dr. Fatima Kasamnath. Our online booking
 								system makes it easy to find a time that works for you.
 							</p>
@@ -1005,7 +1005,7 @@ const Appointment = () => {
 													</>
 												)}
 											</button>
-											<p className="text-xs text-gray-500 text-center sm:text-right">
+											<p className="text-xs text-gray-700 text-center sm:text-right">
 												Secure payment powered by Razorpay
 											</p>
 										</div>

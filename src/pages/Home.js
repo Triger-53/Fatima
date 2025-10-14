@@ -121,7 +121,7 @@ const Home = () => {
 								Your Health,{" "}
 								<span className="text-primary-600">Our Priority</span>
 							</h1>
-							<p className="text-xl text-gray-600 mb-8">
+							<p className="text-xl text-gray-700 mb-8">
 								Experience exceptional speech therapy with Dr. Fatima Kasamnath.
 								Compassionate, professional, and dedicated to improving
 								communication skills for all ages.
@@ -151,10 +151,10 @@ const Home = () => {
 									<div className="w-32 h-32 bg-primary-100 rounded-full mx-auto mb-6 flex items-center justify-center">
 										<Users className="w-16 h-16 text-primary-600" />
 									</div>
-									<h3 className="text-2xl font-semibold text-gray-900 mb-2">
+									<h2 className="text-2xl font-semibold text-gray-900 mb-2">
 										Dr. Fatima Kasamnath, SLP
-									</h3>
-									<p className="text-gray-600 mb-4">
+									</h2>
+									<p className="text-gray-700 mb-4">
 										Licensed Speech-Language Pathologist
 									</p>
 									<div className="space-y-3 text-left">
@@ -191,7 +191,7 @@ const Home = () => {
 						<h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
 							Our Services
 						</h2>
-						<p className="text-xl text-gray-600 max-w-3xl mx-auto">
+						<p className="text-xl text-gray-700 max-w-3xl mx-auto">
 							Comprehensive speech therapy services designed to meet your
 							communication needs at every age.
 						</p>
@@ -210,7 +210,7 @@ const Home = () => {
 								<h3 className="text-xl font-semibold text-gray-900 mb-3">
 									{service.title}
 								</h3>
-								<p className="text-gray-600">{service.description}</p>
+								<p className="text-gray-700">{service.description}</p>
 							</motion.div>
 						))}
 					</div>
@@ -242,7 +242,7 @@ const Home = () => {
 										<h3 className="text-xl font-semibold text-gray-900 mb-2">
 											All Ages Welcome
 										</h3>
-										<p className="text-gray-600">
+										<p className="text-gray-700">
 											Specialized therapy for children, teens, adults, and
 											seniors.
 										</p>
@@ -256,7 +256,7 @@ const Home = () => {
 										<h3 className="text-xl font-semibold text-gray-900 mb-2">
 											Flexible Scheduling
 										</h3>
-										<p className="text-gray-600">
+										<p className="text-gray-700">
 											Convenient appointment times including evenings and
 											weekends.
 										</p>
@@ -270,7 +270,7 @@ const Home = () => {
 										<h3 className="text-xl font-semibold text-gray-900 mb-2">
 											Evidence-Based Therapy
 										</h3>
-										<p className="text-gray-600">
+										<p className="text-gray-700">
 											Latest research-based techniques and proven treatment
 											methods.
 										</p>
@@ -285,15 +285,15 @@ const Home = () => {
 							<div className="space-y-4">
 								<div className="flex justify-between items-center py-3 border-b border-gray-200">
 									<span className="font-medium">Monday - Friday</span>
-									<span className="text-gray-600">8:00 AM - 6:00 PM</span>
+									<span className="text-gray-700">8:00 AM - 6:00 PM</span>
 								</div>
 								<div className="flex justify-between items-center py-3 border-b border-gray-200">
 									<span className="font-medium">Saturday</span>
-									<span className="text-gray-600">9:00 AM - 2:00 PM</span>
+									<span className="text-gray-700">9:00 AM - 2:00 PM</span>
 								</div>
 								<div className="flex justify-between items-center py-3">
 									<span className="font-medium">Sunday</span>
-									<span className="text-gray-600">Closed</span>
+									<span className="text-gray-700">Closed</span>
 								</div>
 							</div>
 							<div className="mt-6 p-4 bg-primary-50 rounded-lg">
@@ -301,7 +301,7 @@ const Home = () => {
 									<Phone className="w-5 h-5 text-primary-600 mr-3" />
 									<div>
 										<p className="font-medium text-gray-900">Emergency?</p>
-										<p className="text-sm text-gray-600">Call (555) 123-4567</p>
+										<p className="text-sm text-gray-700">Call (555) 123-4567</p>
 									</div>
 								</div>
 							</div>
@@ -317,7 +317,7 @@ const Home = () => {
 						<h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
 							What Our Patients Say
 						</h2>
-						<p className="text-xl text-gray-600">
+						<p className="text-xl text-gray-700">
 							Don't just take our word for it - hear from our satisfied
 							patients.
 						</p>

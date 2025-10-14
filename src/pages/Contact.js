@@ -98,7 +98,7 @@ const Contact = () => {
 						<h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
 							Contact Us
 						</h1>
-						<p className="text-xl text-gray-600 max-w-3xl mx-auto">
+						<p className="text-xl text-gray-700 max-w-3xl mx-auto">
 							We're here to help! Get in touch with us for appointments,
 							questions, or any healthcare concerns you may have.
 						</p>
@@ -125,7 +125,7 @@ const Contact = () => {
 								</h3>
 								<div className="space-y-2">
 									{info.details.map((detail, detailIndex) => (
-										<p key={detailIndex} className="text-gray-600">
+										<p key={detailIndex} className="text-gray-700">
 											{detail}
 										</p>
 									))}
@@ -166,7 +166,7 @@ const Contact = () => {
 										<h3 className="text-2xl font-semibold text-gray-900 mb-2">
 											Message Sent Successfully!
 										</h3>
-										<p className="text-gray-600 mb-6">
+										<p className="text-gray-700 mb-6">
 											Thank you for reaching out. We'll get back to you within
 											24 hours.
 										</p>
@@ -310,11 +310,11 @@ const Contact = () => {
 								<div className="bg-gray-200 rounded-lg h-64 flex items-center justify-center">
 									<div className="text-center">
 										<MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-										<p className="text-gray-600">Interactive Map</p>
-										<p className="text-sm text-gray-500">
+										<p className="text-gray-700">Interactive Map</p>
+										<p className="text-sm text-gray-700">
 											123 Medical Center Dr, Suite 100
 										</p>
-										<p className="text-sm text-gray-500">New York, NY 10001</p>
+										<p className="text-sm text-gray-700">New York, NY 10001</p>
 									</div>
 								</div>
 								<div className="mt-4">
@@ -389,7 +389,7 @@ const Contact = () => {
 						<h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
 							Frequently Asked Questions
 						</h2>
-						<p className="text-xl text-gray-600">
+						<p className="text-xl text-gray-700">
 							Find quick answers to common questions about our services and
 							policies.
 						</p>
@@ -404,7 +404,7 @@ const Contact = () => {
 							<h3 className="text-xl font-semibold text-gray-900 mb-3">
 								How do I schedule an appointment?
 							</h3>
-							<p className="text-gray-600">
+							<p className="text-gray-700">
 								You can schedule an appointment by calling us at (555) 123-4567,
 								using our online booking system, or sending us a message through
 								the contact form.
@@ -419,7 +419,7 @@ const Contact = () => {
 							<h3 className="text-xl font-semibold text-gray-900 mb-3">
 								Do you offer same-day appointments?
 							</h3>
-							<p className="text-gray-600">
+							<p className="text-gray-700">
 								Yes, we offer same-day appointments for urgent care needs.
 								Please call us early in the day for the best availability.
 							</p>
@@ -433,7 +433,7 @@ const Contact = () => {
 							<h3 className="text-xl font-semibold text-gray-900 mb-3">
 								What should I bring to my first appointment?
 							</h3>
-							<p className="text-gray-600">
+							<p className="text-gray-700">
 								Please bring your ID, insurance card, list of current
 								medications, and any relevant medical records. New patient forms
 								can be completed online or in-office.
