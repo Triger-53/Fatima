@@ -12,18 +12,17 @@ import {
 	Save,
 	X,
 } from "lucide-react"
-import { MEDICAL_CENTERS, ONLINE_SLOTS } from "../data/appointmentData"
 import { slotManager } from "../utils/slotManager"
 
 const AppointmentSlotManager = () => {
 	const [loading, setLoading] = useState(true)
 	const [appointments, setAppointments] = useState([])
-	const [bookingRange, setBookingRange] = useState(30) // Default 30 days
+	const [bookingRange, setBookingRange] = useState(null)
 	const [editingSlots, setEditingSlots] = useState(null)
 	const [showSlotEditor, setShowSlotEditor] = useState(false)
 	const [slotConfig, setSlotConfig] = useState({
-		online: ONLINE_SLOTS,
-		offline: MEDICAL_CENTERS,
+		online: {},
+		offline: [],
 	})
 	const [availability, setAvailability] = useState({})
 	const [summary, setSummary] = useState({
@@ -32,8 +31,24 @@ const AppointmentSlotManager = () => {
 		availableSlots: 0,
 	})
 
-	// Fetch all appointments and calculate availability
+	// Initialize and fetch data
 	useEffect(() => {
+		const initialize = async () => {
+			await slotManager.initialized
+			setBookingRange(slotManager.bookingRange)
+			setSlotConfig({
+				online: slotManager.onlineSlots,
+				offline: slotManager.medicalCenters,
+			})
+		}
+
+		initialize()
+	}, [])
+
+	// Fetch data when bookingRange is set
+	useEffect(() => {
+		if (bookingRange === null) return
+
 		const fetchData = async () => {
 			setLoading(true)
 
@@ -99,9 +114,9 @@ const AppointmentSlotManager = () => {
 	}
 
 	// Update booking range
-	const handleBookingRangeChange = (newRange) => {
+	const handleBookingRangeChange = async (newRange) => {
 		setBookingRange(newRange)
-		slotManager.setBookingRange(newRange)
+		await slotManager.setBookingRange(newRange)
 	}
 
 	// Edit slot configuration

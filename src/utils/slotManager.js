@@ -1,19 +1,60 @@
-import { supabase } from '../supabase'
-import { MEDICAL_CENTERS, ONLINE_SLOTS } from '../data/appointmentData'
+import { supabase } from "../supabase"
 
 // Enhanced slot management utilities
 export class SlotManager {
 	constructor() {
-		this.bookingRange = 30; // Default 30 days
-		this.cache = new Map();
-		this.cacheTimeout = 5 * 60 * 1000; // 5 minutes cache
+		this.bookingRange = 30 // Default fallback
+		this.onlineSlots = {}
+		this.medicalCenters = []
+		this.cache = new Map()
+		this.cacheTimeout = 5 * 60 * 1000 // 5 minutes cache
+		this.initialized = this.initialize()
+	}
+
+	async initialize() {
+		try {
+			// Fetch settings
+			const { data: settingsData, error: settingsError } = await supabase
+				.from("settings")
+				.select("booking_range, online_slots")
+				.limit(1)
+				.single()
+
+			if (settingsError) {
+				console.error("Error fetching settings:", settingsError)
+			} else if (settingsData) {
+				this.bookingRange = settingsData.booking_range
+				this.onlineSlots = settingsData.online_slots
+			}
+
+			// Fetch hospitals
+			const { data: hospitals, error: hospitalsError } = await supabase
+				.from("hospitals")
+				.select("*")
+
+			if (hospitalsError) {
+				console.error("Error fetching hospitals:", hospitalsError)
+			} else if (hospitals) {
+				this.medicalCenters = hospitals
+			}
+		} catch (error) {
+			console.error("Failed to initialize SlotManager:", error)
+		}
 	}
 
 	// Get day of week from date string
 	getDayOfWeek(dateString) {
-		const date = new Date(dateString);
-		const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-		return days[date.getDay()];
+		const date = new Date(dateString)
+		const days = [
+			"sunday",
+			"monday",
+			"tuesday",
+			"wednesday",
+			"thursday",
+			"friday",
+			"saturday",
+		]
+		return days[date.getDay()]
 	}
 
 	// Get available dates within booking range
@@ -31,18 +72,24 @@ export class SlotManager {
 
 	// Get available slots for a specific date and consultation method
 	getAvailableSlots(dateString, consultationMethod, medicalCenter = null) {
-		const dayOfWeek = this.getDayOfWeek(dateString);
+		const dayOfWeek = this.getDayOfWeek(dateString)
 
-		if (consultationMethod === 'online') {
-			return (ONLINE_SLOTS[dayOfWeek] && ONLINE_SLOTS[dayOfWeek].slots) ? ONLINE_SLOTS[dayOfWeek].slots : [];
-		} else if (consultationMethod === 'offline' && medicalCenter) {
-			const center = Object.values(MEDICAL_CENTERS).find(c => String(c.id) === String(medicalCenter));
-			return (center && center.doctorSchedule[dayOfWeek] && center.doctorSchedule[dayOfWeek].slots)
+		if (consultationMethod === "online") {
+			return this.onlineSlots[dayOfWeek] && this.onlineSlots[dayOfWeek].slots
+				? this.onlineSlots[dayOfWeek].slots
+				: []
+		} else if (consultationMethod === "offline" && medicalCenter) {
+			const center = this.medicalCenters.find(
+				(c) => String(c.id) === String(medicalCenter)
+			)
+			return center &&
+				center.doctorSchedule[dayOfWeek] &&
+				center.doctorSchedule[dayOfWeek].slots
 				? center.doctorSchedule[dayOfWeek].slots
-				: [];
+				: []
 		}
 
-		return [];
+		return []
 	}
 
 	// Check if a slot is available (with database check)
@@ -239,14 +286,14 @@ export class SlotManager {
             // Sessions block all types of slots at that time, so we need to account for this
             const onlineKey = `${s.date}_${s.time}_online_online`;
             bookedSlotsSet.add(onlineKey);
-            Object.values(MEDICAL_CENTERS).forEach(center => {
+            this.medicalCenters.forEach(center => {
                 const offlineKey = `${s.date}_${s.time}_offline_${center.id}`;
                 bookedSlotsSet.add(offlineKey);
             });
         });
 
 		// Initialize center tracking
-		Object.values(MEDICAL_CENTERS).forEach(center => {
+		this.medicalCenters.forEach(center => {
 			summary.byCenter[center.id] = {
 				name: center.name,
 				totalSlots: 0,
@@ -291,7 +338,7 @@ export class SlotManager {
             }
 
             // Process offline slots
-            for (const center of Object.values(MEDICAL_CENTERS)) {
+            for (const center of this.medicalCenters) {
                 summary.byDate[date].offline[center.id] = { total: 0, booked: 0, available: 0 };
                 const offlineSlots = this.getAvailableSlots(date, 'offline', center.id);
 
@@ -325,27 +372,20 @@ export class SlotManager {
 	}
 
 	// Set booking range
-	setBookingRange(days) {
-		this.bookingRange = days;
-		this.clearCache(); // Clear cache when range changes
+	async setBookingRange(days) {
+		this.bookingRange = days
+		this.clearCache() // Clear cache when range changes
+
+		// Persist to database
+		const { error } = await supabase
+			.from("settings")
+			.update({ booking_range: days })
+			.eq("id", 1) // Assuming a single settings row with id 1
+		if (error) {
+			console.error("Error updating booking range:", error)
+		}
 	}
 }
 
 // Create singleton instance
 export const slotManager = new SlotManager()
-// Legacy functions for backward compatibility
-export const getDayOfWeek = (dateString) => {
-	return slotManager.getDayOfWeek(dateString)
-}
-
-export const getAvailableSlots = (dateString, appointmentType, medicalCenter = null) => {
-	return slotManager.getAvailableSlots(dateString, appointmentType, medicalCenter)
-}
-
-export const isSlotAvailable = async (dateString, timeSlot, appointmentType, medicalCenter = null) => {
-	return slotManager.isSlotAvailable(dateString, timeSlot, appointmentType, medicalCenter)
-}
-
-export const getAvailableDates = (bookingRange = 30) => {
-	return slotManager.getAvailableDates(bookingRange)
-}
