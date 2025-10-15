@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from "react"
-import { supabase } from "../supabase"
-import { Plus, Edit, Trash2, Save, X } from "lucide-react"
+import {
+	getAllHospitalsAsync,
+	createHospital,
+	updateHospitalById,
+	deleteHospitalById,
+} from "../data/hospitals"
+import { Plus, Edit, Trash2 } from "lucide-react"
 
 const AdminHospitals = () => {
 	const [hospitals, setHospitals] = useState([])
 	const [loading, setLoading] = useState(true)
 	const [editingHospital, setEditingHospital] = useState(null)
 	const [showForm, setShowForm] = useState(false)
+	const [error, setError] = useState(null)
 
 	useEffect(() => {
 		fetchHospitals()
@@ -14,46 +20,47 @@ const AdminHospitals = () => {
 
 	const fetchHospitals = async () => {
 		setLoading(true)
-		const { data, error } = await supabase.from("hospitals").select("*")
-		if (error) {
-			console.error("Error fetching hospitals:", error)
-		} else {
+		setError(null)
+		try {
+			const data = await getAllHospitalsAsync()
 			setHospitals(data)
+		} catch (error) {
+			console.error("Error fetching hospitals:", error)
+			setError("Failed to fetch hospitals. Please check the console for details.")
+		} finally {
+			setLoading(false)
 		}
-		setLoading(false)
 	}
 
 	const handleSave = async (hospital) => {
-		if (hospital.id) {
-			// Update
-			const { error } = await supabase
-				.from("hospitals")
-				.update(hospital)
-				.eq("id", hospital.id)
-			if (error) {
-				console.error("Error updating hospital:", error)
+		try {
+			if (hospital.id) {
+				// Update
+				await updateHospitalById(hospital.id, hospital)
+			} else {
+				// Create
+				const { id, ...newHospitalData } = hospital
+				await createHospital(newHospitalData)
 			}
-		} else {
-			// Create
-			const { error } = await supabase.from("hospitals").insert(hospital)
-			if (error) {
-				console.error("Error creating hospital:", error)
-			}
+			setShowForm(false)
+			setEditingHospital(null)
+			fetchHospitals()
+		} catch (error) {
+			console.error("Error saving hospital:", error)
+			setError("Failed to save hospital. Please check the console for details.")
 		}
-		setShowForm(false)
-		fetchHospitals()
 	}
 
 	const handleDelete = async (hospitalId) => {
 		if (window.confirm("Are you sure you want to delete this hospital?")) {
-			const { error } = await supabase
-				.from("hospitals")
-				.delete()
-				.eq("id", hospitalId)
-			if (error) {
-				console.error("Error deleting hospital:", error)
-			} else {
+			try {
+				await deleteHospitalById(hospitalId)
 				fetchHospitals()
+			} catch (error) {
+				console.error("Error deleting hospital:", error)
+				setError(
+					"Failed to delete hospital. Please check the console for details."
+				)
 			}
 		}
 	}
@@ -65,6 +72,16 @@ const AdminHospitals = () => {
 	return (
 		<div className="p-6 bg-gray-50 min-h-screen">
 			<h1 className="text-3xl font-bold mb-6">Hospital Management</h1>
+
+			{error && (
+				<div
+					className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
+					role="alert">
+					<strong className="font-bold">Error:</strong>
+					<span className="block sm:inline"> {error}</span>
+				</div>
+			)}
+
 			<div className="bg-white rounded-lg shadow-md p-6">
 				<div className="flex justify-end mb-4">
 					<button
@@ -72,51 +89,69 @@ const AdminHospitals = () => {
 							setEditingHospital(null)
 							setShowForm(true)
 						}}
-						className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center">
+						className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center hover:bg-blue-700 transition-colors">
 						<Plus className="w-4 h-4 mr-2" />
 						Add Hospital
 					</button>
 				</div>
-				<table className="w-full">
-					<thead>
-						<tr className="border-b">
-							<th className="text-left p-3">Name</th>
-							<th className="text-left p-3">Address</th>
-							<th className="text-left p-3">Phone</th>
-							<th className="text-left p-3">Actions</th>
-						</tr>
-					</thead>
-					<tbody>
-						{hospitals.map((hospital) => (
-							<tr key={hospital.id} className="border-b">
-								<td className="p-3">{hospital.name}</td>
-								<td className="p-3">{hospital.address}</td>
-								<td className="p-3">{hospital.phone}</td>
-								<td className="p-3">
-									<button
-										onClick={() => {
-											setEditingHospital(hospital)
-											setShowForm(true)
-										}}
-										className="text-blue-600 hover:text-blue-800 mr-4">
-										<Edit className="w-5 h-5" />
-									</button>
-									<button
-										onClick={() => handleDelete(hospital.id)}
-										className="text-red-600 hover:text-red-800">
-										<Trash2 className="w-5 h-5" />
-									</button>
-								</td>
+				<div className="overflow-x-auto">
+					<table className="w-full">
+						<thead>
+							<tr className="border-b">
+								<th className="text-left p-3 font-semibold text-gray-600">
+									Name
+								</th>
+								<th className="text-left p-3 font-semibold text-gray-600">
+									Address
+								</th>
+								<th className="text-left p-3 font-semibold text-gray-600">
+									Phone
+								</th>
+								<th className="text-left p-3 font-semibold text-gray-600">
+									Actions
+								</th>
 							</tr>
-						))}
-					</tbody>
-				</table>
+						</thead>
+						<tbody>
+							{hospitals.map((hospital) => (
+								<tr
+									key={hospital.id}
+									className="border-b hover:bg-gray-50 transition-colors">
+									<td className="p-3">{hospital.name}</td>
+									<td className="p-3">{hospital.address}</td>
+									<td className="p-3">{hospital.phone}</td>
+									<td className="p-3 flex items-center space-x-4">
+										<button
+											onClick={() => {
+												setEditingHospital(hospital)
+												setShowForm(true)
+											}}
+											className="text-blue-600 hover:text-blue-800 transition-colors"
+											aria-label={`Edit ${hospital.name}`}>
+											<Edit className="w-5 h-5" />
+										</button>
+										<button
+											onClick={() => handleDelete(hospital.id)}
+											className="text-red-600 hover:text-red-800 transition-colors"
+											aria-label={`Delete ${hospital.name}`}>
+											<Trash2 className="w-5 h-5" />
+										</button>
+									</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
+				</div>
 			</div>
+
 			{showForm && (
 				<HospitalForm
 					hospital={editingHospital}
 					onSave={handleSave}
-					onCancel={() => setShowForm(false)}
+					onCancel={() => {
+						setShowForm(false)
+						setEditingHospital(null)
+					}}
 				/>
 			)}
 		</div>
