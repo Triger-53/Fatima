@@ -32,6 +32,7 @@ import AppointmentDetail from "./admin/AppointmentDetail"
 import Analytics from "./admin/Analytics"
 import Diagnostics from "./admin/Diagnostics"
 import AdminServices from "./admin/AdminServices"
+import AdminHospitals from "./admin/AdminHospitals"
 import AppointmentSlotManager from "./admin/AppointmentSlotManager"
 import AdminSessions from "./admin/AdminSessions"
 
@@ -176,6 +177,16 @@ function AppContent() {
 							<AdminProtectedRoute>
 								<AdminLayout>
 									<AdminServices />
+								</AdminLayout>
+							</AdminProtectedRoute>
+						}
+					/>
+					<Route
+						path="/admin/hospitals"
+						element={
+							<AdminProtectedRoute>
+								<AdminLayout>
+									<AdminHospitals />
 								</AdminLayout>
 							</AdminProtectedRoute>
 						}

@@ -64,6 +64,11 @@ const NavLinks = ({ isMobile }) => (
 			</NavLink>
 		</li>
 		<li>
+			<NavLink to="/admin/hospitals" className="hover:bg-cyan-100 rounded-3xl p-2">
+				Hospitals
+			</NavLink>
+		</li>
+		<li>
 			<NavLink
 				to="/admin/appointments"
 				className="hover:bg-cyan-100 rounded-3xl p-2">
