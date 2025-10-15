@@ -385,6 +385,44 @@ export class SlotManager {
 			console.error("Error updating booking range:", error)
 		}
 	}
+
+	// Set online slots
+	async setOnlineSlots(newSlots) {
+		this.onlineSlots = newSlots
+		this.clearCache()
+
+		// Persist to database
+		const { error } = await supabase
+			.from("settings")
+			.update({ online_slots: newSlots })
+			.eq("id", 1) // Assuming a single settings row with id 1
+		if (error) {
+			console.error("Error updating online slots:", error)
+		}
+	}
+
+	// Set hospital schedule
+	async setHospitalSchedule(hospitalId, newSchedule) {
+		const centerIndex = this.medicalCenters.findIndex(
+			(c) => c.id === hospitalId
+		)
+		if (centerIndex !== -1) {
+			this.medicalCenters[centerIndex].doctorSchedule = newSchedule
+		}
+		this.clearCache()
+
+		// Persist to database
+		const { error } = await supabase
+			.from("hospitals")
+			.update({ doctorSchedule: newSchedule })
+			.eq("id", hospitalId)
+		if (error) {
+			console.error(
+				`Error updating schedule for hospital ${hospitalId}:`,
+				error
+			)
+		}
+	}
 }
 
 // Create singleton instance
