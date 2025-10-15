@@ -5,12 +5,13 @@ import {
 	updateHospitalById,
 	deleteHospitalById,
 } from "../data/hospitals"
-import { Plus, Edit, Trash2 } from "lucide-react"
+import { Plus, Edit, Trash2, Clock } from "lucide-react"
 
 const AdminHospitals = () => {
 	const [hospitals, setHospitals] = useState([])
 	const [loading, setLoading] = useState(true)
 	const [editingHospital, setEditingHospital] = useState(null)
+	const [editingSchedule, setEditingSchedule] = useState(null)
 	const [showForm, setShowForm] = useState(false)
 	const [error, setError] = useState(null)
 
@@ -131,6 +132,12 @@ const AdminHospitals = () => {
 											<Edit className="w-5 h-5" />
 										</button>
 										<button
+											onClick={() => setEditingSchedule(hospital)}
+											className="text-gray-600 hover:text-gray-800 transition-colors"
+											aria-label={`Manage schedule for ${hospital.name}`}>
+											<Clock className="w-5 h-5" />
+										</button>
+										<button
 											onClick={() => handleDelete(hospital.id)}
 											className="text-red-600 hover:text-red-800 transition-colors"
 											aria-label={`Delete ${hospital.name}`}>
@@ -152,6 +159,14 @@ const AdminHospitals = () => {
 						setShowForm(false)
 						setEditingHospital(null)
 					}}
+				/>
+			)}
+
+			{editingSchedule && (
+				<ScheduleForm
+					hospital={editingSchedule}
+					onSave={handleSave}
+					onCancel={() => setEditingSchedule(null)}
 				/>
 			)}
 		</div>
@@ -223,6 +238,107 @@ const HospitalForm = ({ hospital, onSave, onCancel }) => {
 							type="submit"
 							className="bg-blue-600 text-white px-4 py-2 rounded">
 							Save
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	)
+}
+
+const ScheduleForm = ({ hospital, onSave, onCancel }) => {
+	const [schedule, setSchedule] = useState(hospital.doctorSchedule || {})
+
+	const handleSlotChange = (day, slotIndex, value) => {
+		const newSchedule = { ...schedule }
+		if (!newSchedule[day]) {
+			newSchedule[day] = { slots: [] }
+		}
+		newSchedule[day].slots[slotIndex] = value
+		setSchedule(newSchedule)
+	}
+
+	const addSlot = (day) => {
+		const newSchedule = { ...schedule }
+		if (!newSchedule[day]) {
+			newSchedule[day] = { slots: [] }
+		}
+		newSchedule[day].slots.push("")
+		setSchedule(newSchedule)
+	}
+
+	const removeSlot = (day, slotIndex) => {
+		const newSchedule = { ...schedule }
+		newSchedule[day].slots.splice(slotIndex, 1)
+		setSchedule(newSchedule)
+	}
+
+	const handleSubmit = (e) => {
+		e.preventDefault()
+		onSave({ ...hospital, doctorSchedule: schedule })
+	}
+
+	const daysOfWeek = [
+		"monday",
+		"tuesday",
+		"wednesday",
+		"thursday",
+		"friday",
+		"saturday",
+		"sunday",
+	]
+
+	return (
+		<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+			<div className="bg-white rounded-lg p-6 max-w-2xl w-full">
+				<h2 className="text-2xl font-bold mb-6">
+					Manage Schedule for {hospital.name}
+				</h2>
+				<form onSubmit={handleSubmit}>
+					<div className="space-y-4">
+						{daysOfWeek.map((day) => (
+							<div key={day} className="border-b pb-4">
+								<h3 className="capitalize font-semibold">{day}</h3>
+								<div className="grid grid-cols-3 gap-2 mt-2">
+									{(schedule[day]?.slots || []).map((slot, index) => (
+										<div key={index} className="flex items-center">
+											<input
+												type="time"
+												value={slot}
+												onChange={(e) =>
+													handleSlotChange(day, index, e.target.value)
+												}
+												className="w-full p-2 border rounded"
+											/>
+											<button
+												type="button"
+												onClick={() => removeSlot(day, index)}
+												className="ml-2 text-red-500">
+												<Trash2 className="w-4 h-4" />
+											</button>
+										</div>
+									))}
+								</div>
+								<button
+									type="button"
+									onClick={() => addSlot(day)}
+									className="mt-2 text-blue-500">
+									Add Slot
+								</button>
+							</div>
+						))}
+					</div>
+					<div className="flex justify-end space-x-4 mt-6">
+						<button
+							type="button"
+							onClick={onCancel}
+							className="bg-gray-300 px-4 py-2 rounded">
+							Cancel
+						</button>
+						<button
+							type="submit"
+							className="bg-blue-600 text-white px-4 py-2 rounded">
+							Save Schedule
 						</button>
 					</div>
 				</form>
