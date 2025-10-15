@@ -30,6 +30,7 @@ const AppointmentSlotManager = () => {
 		bookedSlots: 0,
 		availableSlots: 0,
 	})
+	const [visibleDatesCount, setVisibleDatesCount] = useState(14)
 
 	// Initialize and fetch data
 	useEffect(() => {
@@ -370,7 +371,7 @@ const AppointmentSlotManager = () => {
 
 						{/* Availability Rows */}
 						{Object.entries(availability)
-							.slice(0, 14)
+							.slice(0, visibleDatesCount)
 							.map(([date, dateData]) => {
 								const dayOfWeek = getDayOfWeek(date)
 
@@ -426,11 +427,15 @@ const AppointmentSlotManager = () => {
 				</div>
 
 				{/* Show more button if there are more dates */}
-				{Object.keys(availability).length > 14 && (
+				{Object.keys(availability).length > visibleDatesCount && (
 					<div className="mt-4 text-center">
-						<button className="text-blue-600 hover:text-blue-800 font-medium">
-							Show More Dates ({Object.keys(availability).length - 14}{" "}
-							remaining)
+						<button
+							onClick={() =>
+								setVisibleDatesCount(Object.keys(availability).length)
+							}
+							className="text-blue-600 hover:text-blue-800 font-medium">
+							Show More Dates (
+							{Object.keys(availability).length - visibleDatesCount} remaining)
 						</button>
 					</div>
 				)}
