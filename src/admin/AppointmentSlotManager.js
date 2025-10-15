@@ -127,22 +127,23 @@ const AppointmentSlotManager = () => {
 	}
 
 	// Save slot configuration
-	const handleSaveSlots = (newSlots) => {
+	const handleSaveSlots = async (newSlots) => {
 		if (editingSlots.type === "online") {
+			await slotManager.setOnlineSlots(newSlots)
 			setSlotConfig((prev) => ({
 				...prev,
 				online: newSlots,
 			}))
 		} else {
+			await slotManager.setHospitalSchedule(editingSlots.centerId, newSlots)
 			setSlotConfig((prev) => ({
 				...prev,
-				offline: {
-					...prev.offline,
-					[editingSlots.centerId]: {
-						...prev.offline[editingSlots.centerId],
-						doctorSchedule: newSlots,
-					},
-				},
+				offline: prev.offline.map((center) => {
+					if (center.id === editingSlots.centerId) {
+						return { ...center, doctorSchedule: newSlots }
+					}
+					return center
+				}),
 			}))
 		}
 		setShowSlotEditor(false)
