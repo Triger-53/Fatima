@@ -379,8 +379,7 @@ export class SlotManager {
 		// Persist to database
 		const { error } = await supabase
 			.from("settings")
-			.update({ booking_range: days })
-			.eq("id", 1) // Assuming a single settings row with id 1
+			.upsert({ id: 1, booking_range: days })
 		if (error) {
 			console.error("Error updating booking range:", error)
 			return { success: false, error: error.message }
@@ -396,8 +395,7 @@ export class SlotManager {
 		// Persist to database
 		const { error } = await supabase
 			.from("settings")
-			.update({ online_slots: newSlots })
-			.eq("id", 1) // Assuming a single settings row with id 1
+			.upsert({ id: 1, online_slots: newSlots })
 		if (error) {
 			console.error("Error updating online slots:", error)
 			return { success: false, error: error.message }
