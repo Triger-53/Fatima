@@ -31,6 +31,8 @@ const AppointmentSlotManager = () => {
 		availableSlots: 0,
 	})
 	const [visibleDatesCount, setVisibleDatesCount] = useState(14)
+	const [successMessage, setSuccessMessage] = useState("")
+	const [errorMessage, setErrorMessage] = useState("")
 
 	// Initialize and fetch data
 	useEffect(() => {
@@ -116,8 +118,19 @@ const AppointmentSlotManager = () => {
 
 	// Update booking range
 	const handleBookingRangeChange = async (newRange) => {
+		setSuccessMessage("")
+		setErrorMessage("")
 		setBookingRange(newRange)
-		await slotManager.setBookingRange(newRange)
+		const result = await slotManager.setBookingRange(newRange)
+		if (result.success) {
+			setSuccessMessage("Booking range updated successfully.")
+		} else {
+			setErrorMessage(`Failed to update booking range: ${result.error}`)
+		}
+		setTimeout(() => {
+			setSuccessMessage("")
+			setErrorMessage("")
+		}, 3000)
 	}
 
 	// Edit slot configuration
@@ -128,26 +141,47 @@ const AppointmentSlotManager = () => {
 
 	// Save slot configuration
 	const handleSaveSlots = async (newSlots) => {
+		setSuccessMessage("")
+		setErrorMessage("")
+		let result
+
 		if (editingSlots.type === "online") {
-			await slotManager.setOnlineSlots(newSlots)
-			setSlotConfig((prev) => ({
-				...prev,
-				online: newSlots,
-			}))
+			result = await slotManager.setOnlineSlots(newSlots)
+			if (result.success) {
+				setSlotConfig((prev) => ({
+					...prev,
+					online: newSlots,
+				}))
+			}
 		} else {
-			await slotManager.setHospitalSchedule(editingSlots.centerId, newSlots)
-			setSlotConfig((prev) => ({
-				...prev,
-				offline: prev.offline.map((center) => {
-					if (center.id === editingSlots.centerId) {
-						return { ...center, doctorSchedule: newSlots }
-					}
-					return center
-				}),
-			}))
+			result = await slotManager.setHospitalSchedule(
+				editingSlots.centerId,
+				newSlots
+			)
+			if (result.success) {
+				setSlotConfig((prev) => ({
+					...prev,
+					offline: prev.offline.map((center) => {
+						if (center.id === editingSlots.centerId) {
+							return { ...center, doctorSchedule: newSlots }
+						}
+						return center
+					}),
+				}))
+			}
 		}
-		setShowSlotEditor(false)
-		setEditingSlots(null)
+
+		if (result.success) {
+			setSuccessMessage("Slot configuration saved successfully.")
+			setShowSlotEditor(false)
+			setEditingSlots(null)
+		} else {
+			setErrorMessage(`Failed to save slot configuration: ${result.error}`)
+		}
+		setTimeout(() => {
+			setSuccessMessage("")
+			setErrorMessage("")
+		}, 3000)
 	}
 
 	// Format date for display
@@ -190,6 +224,24 @@ const AppointmentSlotManager = () => {
 					Manage booking ranges and slot availability
 				</p>
 			</div>
+
+			{/* Feedback Messages */}
+			{successMessage && (
+				<div className="mb-4 p-4 rounded-md bg-green-100 text-green-700 flex justify-between items-center">
+					<span>{successMessage}</span>
+					<button onClick={() => setSuccessMessage("")} className="text-green-700">
+						<X className="w-5 h-5" />
+					</button>
+				</div>
+			)}
+			{errorMessage && (
+				<div className="mb-4 p-4 rounded-md bg-red-100 text-red-700 flex justify-between items-center">
+					<span>{errorMessage}</span>
+					<button onClick={() => setErrorMessage("")} className="text-red-700">
+						<X className="w-5 h-5" />
+					</button>
+				</div>
+			)}
 
 			{/* Booking Range Control */}
 			<div className="bg-white rounded-lg shadow-md p-6 mb-6">

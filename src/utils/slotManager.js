@@ -383,7 +383,9 @@ export class SlotManager {
 			.eq("id", 1) // Assuming a single settings row with id 1
 		if (error) {
 			console.error("Error updating booking range:", error)
+			return { success: false, error: error.message }
 		}
+		return { success: true }
 	}
 
 	// Set online slots
@@ -398,7 +400,9 @@ export class SlotManager {
 			.eq("id", 1) // Assuming a single settings row with id 1
 		if (error) {
 			console.error("Error updating online slots:", error)
+			return { success: false, error: error.message }
 		}
+		return { success: true }
 	}
 
 	// Set hospital schedule
@@ -421,7 +425,9 @@ export class SlotManager {
 				`Error updating schedule for hospital ${hospitalId}:`,
 				error
 			)
+			return { success: false, error: error.message }
 		}
+		return { success: true }
 	}
 }
 
