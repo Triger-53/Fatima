@@ -7,7 +7,7 @@ const TABLE = "hospitals"
 export async function getAllHospitalsAsync() {
 	const { data, error } = await supabase
 		.from(TABLE)
-		.select("id, name, address, phone")
+		.select("id, name, address, phone, doctorSchedule")
 		.order("name", { ascending: true })
 
 	if (error) throw error
@@ -19,7 +19,20 @@ export async function getAllHospitalsAsync() {
 export async function createHospital(hospitalData) {
 	if (!hospitalData) throw new Error("Hospital data is required")
 
-	const { error } = await supabase.from(TABLE).insert(hospitalData)
+	const newHospital = {
+		...hospitalData,
+		doctorSchedule: {
+			monday: null,
+			tuesday: null,
+			wednesday: null,
+			thursday: null,
+			friday: null,
+			saturday: null,
+			sunday: null,
+		},
+	}
+
+	const { error } = await supabase.from(TABLE).insert(newHospital)
 	if (error) throw error
 
 	return true
@@ -30,9 +43,17 @@ export async function updateHospitalById(id, hospitalData) {
 	if (!id) throw new Error("Hospital ID is required")
 	if (!hospitalData) throw new Error("Hospital data is required")
 
+	// Supabase raises a 400 bad request error if the payload includes `id`
+	const updateData = {
+		name: hospitalData.name,
+		address: hospitalData.address,
+		phone: hospitalData.phone,
+		doctorSchedule: hospitalData.doctorSchedule,
+	}
+
 	const { error } = await supabase
 		.from(TABLE)
-		.update(hospitalData)
+		.update(updateData)
 		.eq("id", id)
 	if (error) throw error
 
