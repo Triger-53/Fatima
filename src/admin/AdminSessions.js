@@ -18,9 +18,18 @@ const AdminSessions = () => {
     const [selectedUser, setSelectedUser] = useState('');
     const [title, setTitle] = useState('');
     const [duration, setDuration] = useState(30);
-    const [numberOfSessions, setNumberOfSessions] = useState(1);
-    const [sessionDates, setSessionDates] = useState(['']);
-    const [sessionTimes, setSessionTimes] = useState(['']);
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+    const [time, setTime] = useState('');
+    const [daysOfWeek, setDaysOfWeek] = useState({
+        monday: false,
+        tuesday: false,
+        wednesday: false,
+        thursday: false,
+        friday: false,
+        saturday: false,
+        sunday: false,
+    });
     const [forceBooking, setForceBooking] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -42,22 +51,9 @@ const AdminSessions = () => {
         fetchUsers();
     }, []);
 
-    const handleDateChange = (index, value) => {
-        const newDates = [...sessionDates];
-        newDates[index] = value;
-        setSessionDates(newDates);
+    const handleDayOfWeekChange = (day) => {
+        setDaysOfWeek(prev => ({ ...prev, [day]: !prev[day] }));
     };
-
-    const handleTimeChange = (index, value) => {
-        const newTimes = [...sessionTimes];
-        newTimes[index] = value;
-        setSessionTimes(newTimes);
-    };
-
-    useEffect(() => {
-        setSessionDates(Array(Number(numberOfSessions)).fill(''));
-        setSessionTimes(Array(Number(numberOfSessions)).fill(''));
-    }, [numberOfSessions]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -79,72 +75,71 @@ const AdminSessions = () => {
 
         const createdSessions = [];
 
-        for (let i = 0; i < numberOfSessions; i++) {
-            const date = sessionDates[i];
-            const time = sessionTimes[i];
+        const dayMapping = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 
-            if (!date || !time) {
-                setError(`Please provide a date and time for session ${i + 1}.`);
-                continue;
-            }
+        let currentDate = new Date(startDate);
+        let lastDate = new Date(endDate);
 
-            try {
-                // 1. Check if the slot is free
-                if (!forceBooking) {
-                    const isFree = await slotManager.isTimeSlotCompletelyFree(date, time);
-                    if (!isFree) {
-                        throw new Error(`Slot on ${date} at ${time} is already booked.`);
+        while (currentDate <= lastDate) {
+            const dayOfWeek = dayMapping[currentDate.getDay()];
+            if (daysOfWeek[dayOfWeek]) {
+                const date = currentDate.toISOString().split('T')[0];
+                try {
+                    // 1. Check if the slot is free
+                    if (!forceBooking) {
+                        const isFree = await slotManager.isTimeSlotCompletelyFree(date, time);
+                        if (!isFree) {
+                            throw new Error(`Slot on ${date} at ${time} is already booked.`);
+                        }
                     }
+
+                    // 2. Create the session in Supabase to get the ID
+                    const { data: sessionData, error: sessionError } = await supabase
+                        .from('sessions')
+                        .insert({ user_id: selectedUser, title, duration, date, time })
+                        .select()
+                        .single();
+
+                    if (sessionError) {
+                        throw new Error(`Failed to create session in database: ${sessionError.message}`);
+                    }
+
+                    // 3. Create Google Calendar event
+                    const startDateTime = new Date(`${date}T${time}`).toISOString();
+                    const endDateTime = new Date(new Date(`${date}T${time}`).getTime() + duration * 60000).toISOString();
+
+                    const response = await fetch('http://localhost:3001/create-meeting', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ patientEmail, startDateTime, endDateTime }),
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(`Failed to create Google Meet link: ${errorData.error || 'Unknown error'}`);
+                    }
+
+                    const { meetLink } = await response.json();
+
+                    // 4. Update the session with the Meet link
+                    const { error: updateError } = await supabase
+                        .from('sessions')
+                        .update({ meet_link: meetLink })
+                        .eq('id', sessionData.id);
+
+                    if (updateError) {
+                        console.error('Failed to update session with meet link:', updateError);
+                        throw new Error('Session created, but failed to save the Google Meet link.');
+                    }
+
+                    createdSessions.push({ ...sessionData, meetLink });
+
+                } catch (error) {
+                    setError(`Error for session on ${date}: ${error.message}`);
+                    break;
                 }
-
-                // 2. Create the session in Supabase to get the ID
-                const { data: sessionData, error: sessionError } = await supabase
-                    .from('sessions')
-                    .insert({ user_id: selectedUser, title, duration, date, time })
-                    .select()
-                    .single();
-
-                if (sessionError) {
-                    throw new Error(`Failed to create session in database: ${sessionError.message}`);
-                }
-
-                // 3. Create Google Calendar event
-                const startDateTime = new Date(`${date}T${time}`).toISOString();
-                const endDateTime = new Date(new Date(`${date}T${time}`).getTime() + duration * 60000).toISOString();
-
-                const response = await fetch('http://localhost:3001/create-meeting', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ patientEmail, startDateTime, endDateTime }),
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(`Failed to create Google Meet link: ${errorData.error || 'Unknown error'}`);
-                }
-
-                const { meetLink } = await response.json();
-
-                // 4. Update the session with the Meet link
-                const { error: updateError } = await supabase
-                    .from('sessions')
-                    .update({ meet_link: meetLink })
-                    .eq('id', sessionData.id);
-
-                if (updateError) {
-                    // The user will be notified, but we will have a dangling event.
-                    // A more robust solution could involve cleanup logic.
-                    console.error('Failed to update session with meet link:', updateError);
-                    throw new Error('Session created, but failed to save the Google Meet link.');
-                }
-
-                createdSessions.push({ ...sessionData, meetLink });
-
-            } catch (error) {
-                setError(`Error for session ${i + 1}: ${error.message}`);
-                // Stop processing further sessions on error
-                break;
             }
+            currentDate.setDate(currentDate.getDate() + 1);
         }
 
         if (createdSessions.length > 0) {
@@ -153,9 +148,10 @@ const AdminSessions = () => {
             setSelectedUser('');
             setTitle('');
             setDuration(30);
-            setNumberOfSessions(1);
-            setSessionDates(['']);
-            setSessionTimes(['']);
+            setStartDate('');
+            setEndDate('');
+            setTime('');
+            setDaysOfWeek({ monday: false, tuesday: false, wednesday: false, thursday: false, friday: false, saturday: false, sunday: false });
         }
 
         setLoading(false);
@@ -207,45 +203,62 @@ const AdminSessions = () => {
                         className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                     />
                 </div>
-                <div className="mb-4">
-                    <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="numberOfSessions">
-                        Number of Sessions
-                    </label>
-                    <input
-                        id="numberOfSessions"
-                        type="number"
-                        min="1"
-                        value={numberOfSessions}
-                        onChange={(e) => setNumberOfSessions(e.target.value)}
-                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                    />
-                </div>
-                {Array.from({ length: numberOfSessions }).map((_, index) => (
-                    <div key={index} className="flex gap-4 mb-4">
-                        <div className="w-1/2">
-                            <label className="block text-gray-700 text-sm font-bold mb-2">
-                                Date for Session {index + 1}
-                            </label>
-                            <input
-                                type="date"
-                                value={sessionDates[index] || ''}
-                                onChange={(e) => handleDateChange(index, e.target.value)}
-                                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            />
-                        </div>
-                        <div className="w-1/2">
-                            <label className="block text-gray-700 text-sm font-bold mb-2">
-                                Time for Session {index + 1}
-                            </label>
-                            <input
-                                type="time"
-                                value={sessionTimes[index] || ''}
-                                onChange={(e) => handleTimeChange(index, e.target.value)}
-                                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            />
-                        </div>
+                <div className="flex gap-4 mb-4">
+                    <div className="w-1/3">
+                        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="startDate">
+                            Start Date
+                        </label>
+                        <input
+                            id="startDate"
+                            type="date"
+                            value={startDate}
+                            onChange={(e) => setStartDate(e.target.value)}
+                            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        />
                     </div>
-                ))}
+                    <div className="w-1/3">
+                        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="endDate">
+                            End Date
+                        </label>
+                        <input
+                            id="endDate"
+                            type="date"
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        />
+                    </div>
+                    <div className="w-1/3">
+                        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="time">
+                            Time
+                        </label>
+                        <input
+                            id="time"
+                            type="time"
+                            value={time}
+                            onChange={(e) => setTime(e.target.value)}
+                            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        />
+                    </div>
+                </div>
+                <div className="mb-4">
+                    <label className="block text-gray-700 text-sm font-bold mb-2">
+                        Select Days of the Week
+                    </label>
+                    <div className="flex gap-4">
+                        {Object.keys(daysOfWeek).map((day) => (
+                            <label key={day} className="flex items-center capitalize">
+                                <input
+                                    type="checkbox"
+                                    checked={daysOfWeek[day]}
+                                    onChange={() => handleDayOfWeekChange(day)}
+                                    className="form-checkbox"
+                                />
+                                <span className="ml-2 text-gray-700">{day}</span>
+                            </label>
+                        ))}
+                    </div>
+                </div>
                 <div className="mb-4">
                     <label className="flex items-center">
                         <input
