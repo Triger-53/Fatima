@@ -5,6 +5,7 @@ export class SlotManager {
 	constructor() {
 		this.bookingRange = 30 // Default fallback
 		this.onlineSlots = {}
+		this.sessionQuota = {}
 		this.medicalCenters = []
 		this.cache = new Map()
 		this.cacheTimeout = 5 * 60 * 1000 // 5 minutes cache
@@ -16,7 +17,7 @@ export class SlotManager {
 			// Fetch settings
 			const { data: settingsData, error: settingsError } = await supabase
 				.from("settings")
-				.select("booking_range, online_slots")
+				.select("booking_range, online_slots, session_quota")
 				.limit(1)
 				.single()
 
@@ -25,6 +26,7 @@ export class SlotManager {
 			} else if (settingsData) {
 				this.bookingRange = settingsData.booking_range
 				this.onlineSlots = settingsData.online_slots
+				this.sessionQuota = settingsData.session_quota
 			}
 
 			// Fetch hospitals
@@ -425,6 +427,23 @@ export class SlotManager {
 				`Error updating schedule for hospital ${hospitalId}:`,
 				error
 			)
+			return { success: false, error: error.message }
+		}
+		return { success: true }
+	}
+
+	// Set session quota
+	async setSessionQuota(newQuota) {
+		this.sessionQuota = newQuota
+		this.clearCache()
+
+		// Persist to database
+		const { error } = await supabase
+			.from("settings")
+			.update({ session_quota: newQuota })
+			.eq("id", 1) // Assuming a single settings row with id 1
+		if (error) {
+			console.error("Error updating session quota:", error)
 			return { success: false, error: error.message }
 		}
 		return { success: true }
