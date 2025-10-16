@@ -43,7 +43,7 @@ export default function Dashboard() {
 				.from("Appointment")
 				.select("*")
 				.eq("user_id", user.id)
-				.order("created_at", { ascending: false });
+				.order("preferredDate", { ascending: false });
 
 			if (apptError) throw apptError;
 
@@ -135,6 +135,14 @@ export default function Dashboard() {
 
 	const fullName = profile ? [profile.firstName, profile.lastName].filter(Boolean).join(" ") : user.email.split('@')[0]
 
+	const now = new Date();
+
+	const upcomingAppointments = appointments.filter(appt => new Date(appt.preferredDate) >= now);
+	const pastAppointments = appointments.filter(appt => new Date(appt.preferredDate) < now);
+
+	const upcomingSessions = sessions.filter(session => new Date(session.date) >= now);
+	const pastSessions = sessions.filter(session => new Date(session.date) < now);
+
 	return (
 		<>
 			<Notification msg={notification} />
@@ -186,11 +194,19 @@ export default function Dashboard() {
 							</Section>
 
 							<Section title="Upcoming Appointments" icon={<FaCalendarAlt className="text-purple-600" />}>
-								<AppointmentList appointments={appointments} />
+								<AppointmentList appointments={upcomingAppointments} />
+							</Section>
+
+							<Section title="Upcoming Sessions" icon={<FaChalkboardTeacher className="text-indigo-600" />}>
+								<SessionList sessions={upcomingSessions} />
+							</Section>
+
+							<Section title="Past Appointments" icon={<FaCalendarAlt className="text-purple-600" />}>
+								<AppointmentList appointments={pastAppointments} />
 							</Section>
 
 							<Section title="Session History" icon={<FaChalkboardTeacher className="text-indigo-600" />}>
-								<SessionList sessions={sessions} />
+								<SessionList sessions={pastSessions} />
 							</Section>
 						</div>
 					</motion.div>
