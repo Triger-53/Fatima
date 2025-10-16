@@ -11,7 +11,6 @@ const AdminHospitals = () => {
 	const [hospitals, setHospitals] = useState([])
 	const [loading, setLoading] = useState(true)
 	const [editingHospital, setEditingHospital] = useState(null)
-	const [editingSchedule, setEditingSchedule] = useState(null)
 	const [showForm, setShowForm] = useState(false)
 	const [error, setError] = useState(null)
 
@@ -43,7 +42,6 @@ const AdminHospitals = () => {
 			}
 			setShowForm(false)
 			setEditingHospital(null)
-			setEditingSchedule(null)
 			fetchHospitals()
 		} catch (error) {
 			console.error("Error saving hospital:", error)
@@ -119,13 +117,6 @@ const AdminHospitals = () => {
 											<Edit className="w-5 h-5" />
 										</button>
 										<button
-											onClick={() => setEditingSchedule(hospital)}
-											className="text-gray-600 hover:text-gray-800 transition-colors"
-											aria-label={`Manage schedule for ${hospital.name}`}
-										>
-											<Clock className="w-5 h-5" />
-										</button>
-										<button
 											onClick={() => handleDelete(hospital.id)}
 											className="text-red-600 hover:text-red-800 transition-colors"
 											aria-label={`Delete ${hospital.name}`}
@@ -150,14 +141,6 @@ const AdminHospitals = () => {
 					}}
 				/>
 			)}
-
-			{editingSchedule && (
-				<ScheduleForm
-					hospital={editingSchedule}
-					onSave={handleSave}
-					onCancel={() => setEditingSchedule(null)}
-				/>
-			)}
 		</div>
 	)
 }
@@ -167,9 +150,31 @@ const HospitalForm = ({ hospital, onSave, onCancel }) => {
 		hospital || { name: "", address: "", phone: "", doctorSchedule: {} }
 	)
 
+	const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+
 	const handleChange = (e) => {
 		const { name, value } = e.target
 		setFormData((prev) => ({ ...prev, [name]: value }))
+	}
+
+	const handleSlotChange = (day, index, value) => {
+		const newSchedule = { ...(formData.doctorSchedule || {}) }
+		if (!newSchedule[day]) newSchedule[day] = { slots: [] }
+		newSchedule[day].slots[index] = value
+		setFormData((prev) => ({ ...prev, doctorSchedule: newSchedule }))
+	}
+
+	const addSlot = (day) => {
+		const newSchedule = { ...(formData.doctorSchedule || {}) }
+		if (!newSchedule[day]) newSchedule[day] = { slots: [] }
+		newSchedule[day].slots.push("")
+		setFormData((prev) => ({ ...prev, doctorSchedule: newSchedule }))
+	}
+
+	const removeSlot = (day, index) => {
+		const newSchedule = { ...(formData.doctorSchedule || {}) }
+		newSchedule[day].slots.splice(index, 1)
+		setFormData((prev) => ({ ...prev, doctorSchedule: newSchedule }))
 	}
 
 	const handleSubmit = (e) => {
@@ -178,8 +183,8 @@ const HospitalForm = ({ hospital, onSave, onCancel }) => {
 	}
 
 	return (
-		<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-			<div className="bg-white rounded-lg p-8 max-w-xl w-full">
+		<div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-50 overflow-y-auto py-8">
+			<div className="bg-white rounded-lg p-8 max-w-3xl w-full">
 				<h2 className="text-3xl font-bold mb-6">
 					{hospital ? "Edit Hospital" : "Add Hospital"}
 				</h2>
@@ -217,6 +222,46 @@ const HospitalForm = ({ hospital, onSave, onCancel }) => {
 								className="w-full p-2 border rounded"
 							/>
 						</div>
+						<div>
+							<h3 className="text-xl font-bold mt-6 mb-4">Doctor's Schedule</h3>
+							<div className="space-y-4">
+								{days.map((day) => (
+									<div key={day} className="border-b pb-4">
+										<h4 className="capitalize font-semibold">{day}</h4>
+										<div className="grid grid-cols-2 gap-2 mt-2">
+											{(formData.doctorSchedule?.[day]?.slots || []).map(
+												(slot, index) => (
+													<div key={index} className="flex items-center">
+														<input
+															type="time"
+															value={slot}
+															onChange={(e) =>
+																handleSlotChange(day, index, e.target.value)
+															}
+															className="w-full p-2 border rounded"
+														/>
+														<button
+															type="button"
+															onClick={() => removeSlot(day, index)}
+															className="ml-2 text-red-500"
+														>
+															<Trash2 className="w-4 h-4" />
+														</button>
+													</div>
+												)
+											)}
+										</div>
+										<button
+											type="button"
+											onClick={() => addSlot(day)}
+											className="mt-2 text-blue-600 font-semibold"
+										>
+											+ Add Slot
+										</button>
+									</div>
+								))}
+							</div>
+						</div>
 					</div>
 					<div className="flex justify-end space-x-4 mt-8">
 						<button
@@ -231,95 +276,6 @@ const HospitalForm = ({ hospital, onSave, onCancel }) => {
 							className="bg-blue-600 text-white px-6 py-2 rounded font-semibold hover:bg-blue-700"
 						>
 							Save
-						</button>
-					</div>
-				</form>
-			</div>
-		</div>
-	)
-}
-
-const ScheduleForm = ({ hospital, onSave, onCancel }) => {
-	const [schedule, setSchedule] = useState(hospital.doctorSchedule || {})
-
-	const handleSlotChange = (day, index, value) => {
-		const newSchedule = { ...schedule }
-		if (!newSchedule[day]) newSchedule[day] = { slots: [] }
-		newSchedule[day].slots[index] = value
-		setSchedule(newSchedule)
-	}
-
-	const addSlot = (day) => {
-		const newSchedule = { ...schedule }
-		if (!newSchedule[day]) newSchedule[day] = { slots: [] }
-		newSchedule[day].slots.push("")
-		setSchedule(newSchedule)
-	}
-
-	const removeSlot = (day, index) => {
-		const newSchedule = { ...schedule }
-		newSchedule[day].slots.splice(index, 1)
-		setSchedule(newSchedule)
-	}
-
-	const handleSubmit = (e) => {
-		e.preventDefault()
-		onSave({ ...hospital, doctorSchedule: schedule })
-	}
-
-	const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
-
-	return (
-		<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-			<div className="bg-white rounded-lg p-8 max-w-3xl w-full overflow-y-auto">
-				<h2 className="text-2xl font-bold mb-6">Manage Schedule for {hospital.name}</h2>
-				<form onSubmit={handleSubmit}>
-					<div className="space-y-4">
-						{days.map((day) => (
-							<div key={day} className="border-b pb-4">
-								<h4 className="capitalize font-semibold">{day}</h4>
-								<div className="grid grid-cols-2 gap-2 mt-2">
-									{(schedule[day]?.slots || []).map((slot, index) => (
-										<div key={index} className="flex items-center">
-											<input
-												type="time"
-												value={slot}
-												onChange={(e) => handleSlotChange(day, index, e.target.value)}
-												className="w-full p-2 border rounded"
-											/>
-											<button
-												type="button"
-												onClick={() => removeSlot(day, index)}
-												className="ml-2 text-red-500"
-											>
-												<Trash2 className="w-4 h-4" />
-											</button>
-										</div>
-									))}
-								</div>
-								<button
-									type="button"
-									onClick={() => addSlot(day)}
-									className="mt-2 text-blue-600 font-semibold"
-								>
-									+ Add Slot
-								</button>
-							</div>
-						))}
-					</div>
-					<div className="flex justify-end space-x-4 mt-6">
-						<button
-							type="button"
-							onClick={onCancel}
-							className="bg-gray-300 px-6 py-2 rounded"
-						>
-							Cancel
-						</button>
-						<button
-							type="submit"
-							className="bg-blue-600 text-white px-6 py-2 rounded"
-						>
-							Save Schedule
 						</button>
 					</div>
 				</form>
