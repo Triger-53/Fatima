@@ -34,11 +34,14 @@ const AppointmentSlotManager = () => {
 	const [successMessage, setSuccessMessage] = useState("")
 	const [errorMessage, setErrorMessage] = useState("")
 
+	const [sessionQuota, setSessionQuota] = useState("")
+
 	// Initialize and fetch data
 	useEffect(() => {
 		const initialize = async () => {
 			await slotManager.initialized
 			setBookingRange(slotManager.bookingRange)
+			setSessionQuota(slotManager.sessionQuota || "")
 			setSlotConfig({
 				online: slotManager.onlineSlots,
 				offline: slotManager.medicalCenters,
@@ -123,9 +126,29 @@ const AppointmentSlotManager = () => {
 		setBookingRange(newRange)
 		const result = await slotManager.setBookingRange(newRange)
 		if (result.success) {
-			setSuccessMessage("Booking range updated successfully.")
+			setSuccessMessage(
+				`Booking range updated successfully at ${new Date().toLocaleTimeString()}.`
+			)
 		} else {
 			setErrorMessage(`Failed to update booking range: ${result.error}`)
+		}
+		setTimeout(() => {
+			setSuccessMessage("")
+			setErrorMessage("")
+		}, 3000)
+	}
+
+	// Update session quota
+	const handleSessionQuotaChange = async () => {
+		setSuccessMessage("")
+		setErrorMessage("")
+		const result = await slotManager.setSessionQuota(sessionQuota)
+		if (result.success) {
+			setSuccessMessage(
+				`Session quota updated successfully at ${new Date().toLocaleTimeString()}.`
+			)
+		} else {
+			setErrorMessage(`Failed to update session quota: ${result.error}`)
 		}
 		setTimeout(() => {
 			setSuccessMessage("")
@@ -269,6 +292,38 @@ const AppointmentSlotManager = () => {
 						Currently showing {bookingRange} days from today
 					</span>
 				</div>
+			</div>
+
+			{/* Session Quota Control */}
+			<div className="bg-white rounded-lg shadow-md p-6 mb-6">
+				<div className="flex items-center justify-between mb-4">
+					<h2 className="text-xl font-semibold flex items-center">
+						<Clock className="w-5 h-5 mr-2" />
+						Session Quota Configuration
+					</h2>
+				</div>
+				<div className="flex items-center space-x-4">
+					<label className="text-sm font-medium text-gray-700">
+						Session Quota:
+					</label>
+					<input
+						type="number"
+						value={sessionQuota}
+						onChange={(e) => setSessionQuota(parseInt(e.target.value))}
+						className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+					/>
+					<button
+						onClick={handleSessionQuotaChange}
+						className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center">
+						<Save className="w-4 h-4 mr-2" />
+						Save
+					</button>
+				</div>
+				{successMessage && (
+					<div className="mt-4 text-sm text-green-600">
+						{successMessage}
+					</div>
+				)}
 			</div>
 
 			{/* Availability Summary */}

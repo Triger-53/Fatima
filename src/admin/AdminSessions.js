@@ -259,17 +259,6 @@ const AdminSessions = () => {
                         ))}
                     </div>
                 </div>
-                <div className="mb-4">
-                    <label className="flex items-center">
-                        <input
-                            type="checkbox"
-                            checked={forceBooking}
-                            onChange={(e) => setForceBooking(e.target.checked)}
-                            className="form-checkbox"
-                        />
-                        <span className="ml-2 text-gray-700">Force Booking (override existing appointments)</span>
-                    </label>
-                </div>
                 <button
                     type="submit"
                     disabled={loading}
