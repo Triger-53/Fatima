@@ -11,6 +11,7 @@ const AdminHospitals = () => {
 	const [hospitals, setHospitals] = useState([])
 	const [loading, setLoading] = useState(true)
 	const [editingHospital, setEditingHospital] = useState(null)
+	const [editingSchedule, setEditingSchedule] = useState(null)
 	const [showForm, setShowForm] = useState(false)
 	const [error, setError] = useState(null)
 
@@ -35,15 +36,14 @@ const AdminHospitals = () => {
 	const handleSave = async (hospital) => {
 		try {
 			if (hospital.id) {
-				// Update
 				await updateHospitalById(hospital.id, hospital)
 			} else {
-				// Create
 				const { id, ...newHospitalData } = hospital
 				await createHospital(newHospitalData)
 			}
 			setShowForm(false)
 			setEditingHospital(null)
+			setEditingSchedule(null)
 			fetchHospitals()
 		} catch (error) {
 			console.error("Error saving hospital:", error)
@@ -58,9 +58,7 @@ const AdminHospitals = () => {
 				fetchHospitals()
 			} catch (error) {
 				console.error("Error deleting hospital:", error)
-				setError(
-					"Failed to delete hospital. Please check the console for details."
-				)
+				setError("Failed to delete hospital. Please check the console for details.")
 			}
 		}
 	}
@@ -74,9 +72,7 @@ const AdminHospitals = () => {
 			<h1 className="text-3xl font-bold mb-6">Hospital Management</h1>
 
 			{error && (
-				<div
-					className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
-					role="alert">
+				<div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
 					<strong className="font-bold">Error:</strong>
 					<span className="block sm:inline"> {error}</span>
 				</div>
@@ -89,7 +85,8 @@ const AdminHospitals = () => {
 							setEditingHospital(null)
 							setShowForm(true)
 						}}
-						className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center hover:bg-blue-700 transition-colors">
+						className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center hover:bg-blue-700 transition-colors"
+					>
 						<Plus className="w-4 h-4 mr-2" />
 						Add Hospital
 					</button>
@@ -98,25 +95,15 @@ const AdminHospitals = () => {
 					<table className="w-full">
 						<thead>
 							<tr className="border-b">
-								<th className="text-left p-3 font-semibold text-gray-600">
-									Name
-								</th>
-								<th className="text-left p-3 font-semibold text-gray-600">
-									Address
-								</th>
-								<th className="text-left p-3 font-semibold text-gray-600">
-									Phone
-								</th>
-								<th className="text-left p-3 font-semibold text-gray-600">
-									Actions
-								</th>
+								<th className="text-left p-3 font-semibold text-gray-600">Name</th>
+								<th className="text-left p-3 font-semibold text-gray-600">Address</th>
+								<th className="text-left p-3 font-semibold text-gray-600">Phone</th>
+								<th className="text-left p-3 font-semibold text-gray-600">Actions</th>
 							</tr>
 						</thead>
 						<tbody>
 							{hospitals.map((hospital) => (
-								<tr
-									key={hospital.id}
-									className="border-b hover:bg-gray-50 transition-colors">
+								<tr key={hospital.id} className="border-b hover:bg-gray-50 transition-colors">
 									<td className="p-3">{hospital.name}</td>
 									<td className="p-3">{hospital.address}</td>
 									<td className="p-3">{hospital.phone}</td>
@@ -127,13 +114,22 @@ const AdminHospitals = () => {
 												setShowForm(true)
 											}}
 											className="text-blue-600 hover:text-blue-800 transition-colors"
-											aria-label={`Edit ${hospital.name}`}>
+											aria-label={`Edit ${hospital.name}`}
+										>
 											<Edit className="w-5 h-5" />
+										</button>
+										<button
+											onClick={() => setEditingSchedule(hospital)}
+											className="text-gray-600 hover:text-gray-800 transition-colors"
+											aria-label={`Manage schedule for ${hospital.name}`}
+										>
+											<Clock className="w-5 h-5" />
 										</button>
 										<button
 											onClick={() => handleDelete(hospital.id)}
 											className="text-red-600 hover:text-red-800 transition-colors"
-											aria-label={`Delete ${hospital.name}`}>
+											aria-label={`Delete ${hospital.name}`}
+										>
 											<Trash2 className="w-5 h-5" />
 										</button>
 									</td>
@@ -154,6 +150,14 @@ const AdminHospitals = () => {
 					}}
 				/>
 			)}
+
+			{editingSchedule && (
+				<ScheduleForm
+					hospital={editingSchedule}
+					onSave={handleSave}
+					onCancel={() => setEditingSchedule(null)}
+				/>
+			)}
 		</div>
 	)
 }
@@ -168,30 +172,6 @@ const HospitalForm = ({ hospital, onSave, onCancel }) => {
 		setFormData((prev) => ({ ...prev, [name]: value }))
 	}
 
-	const handleSlotChange = (day, slotIndex, value) => {
-		const newSchedule = { ...formData.doctorSchedule }
-		if (!newSchedule[day]) {
-			newSchedule[day] = { slots: [] }
-		}
-		newSchedule[day].slots[slotIndex] = value
-		setFormData((prev) => ({ ...prev, doctorSchedule: newSchedule }))
-	}
-
-	const addSlot = (day) => {
-		const newSchedule = { ...formData.doctorSchedule }
-		if (!newSchedule[day]) {
-			newSchedule[day] = { slots: [] }
-		}
-		newSchedule[day].slots.push("")
-		setFormData((prev) => ({ ...prev, doctorSchedule: newSchedule }))
-	}
-
-	const removeSlot = (day, slotIndex) => {
-		const newSchedule = { ...formData.doctorSchedule }
-		newSchedule[day].slots.splice(slotIndex, 1)
-		setFormData((prev) => ({ ...prev, doctorSchedule: newSchedule }))
-	}
-
 	const handleSubmit = (e) => {
 		e.preventDefault()
 		onSave(formData)
@@ -199,108 +179,57 @@ const HospitalForm = ({ hospital, onSave, onCancel }) => {
 
 	return (
 		<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-			<div className="bg-white rounded-lg p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+			<div className="bg-white rounded-lg p-8 max-w-xl w-full">
 				<h2 className="text-3xl font-bold mb-6">
 					{hospital ? "Edit Hospital" : "Add Hospital"}
 				</h2>
 				<form onSubmit={handleSubmit}>
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+					<div className="space-y-4">
 						<div>
-							<h3 className="text-xl font-bold mb-4">Hospital Details</h3>
-							<div className="space-y-4">
-								<div>
-									<label className="block mb-2 font-semibold">Name</label>
-									<input
-										type="text"
-										name="name"
-										value={formData.name}
-										onChange={handleChange}
-										className="w-full p-2 border rounded"
-										required
-									/>
-								</div>
-								<div>
-									<label className="block mb-2 font-semibold">Address</label>
-									<input
-										type="text"
-										name="address"
-										value={formData.address}
-										onChange={handleChange}
-										className="w-full p-2 border rounded"
-										required
-									/>
-								</div>
-								<div>
-									<label className="block mb-2 font-semibold">Phone</label>
-									<input
-										type="text"
-										name="phone"
-										value={formData.phone}
-										onChange={handleChange}
-										className="w-full p-2 border rounded"
-									/>
-								</div>
-							</div>
+							<label className="block mb-2 font-semibold">Name</label>
+							<input
+								type="text"
+								name="name"
+								value={formData.name}
+								onChange={handleChange}
+								className="w-full p-2 border rounded"
+								required
+							/>
 						</div>
-
-						<div className="border-t md:border-t-0 md:border-l pl-6 pt-6 md:pt-0">
-							<h3 className="text-xl font-bold mb-4">Manage Schedule</h3>
-							<div className="space-y-4">
-								{[
-									"monday",
-									"tuesday",
-									"wednesday",
-									"thursday",
-									"friday",
-									"saturday",
-									"sunday",
-								].map((day) => (
-									<div key={day} className="border-b pb-4">
-										<h4 className="capitalize font-semibold">{day}</h4>
-										<div className="max-h-32 overflow-y-auto grid grid-cols-2 md:grid-cols-3 gap-2 mt-2 p-2 bg-gray-50 rounded">
-											{(formData.doctorSchedule[day]?.slots || []).map(
-												(slot, index) => (
-													<div key={index} className="flex items-center">
-														<input
-															type="time"
-															value={slot}
-															onChange={(e) =>
-																handleSlotChange(day, index, e.target.value)
-															}
-															className="w-full p-2 border rounded"
-														/>
-														<button
-															type="button"
-															onClick={() => removeSlot(day, index)}
-															className="ml-2 text-red-500 hover:text-red-700">
-															<Trash2 className="w-4 h-4" />
-														</button>
-													</div>
-												)
-											)}
-										</div>
-										<button
-											type="button"
-											onClick={() => addSlot(day)}
-											className="mt-2 text-blue-600 hover:text-blue-800 font-semibold">
-											+ Add Slot
-										</button>
-									</div>
-								))}
-							</div>
+						<div>
+							<label className="block mb-2 font-semibold">Address</label>
+							<input
+								type="text"
+								name="address"
+								value={formData.address}
+								onChange={handleChange}
+								className="w-full p-2 border rounded"
+								required
+							/>
+						</div>
+						<div>
+							<label className="block mb-2 font-semibold">Phone</label>
+							<input
+								type="text"
+								name="phone"
+								value={formData.phone}
+								onChange={handleChange}
+								className="w-full p-2 border rounded"
+							/>
 						</div>
 					</div>
-
 					<div className="flex justify-end space-x-4 mt-8">
 						<button
 							type="button"
 							onClick={onCancel}
-							className="bg-gray-300 px-6 py-2 rounded font-semibold hover:bg-gray-400">
+							className="bg-gray-300 px-6 py-2 rounded font-semibold hover:bg-gray-400"
+						>
 							Cancel
 						</button>
 						<button
 							type="submit"
-							className="bg-blue-600 text-white px-6 py-2 rounded font-semibold hover:bg-blue-700">
+							className="bg-blue-600 text-white px-6 py-2 rounded font-semibold hover:bg-blue-700"
+						>
 							Save
 						</button>
 					</div>
@@ -309,3 +238,94 @@ const HospitalForm = ({ hospital, onSave, onCancel }) => {
 		</div>
 	)
 }
+
+const ScheduleForm = ({ hospital, onSave, onCancel }) => {
+	const [schedule, setSchedule] = useState(hospital.doctorSchedule || {})
+
+	const handleSlotChange = (day, index, value) => {
+		const newSchedule = { ...schedule }
+		if (!newSchedule[day]) newSchedule[day] = { slots: [] }
+		newSchedule[day].slots[index] = value
+		setSchedule(newSchedule)
+	}
+
+	const addSlot = (day) => {
+		const newSchedule = { ...schedule }
+		if (!newSchedule[day]) newSchedule[day] = { slots: [] }
+		newSchedule[day].slots.push("")
+		setSchedule(newSchedule)
+	}
+
+	const removeSlot = (day, index) => {
+		const newSchedule = { ...schedule }
+		newSchedule[day].slots.splice(index, 1)
+		setSchedule(newSchedule)
+	}
+
+	const handleSubmit = (e) => {
+		e.preventDefault()
+		onSave({ ...hospital, doctorSchedule: schedule })
+	}
+
+	const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+
+	return (
+		<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+			<div className="bg-white rounded-lg p-8 max-w-3xl w-full overflow-y-auto">
+				<h2 className="text-2xl font-bold mb-6">Manage Schedule for {hospital.name}</h2>
+				<form onSubmit={handleSubmit}>
+					<div className="space-y-4">
+						{days.map((day) => (
+							<div key={day} className="border-b pb-4">
+								<h4 className="capitalize font-semibold">{day}</h4>
+								<div className="grid grid-cols-2 gap-2 mt-2">
+									{(schedule[day]?.slots || []).map((slot, index) => (
+										<div key={index} className="flex items-center">
+											<input
+												type="time"
+												value={slot}
+												onChange={(e) => handleSlotChange(day, index, e.target.value)}
+												className="w-full p-2 border rounded"
+											/>
+											<button
+												type="button"
+												onClick={() => removeSlot(day, index)}
+												className="ml-2 text-red-500"
+											>
+												<Trash2 className="w-4 h-4" />
+											</button>
+										</div>
+									))}
+								</div>
+								<button
+									type="button"
+									onClick={() => addSlot(day)}
+									className="mt-2 text-blue-600 font-semibold"
+								>
+									+ Add Slot
+								</button>
+							</div>
+						))}
+					</div>
+					<div className="flex justify-end space-x-4 mt-6">
+						<button
+							type="button"
+							onClick={onCancel}
+							className="bg-gray-300 px-6 py-2 rounded"
+						>
+							Cancel
+						</button>
+						<button
+							type="submit"
+							className="bg-blue-600 text-white px-6 py-2 rounded"
+						>
+							Save Schedule
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	)
+}
+
+export default AdminHospitals

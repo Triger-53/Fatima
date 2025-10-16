@@ -14,7 +14,6 @@ import {
 	FaNotesMedical,
 	FaCheckCircle,
 	FaChalkboardTeacher,
-	FaHourglassHalf,
 	FaPrescriptionBottle,
 } from "react-icons/fa"
 import { Link } from "react-router-dom"
@@ -43,7 +42,7 @@ export default function Dashboard() {
 				.from("Appointment")
 				.select("*")
 				.eq("user_id", user.id)
-				.order("created_at", { ascending: false });
+				.order("preferredDate", { ascending: false });
 
 			if (apptError) throw apptError;
 
@@ -135,6 +134,14 @@ export default function Dashboard() {
 
 	const fullName = profile ? [profile.firstName, profile.lastName].filter(Boolean).join(" ") : user.email.split('@')[0]
 
+	const now = new Date();
+
+	const upcomingAppointments = appointments.filter(appt => new Date(appt.preferredDate) >= now);
+	const pastAppointments = appointments.filter(appt => new Date(appt.preferredDate) < now);
+
+	const upcomingSessions = sessions.filter(session => new Date(session.date) >= now);
+	const pastSessions = sessions.filter(session => new Date(session.date) < now);
+
 	return (
 		<>
 			<Notification msg={notification} />
@@ -174,7 +181,6 @@ export default function Dashboard() {
 								<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 									<InfoCard icon={<FaCalendarAlt />} label="Upcoming Appointments" value={dashboardData?.appointments || 'None'} />
 									<InfoCard icon={<FaChalkboardTeacher />} label="Therapy Sessions" value={dashboardData?.sessions || 'None'} />
-									<InfoCard icon={<FaHourglassHalf />} label="Next Follow-Up" value={dashboardData?.followUp || 'None'} />
 								</div>
 							</Section>
 
@@ -186,11 +192,19 @@ export default function Dashboard() {
 							</Section>
 
 							<Section title="Upcoming Appointments" icon={<FaCalendarAlt className="text-purple-600" />}>
-								<AppointmentList appointments={appointments} />
+								<AppointmentList appointments={upcomingAppointments} />
+							</Section>
+
+							<Section title="Upcoming Sessions" icon={<FaChalkboardTeacher className="text-indigo-600" />}>
+								<SessionList sessions={upcomingSessions} />
+							</Section>
+
+							<Section title="Past Appointments" icon={<FaCalendarAlt className="text-purple-600" />}>
+								<AppointmentList appointments={pastAppointments} />
 							</Section>
 
 							<Section title="Session History" icon={<FaChalkboardTeacher className="text-indigo-600" />}>
-								<SessionList sessions={sessions} />
+								<SessionList sessions={pastSessions} />
 							</Section>
 						</div>
 					</motion.div>

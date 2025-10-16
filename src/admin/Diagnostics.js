@@ -7,7 +7,6 @@ export default function Diagnostics() {
 	const [selectedUser, setSelectedUser] = useState("")
 	const [message, setMessage] = useState("")
 	const [prescription, setPrescription] = useState("")
-	const [followUp, setFollowUp] = useState("")
 	const [loading, setLoading] = useState(false)
 	const [success, setSuccess] = useState(null)
 	const [error, setError] = useState(null)
@@ -38,7 +37,6 @@ export default function Diagnostics() {
 			.update({
 				message: message || null,
 				prescribe: prescription || null,
-				followUp: followUp || null,
 			})
 			.eq("user_id", selectedUser)
 
@@ -47,7 +45,6 @@ export default function Diagnostics() {
 			setSuccess("User dashboard updated successfully!")
 			setMessage("")
 			setPrescription("")
-			setFollowUp("")
 		}
 
 		setLoading(false)
@@ -104,20 +101,6 @@ export default function Diagnostics() {
 						value={prescription}
 						onChange={(e) => setPrescription(e.target.value)}
 						placeholder="Type prescription details..."
-					/>
-				</div>
-
-				{/* Follow-Up */}
-				<div>
-					<label className="block mb-2 font-medium text-gray-700">
-						Follow-Up
-					</label>
-					<input
-						type="text"
-						className="w-full border border-gray-300 rounded-lg px-3 py-2"
-						value={followUp}
-						onChange={(e) => setFollowUp(e.target.value)}
-						placeholder="Next check-up date or session..."
 					/>
 				</div>
 

@@ -55,6 +55,7 @@
   },
   "devDependencies": {
     "concurrently": "^9.2.1",
-    "playwright": "^1.55.1"
+    "playwright": "^1.55.1",
+    "supabase": "^2.51.0"
   }
 }
