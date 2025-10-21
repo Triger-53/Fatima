@@ -16,6 +16,7 @@ export async function createHospital(hospitalData) {
 	if (!hospitalData) throw new Error("Hospital data is required")
 
 	const newHospital = {
+		id: Date.now(),
 		...hospitalData,
 		doctorSchedule: hospitalData.doctorSchedule || {
 			monday: null,
