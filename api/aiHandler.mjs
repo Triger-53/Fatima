@@ -53,16 +53,34 @@ const detectIntent = (message) => {
         needsBooking: msg.includes('book') || msg.includes('appointment') || msg.includes('schedule'),
         needsDashboard: msg.includes('dashboard') || msg.includes('account') || msg.includes('profile'),
         needsHours: msg.includes('hour') || msg.includes('open') || msg.includes('time'),
+        needsAppointments: msg.includes('my appointment') || msg.includes('do i have') || msg.includes('my schedule'),
     };
 };
 
 // Build context (RAG)
-const buildContext = async (intent) => {
+const buildContext = async (intent, userEmail = null) => {
     const supabase = getSupabase();
     if (!supabase) return 'Service information is currently being updated.';
 
     let contextParts = [];
     try {
+        // Personal appointments check
+        if (intent.needsAppointments && userEmail) {
+            const { data } = await supabase
+                .from('Appointment')
+                .select('preferredDate,preferredTime,appointmentType')
+                .eq('email', userEmail)
+                .gte('preferredDate', new Date().toISOString().split('T')[0])
+                .order('preferredDate', { ascending: true })
+                .limit(3);
+
+            if (data?.length) {
+                contextParts.push(`USER APPOINTMENTS: You have appointments on ${data.map(a => `${a.preferredDate} at ${a.preferredTime} (${a.appointmentType})`).join(', ')}.`);
+            } else {
+                contextParts.push(`USER APPOINTMENTS: No upcoming appointments found for ${userEmail}.`);
+            }
+        }
+
         if (intent.needsServices) {
             const { data } = await supabase.from('services').select('title,description').limit(5);
             if (data?.length) contextParts.push(`SERVICES: ${data.map(s => s.title).join(', ')}`);
@@ -88,11 +106,11 @@ export const handleChat = async (req, res) => {
     }
 
     try {
-        const { message, history } = req.body;
+        const { message, history, userEmail } = req.body;
         if (!message) return res.status(400).json({ error: "Message required" });
 
         const intent = detectIntent(message);
-        const relevantContext = await buildContext(intent);
+        const relevantContext = await buildContext(intent, userEmail);
 
         // Filter history to ensure it's valid for Gemini (must alternate user/model)
         const chatHistory = (history || []).filter(h => h.role === 'user' || h.role === 'model');

@@ -2,8 +2,10 @@ import React, { useState, useRef, useEffect } from "react"
 import { useLocation } from "react-router-dom"
 import { MessageCircle, X, Send } from "lucide-react"
 import StyledMarkdown from "./StyledMarkdown"
+import { useAuth } from "../auth/AuthProvider"
 
 const ChatWidget = () => {
+    const { user } = useAuth()
     const location = useLocation()
     const isHomePage = location.pathname === "/"
     const [isOpen, setIsOpen] = useState(false)
@@ -47,6 +49,7 @@ const ChatWidget = () => {
                 body: JSON.stringify({
                     message: userMessage.text,
                     history: apiHistory,
+                    userEmail: user?.email,
                 }),
             })
 

@@ -122,11 +122,11 @@ const Home = () => {
 								animate={{ opacity: 1, x: 0 }}
 								transition={{ duration: 0.8 }}>
 								{/* Logo icon accent */}
-								<div className="flex items-center space-x-3 mb-6">
-									<div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary-600 to-primary-700 p-3 shadow-lg shadow-primary-500/30">
-										<img src="/logo.png" alt="" className="w-full h-full object-contain filter brightness-0 invert" />
+								<div className="flex items-center space-x-4 mb-8">
+									<div className="w-16 h-16 rounded-full bg-white p-3 shadow-xl shadow-primary-500/10 border border-primary-50">
+										<img src="/logo.png" alt="" className="w-full h-full object-contain" />
 									</div>
-									<div className="h-1 w-20 bg-gradient-to-r from-primary-600 to-transparent rounded-full"></div>
+									<div className="h-px w-24 bg-gradient-to-r from-primary-400 to-transparent"></div>
 								</div>
 
 								<h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-gray-900 mb-6 leading-tight">

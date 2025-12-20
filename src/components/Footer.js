@@ -16,10 +16,10 @@ const Footer = () => {
 					<div>
 						<Link to="/" className="flex items-center mb-8 group">
 							<div className="relative">
-								<div className="w-14 h-14 bg-gradient-to-br from-white/10 to-white/5 p-3 rounded-2xl border border-white/10 shadow-2xl transition-all duration-300 group-hover:bg-white/15 group-hover:border-white/20">
-									<img src="/logo.png" alt="FK" className="w-full h-full object-contain filter brightness-110" />
+								<div className="w-14 h-14 bg-white p-2.5 rounded-full shadow-lg transition-all duration-300 group-hover:scale-110">
+									<img src="/logo.png" alt="FK" className="w-full h-full object-contain" />
 								</div>
-								<div className="absolute -inset-1 bg-primary-500/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+								<div className="absolute -inset-2 bg-primary-500/10 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
 							</div>
 							<div className="ml-5">
 								<h2 className="text-2xl font-black tracking-tighter leading-none">
