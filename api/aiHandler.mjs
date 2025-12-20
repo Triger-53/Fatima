@@ -1,145 +1,121 @@
+import dotenv from "dotenv"
+dotenv.config()
 import { GoogleGenerativeAI } from "@google/generative-ai"
 import { createClient } from "@supabase/supabase-js"
 
-const genAI = process.env.GEMINI_API_KEY
-    ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
-    : null;
+// Lazy initialization to ensure env vars are loaded
+let genAIInstance = null;
+let supabaseInstance = null;
 
-const {
-    REACT_APP_SUPABASE_URL,
-    REACT_APP_SUPABASE_ANON_KEY
-} = process.env
+const getGenAI = () => {
+    if (genAIInstance) return genAIInstance;
+    if (process.env.GEMINI_API_KEY) {
+        genAIInstance = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        return genAIInstance;
+    }
+    return null;
+};
 
-const supabase = (REACT_APP_SUPABASE_URL && REACT_APP_SUPABASE_ANON_KEY)
-    ? createClient(REACT_APP_SUPABASE_URL, REACT_APP_SUPABASE_ANON_KEY)
-    : null;
-
-if (!genAI) {
-    console.warn("⚠️ Gemini AI client not initialized. Missing GEMINI_API_KEY.");
-}
+const getSupabase = () => {
+    if (supabaseInstance) return supabaseInstance;
+    const { REACT_APP_SUPABASE_URL, REACT_APP_SUPABASE_ANON_KEY } = process.env;
+    if (REACT_APP_SUPABASE_URL && REACT_APP_SUPABASE_ANON_KEY) {
+        supabaseInstance = createClient(REACT_APP_SUPABASE_URL, REACT_APP_SUPABASE_ANON_KEY);
+        return supabaseInstance;
+    }
+    return null;
+};
 
 const getModel = () => {
-    if (!genAI) return null;
-    return genAI.getGenerativeModel({
+    const ai = getGenAI();
+    if (!ai) return null;
+    return ai.getGenerativeModel({
         model: "gemini-1.5-flash",
         generationConfig: {
             temperature: 0.7,
             topP: 0.8,
             topK: 40,
-            maxOutputTokens: 500, // Limit response length for efficiency
+            maxOutputTokens: 500,
         }
     });
 };
 
-const model = getModel();
-
 // Base system prompt (lightweight)
-const BASE_PROMPT = `You are Dr. Fatima Kasamnath's AI assistant, a Speech-Language Pathologist. Be warm, concise, and professional. Use emojis (🩺📅📍), markdown formatting, and GitHub alerts. Never diagnose. Direct users to "Book Appointment" button for bookings.`;
+const BASE_PROMPT = `You are Dr. Fatima Kasamnath's AI assistant, a Speech-Language Pathologist. Be warm, concise, and professional. Use emojis (🩺📅📍). Never diagnose. Direct users to "Book Appointment" button.`;
 
-// Detect user intent to fetch only relevant data
+// Detect user intent (RAG)
 const detectIntent = (message) => {
     const msg = message.toLowerCase();
     return {
-        needsServices: msg.includes('service') || msg.includes('therapy') || msg.includes('treatment') || msg.includes('help with'),
-        needsLocations: msg.includes('location') || msg.includes('address') || msg.includes('where') || msg.includes('center') || msg.includes('hospital'),
-        needsReviews: msg.includes('review') || msg.includes('testimonial') || msg.includes('feedback') || msg.includes('rating') || msg.includes('experience'),
-        needsBooking: msg.includes('book') || msg.includes('appointment') || msg.includes('schedule') || msg.includes('how to'),
-        needsDashboard: msg.includes('dashboard') || msg.includes('account') || msg.includes('profile') || msg.includes('my appointment'),
-        needsHours: msg.includes('hour') || msg.includes('open') || msg.includes('time') || msg.includes('available'),
+        needsServices: msg.includes('service') || msg.includes('therapy') || msg.includes('treatment'),
+        needsLocations: msg.includes('location') || msg.includes('address') || msg.includes('where'),
+        needsReviews: msg.includes('review') || msg.includes('feedback') || msg.includes('rating'),
+        needsBooking: msg.includes('book') || msg.includes('appointment') || msg.includes('schedule'),
+        needsDashboard: msg.includes('dashboard') || msg.includes('account') || msg.includes('profile'),
+        needsHours: msg.includes('hour') || msg.includes('open') || msg.includes('time'),
     };
 };
 
-// Build context dynamically based on intent (RAG approach)
+// Build context (RAG)
 const buildContext = async (intent) => {
-    if (!supabase) return '';
+    const supabase = getSupabase();
+    if (!supabase) return 'Service information is currently being updated.';
 
     let contextParts = [];
-
     try {
-        // Fetch Services
         if (intent.needsServices) {
-            const { data, error } = await supabase.from('services').select('title,description,duration').limit(5);
-            if (!error && data?.length) {
-                contextParts.push(`### 🩺 Services\n${data.map(s => `* **${s.title}**: ${s.description.substring(0, 100)}... (${s.duration})`).join('\n')}`);
-            }
+            const { data } = await supabase.from('services').select('title,description').limit(5);
+            if (data?.length) contextParts.push(`SERVICES: ${data.map(s => s.title).join(', ')}`);
         }
-
-        // Fetch Locations
         if (intent.needsLocations) {
-            const { data, error } = await supabase.from('hospitals').select('name,address');
-            if (!error && data?.length) {
-                contextParts.push(`### 📍 Locations\n${data.map(h => `* **${h.name}**: ${h.address}`).join('\n')}`);
-            }
+            const { data } = await supabase.from('hospitals').select('name,address').limit(5);
+            if (data?.length) contextParts.push(`LOCATIONS: ${data.map(h => `${h.name} at ${h.address}`).join('; ')}`);
         }
-
-        // Fetch Reviews
-        if (intent.needsReviews) {
-            const { data, error } = await supabase.from('review').select('name,review').limit(3);
-            if (!error && data?.length) {
-                contextParts.push(`### ⭐ Patient Reviews\n${data.map(r => `* "${r.review.substring(0, 80)}..." - ${r.name}`).join('\n')}`);
-            }
-        }
-
-        // Static context for processes
-        if (intent.needsBooking) {
-            contextParts.push(`### 📅 How to Book\n1. Sign In/Sign Up\n2. Enter Personal Details\n3. Choose Service & Slot (Date/Time)\n4. Add Medical Info\n5. Pay via Razorpay`);
-        }
-
-        if (intent.needsDashboard) {
-            contextParts.push(`### 🖥️ Dashboard Features\nView prescriptions, doctor notes, medical history, manage appointments, and update your profile.`);
-        }
-
-        // General info fallback
         if (intent.needsHours || contextParts.length === 0) {
-            const { data } = await supabase.from('settings').select('booking_range').limit(1);
-            const range = data?.[0]?.booking_range || 30;
-            contextParts.push(`### ⚙️ Practice Info\n* **Hours**: Mon-Fri 8am-8pm, Sat 9am-2pm\n* **Booking**: Up to ${range} days in advance\n* **Contact**: info@fatimakasamnath.com`);
+            contextParts.push(`HOURS: Mon-Fri 8am-8pm, Sat 9am-2pm.`);
         }
-
     } catch (err) {
-        console.error("Context build error:", err);
+        console.error("RAG Error:", err);
     }
-
-    return contextParts.join('\n\n');
+    return contextParts.join('\n');
 };
 
 export const handleChat = async (req, res) => {
+    const model = getModel();
     if (!model) {
-        return res.status(500).json({ error: "Gemini AI not initialized. Check GEMINI_API_KEY." });
+        console.error("❌ Gemini API Key missing or invalid");
+        return res.status(500).json({ response: "I'm sorry, my AI brain is currently offline. Please contact us directly at info@fatimakasamnath.com." });
     }
+
     try {
-        const { message, history } = req.body
+        const { message, history } = req.body;
+        if (!message) return res.status(400).json({ error: "Message required" });
 
-        if (!message) {
-            return res.status(400).json({ error: "Message is required" })
-        }
-
-        const chatHistory = history || [];
         const intent = detectIntent(message);
         const relevantContext = await buildContext(intent);
 
-        // Prepare the chat session
-        const chat = model.startChat({
-            history: chatHistory.length === 0 ? [] : chatHistory,
-        });
+        // Filter history to ensure it's valid for Gemini (must alternate user/model)
+        const chatHistory = (history || []).filter(h => h.role === 'user' || h.role === 'model');
 
-        let finalMessage = message;
+        // Start chat
+        const chat = model.startChat({ history: chatHistory });
 
-        // If it's a new chat, inject base prompt and context
-        if (chatHistory.length === 0) {
-            finalMessage = `SYSTEM INSTRUCTION:\n${BASE_PROMPT}\n\nINITIAL CONTEXT:\n${relevantContext}\n\nUSER MESSAGE:\n${message}`;
-        } else if (relevantContext) {
-            // Provide refreshed context for existing chat
-            finalMessage = `RELEVANT CONTEXT:\n${relevantContext}\n\nUSER MESSAGE:\n${message}`;
-        }
+        // Build the prompt with instructions
+        const finalPrompt = chatHistory.length === 0
+            ? `${BASE_PROMPT}\n\nCONTEXT:\n${relevantContext}\n\nUSER: ${message}`
+            : `(Update Context: ${relevantContext})\nUSER: ${message}`;
 
-        const result = await chat.sendMessage(finalMessage);
+        const result = await chat.sendMessage(finalPrompt);
         const response = await result.response;
         const text = response.text();
 
-        res.json({ response: text });
+        return res.json({ response: text });
     } catch (error) {
-        console.error("AI Chat Error Details:", error);
-        res.status(500).json({ error: "I'm having trouble processing that right now. Please try again." });
+        console.error("❌ AI Chat Error Details:", error);
+
+        // Final fallback to keep the UI from breaking
+        return res.json({
+            response: "I'm experiencing a small technical glitch, but I'd love to help! You can book an appointment using the button above, or see our hours: Mon-Fri 8am-8pm. What else can I tell you about Dr. Fatima's practice?"
+        });
     }
 }
