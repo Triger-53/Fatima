@@ -121,34 +121,38 @@ const Home = () => {
 								initial={{ opacity: 0, x: -50 }}
 								animate={{ opacity: 1, x: 0 }}
 								transition={{ duration: 0.8 }}>
-								{/* Exact Logo & Branding from Navbar (Scaled for Hero) */}
-								<div className="flex items-center space-x-6 mb-10">
+								{/* Branding Accent (Small & Exact like Navbar) */}
+								<div className="flex items-center space-x-4 mb-8">
 									<div className="relative">
 										<img
 											src="/logo.png"
 											alt="Dr. Fatima K."
-											className="h-20 w-20 md:h-28 md:w-28 object-contain rounded-full shadow-2xl shadow-primary-500/20 border border-white/50"
+											className="h-14 w-14 object-contain rounded-full shadow-xl shadow-primary-500/10 border border-white/50"
 										/>
 										<div className="absolute inset-0 rounded-full border border-white/20 pointer-events-none"></div>
 									</div>
 									<div className="flex flex-col">
-										<h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-none">
+										<h2 className="text-2xl font-black tracking-tighter leading-none">
 											<span className="bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-primary-700 to-primary-600">
 												Fatima
 											</span>
-											<span className="ml-2 text-primary-600">K.</span>
-										</h1>
-										<div className="flex items-center space-x-4 mt-4">
-											<span className="h-[2px] w-10 md:w-16 bg-primary-300/80"></span>
-											<span className="text-xs md:text-lg uppercase tracking-[0.4em] font-bold text-gray-500/80 leading-none">
+											<span className="ml-1 text-primary-600">K.</span>
+										</h2>
+										<div className="flex items-center space-x-2 mt-1">
+											<span className="h-[1px] w-6 bg-primary-300"></span>
+											<span className="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-500/80 leading-none">
 												Speech & Hearing
 											</span>
 										</div>
 									</div>
 								</div>
 
-								<p className="text-xl md:text-2xl text-gray-600 mb-10 leading-relaxed max-w-xl">
-									Experience exceptional <span className="font-semibold text-primary-700">speech & hearing therapy</span>.
+								<h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-gray-900 mb-6 leading-tight">
+									Your Health,{" "}
+									<span className="gradient-text block">Our Priority</span>
+								</h1>
+								<p className="text-xl md:text-2xl text-gray-600 mb-10 leading-relaxed">
+									Experience exceptional <span className="font-semibold text-primary-700">speech & hearing therapy</span> with Dr. Fatima Kassamanath.
 									Compassionate, professional, and dedicated to improving
 									communication skills for all ages.
 								</p>

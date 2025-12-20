@@ -14,20 +14,25 @@ const Footer = () => {
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
 					{/* Practice Info */}
 					<div>
-						<Link to="/" className="flex items-center mb-8 group">
+						<Link to="/" className="flex items-center space-x-3 group transition-transform duration-300 hover:scale-[1.02] mb-8">
 							<div className="relative">
-								<div className="w-14 h-14 bg-white p-2.5 rounded-full shadow-lg transition-all duration-300 group-hover:scale-110">
-									<img src="/logo.png" alt="FK" className="w-full h-full object-contain" />
-								</div>
-								<div className="absolute -inset-2 bg-primary-500/10 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+								<img
+									src="/logo.png"
+									alt="Dr. Fatima K."
+									className="h-12 w-12 object-contain rounded-full shadow-lg shadow-primary-500/20 group-hover:shadow-primary-600/30 transition-shadow duration-300"
+								/>
+								<div className="absolute inset-0 rounded-full border border-white/20 pointer-events-none"></div>
 							</div>
-							<div className="ml-5">
-								<h2 className="text-2xl font-black tracking-tighter leading-none">
-									Fatima <span className="text-primary-400">K.</span>
-								</h2>
-								<div className="flex items-center space-x-2 mt-1.5">
-									<span className="h-[1px] w-3 bg-primary-500/50"></span>
-									<span className="text-[10px] uppercase tracking-[0.3em] text-gray-400 font-bold">
+							<div className="flex flex-col">
+								<h1 className="text-2xl font-black tracking-tighter leading-none">
+									<span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-primary-300 to-primary-100">
+										Fatima
+									</span>
+									<span className="ml-1 text-primary-400">K.</span>
+								</h1>
+								<div className="flex items-center space-x-2 mt-1">
+									<span className="h-[1px] w-4 bg-primary-500/50"></span>
+									<span className="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-400 leading-none">
 										Speech & Hearing
 									</span>
 								</div>
