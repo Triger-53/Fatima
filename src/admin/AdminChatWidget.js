@@ -49,9 +49,24 @@ const AdminChatWidget = () => {
                 }),
             })
 
+            // Check if response is HTML (Vercel error page)
+            const contentType = response.headers.get("content-type")
+            if (contentType && contentType.includes("text/html")) {
+                console.error("❌ Server returned HTML instead of JSON - deployment error")
+                throw new Error("Server error: API returned HTML. Check Vercel logs.")
+            }
+
+            if (!response.ok) {
+                console.error(`❌ HTTP ${response.status}: ${response.statusText}`)
+                throw new Error(`Server error: ${response.status} ${response.statusText}`)
+            }
+
             const data = await response.json()
 
-            if (data.error) throw new Error(data.error)
+            if (data.error) {
+                console.error("❌ API Error:", data)
+                throw new Error(data.error)
+            }
 
             setMessages((prev) => [
                 ...prev,
@@ -59,11 +74,21 @@ const AdminChatWidget = () => {
             ])
         } catch (error) {
             console.error("Admin Chat error:", error)
+
+            // Provide specific error messages
+            let errorMessage = "Sorry, I encountered an error accessing the admin data.";
+            if (error.message.includes("HTML")) {
+                errorMessage += " The API is currently unavailable. Check deployment logs.";
+            } else if (error.message.includes("500")) {
+                errorMessage += " The server is experiencing issues. Please try again.";
+            }
+            errorMessage += " Please try again.";
+
             setMessages((prev) => [
                 ...prev,
                 {
                     role: "model",
-                    text: "Sorry, I encountered an error accessing the admin data. Please try again.",
+                    text: errorMessage,
                 },
             ])
         } finally {

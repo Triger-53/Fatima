@@ -53,9 +53,22 @@ const ChatWidget = () => {
                 }),
             })
 
+            // Check if response is HTML (Vercel error page)
+            const contentType = response.headers.get("content-type")
+            if (contentType && contentType.includes("text/html")) {
+                console.error("❌ Server returned HTML instead of JSON - likely a deployment error")
+                throw new Error("Server error: API returned HTML instead of JSON. Check deployment logs.")
+            }
+
+            if (!response.ok) {
+                console.error(`❌ HTTP ${response.status}: ${response.statusText}`)
+                throw new Error(`Server error: ${response.status} ${response.statusText}`)
+            }
+
             const data = await response.json()
 
             if (data.error) {
+                console.error("❌ API Error:", data)
                 throw new Error(data.error)
             }
 
@@ -65,11 +78,22 @@ const ChatWidget = () => {
             ])
         } catch (error) {
             console.error("Chat error:", error)
+
+            // Provide more specific error messages
+            let errorMessage = "I'm sorry, I'm having trouble connecting right now.";
+            if (error.message.includes("HTML instead of JSON")) {
+                errorMessage += " The server encountered an error. Please check the deployment logs or try again later.";
+            } else if (error.message.includes("500")) {
+                errorMessage += " The AI service is currently unavailable. Please try again in a moment.";
+            } else if (error.message.includes("NetworkError") || error.message.includes("Failed to fetch")) {
+                errorMessage += " Please check your internet connection.";
+            }
+
             setMessages((prev) => [
                 ...prev,
                 {
                     role: "model",
-                    text: "I'm sorry, I'm having trouble connecting right now. Please try again later.",
+                    text: errorMessage,
                 },
             ])
         } finally {

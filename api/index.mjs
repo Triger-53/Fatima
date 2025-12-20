@@ -3,8 +3,43 @@ dotenv.config()
 
 import express from "express"
 import cors from "cors"
-import { oAuth2Client, setOAuthToken, createMeeting } from "./calendar.mjs"
-import { handleChat } from "./aiHandler.mjs"
+
+// 🔍 ULTRA DEBUG: Safe imports with error handling
+let oAuth2Client, setOAuthToken, createMeeting;
+let calendarAvailable = false;
+
+try {
+	const calendarModule = await import("./calendar.mjs");
+	oAuth2Client = calendarModule.oAuth2Client;
+	setOAuthToken = calendarModule.setOAuthToken;
+	createMeeting = calendarModule.createMeeting;
+	calendarAvailable = true;
+	console.log("✅ Calendar module loaded successfully");
+} catch (err) {
+	console.error("⚠️ Calendar module failed to load:", err.message);
+	console.error("   This is okay - calendar features will be unavailable");
+	// Create stub functions
+	createMeeting = async () => { throw new Error("Calendar features unavailable"); };
+}
+
+let handleChat;
+try {
+	const chatModule = await import("./aiHandler.mjs");
+	handleChat = chatModule.handleChat;
+	console.log("✅ AI Handler loaded successfully");
+} catch (err) {
+	console.error("❌ CRITICAL: AI Handler failed to load:", err);
+	console.error("   Stack:", err.stack);
+	// Create emergency fallback
+	handleChat = async (req, res) => {
+		console.error("🚨 EMERGENCY FALLBACK: AI Handler not loaded");
+		res.status(500).json({
+			response: "I'm sorry, the AI service is currently unavailable. Please try again later or contact support.",
+			error: "AI_HANDLER_NOT_LOADED",
+			details: err.message
+		});
+	};
+}
 
 // 🔍 ULTRA DEBUG: Vercel API Entry Point
 console.log("\n" + "=".repeat(80));
@@ -97,7 +132,18 @@ app.post("/create-meeting", async (req, res) => {
 	}
 })
 
-import { createOrder, verifyPayment } from "./razorpayHandler.mjs"
+// Safe Razorpay imports
+let createOrder, verifyPayment;
+try {
+	const razorpayModule = await import("./razorpayHandler.mjs");
+	createOrder = razorpayModule.createOrder;
+	verifyPayment = razorpayModule.verifyPayment;
+	console.log("✅ Razorpay module loaded successfully");
+} catch (err) {
+	console.error("⚠️ Razorpay module failed to load:", err.message);
+	createOrder = async (req, res) => res.status(500).json({ error: "Payment features unavailable" });
+	verifyPayment = async (req, res) => res.status(500).json({ error: "Payment features unavailable" });
+}
 
 // Step 4: AI Chat Endpoint with comprehensive error handling
 app.post("/api/chat", async (req, res) => {
@@ -131,6 +177,48 @@ app.post("/api/chat", async (req, res) => {
 // Step 5: Razorpay Endpoints
 app.post("/api/payment/create-order", createOrder)
 app.post("/api/payment/verify", verifyPayment)
+
+// Global error handler to catch EVERYTHING and prevent HTML responses
+app.use((err, req, res, next) => {
+	console.error("\n" + "🚨".repeat(40));
+	console.error("🚨 GLOBAL ERROR HANDLER CAUGHT UNHANDLED ERROR");
+	console.error("🚨".repeat(40));
+	console.error("Error:", err);
+	console.error("Stack:", err.stack);
+	console.error("Path:", req.path);
+	console.error("Method:", req.method);
+	console.error("🚨".repeat(40) + "\n");
+
+	if (!res.headersSent) {
+		res.status(500).json({
+			error: "Internal Server Error",
+			message: err.message || "An unexpected error occurred",
+			path: req.path,
+			timestamp: new Date().toISOString()
+		});
+	}
+});
+
+// Catch-all for 404s
+app.use((req, res) => {
+	console.log("❓ 404 Not Found:", req.method, req.path);
+	res.status(404).json({
+		error: "Not Found",
+		path: req.path,
+		message: "The requested endpoint does not exist"
+	});
+});
+
+// Process-level error handlers
+process.on('unhandledRejection', (reason, promise) => {
+	console.error('🚨 Unhandled Rejection:', reason);
+	console.error('   Promise:', promise);
+});
+
+process.on('uncaughtException', (error) => {
+	console.error('🚨 Uncaught Exception:', error);
+	console.error('   Stack:', error.stack);
+});
 
 // Export the app for Vercel
 export default app;
