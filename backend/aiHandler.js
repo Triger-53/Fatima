@@ -30,7 +30,7 @@ const getModel = () => {
     const ai = getGenAI();
     if (!ai) return null;
     return ai.getGenerativeModel({
-        model: "gemini-1.5-flash", // Using a verified model name
+        model: "gemini-2.5-flash", // Using a verified model name
         generationConfig: {
             temperature: 0.7,
             topP: 0.8,
