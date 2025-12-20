@@ -20,6 +20,43 @@ import { Link } from "react-router-dom"
 import EditProfileModal from "../components/EditProfileModal"
 import { motion, AnimatePresence } from "framer-motion"
 
+// Helper functions
+const combineDateTime = (dateStr, timeStr) => {
+	if (!dateStr) return new Date(0);
+	const [year, month, day] = dateStr.split("-").map(Number);
+	const date = new Date(year, month - 1, day);
+
+	if (timeStr) {
+		const timeMatch = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+		if (timeMatch) {
+			let hours = parseInt(timeMatch[1]);
+			const minutes = parseInt(timeMatch[2]);
+			const modifier = timeMatch[3].toUpperCase();
+
+			if (modifier === "PM" && hours < 12) hours += 12;
+			if (modifier === "AM" && hours === 12) hours = 0;
+
+			date.setHours(hours, minutes, 0, 0);
+		} else {
+			const simpleTimeMatch = timeStr.match(/(\d+):(\d+)/);
+			if (simpleTimeMatch) {
+				date.setHours(parseInt(simpleTimeMatch[1]), parseInt(simpleTimeMatch[2]), 0, 0);
+			}
+		}
+	}
+	return date;
+};
+
+const formatDate = (dateStr) => {
+	if (!dateStr) return "";
+	const [year, month, day] = dateStr.split("-").map(Number);
+	return new Date(year, month - 1, day).toLocaleDateString("en-US", {
+		year: "numeric",
+		month: "long",
+		day: "numeric",
+	});
+};
+
 export default function Dashboard() {
 	const { user, signOut } = useAuth()
 	const [profile, setProfile] = useState(null)
@@ -134,37 +171,6 @@ export default function Dashboard() {
 
 	const fullName = profile ? [profile.firstName, profile.lastName].filter(Boolean).join(" ") : user.email.split('@')[0]
 
-	const combineDateTime = (dateStr, timeStr) => {
-		if (!dateStr) return new Date(0);
-		const [year, month, day] = dateStr.split('-').map(Number);
-		const date = new Date(year, month - 1, day);
-
-		if (timeStr) {
-			const timeMatch = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
-			if (timeMatch) {
-				let hours = parseInt(timeMatch[1]);
-				const minutes = parseInt(timeMatch[2]);
-				const modifier = timeMatch[3].toUpperCase();
-
-				if (modifier === 'PM' && hours < 12) hours += 12;
-				if (modifier === 'AM' && hours === 12) hours = 0;
-
-				date.setHours(hours, minutes, 0, 0);
-			} else {
-				const simpleTimeMatch = timeStr.match(/(\d+):(\d+)/);
-				if (simpleTimeMatch) {
-					date.setHours(parseInt(simpleTimeMatch[1]), parseInt(simpleTimeMatch[2]), 0, 0);
-				}
-			}
-		}
-		return date;
-	};
-
-	const formatDate = (dateStr) => {
-		if (!dateStr) return "";
-		const [year, month, day] = dateStr.split('-').map(Number);
-		return new Date(year, month - 1, day).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-	};
 
 	const now = new Date();
 
