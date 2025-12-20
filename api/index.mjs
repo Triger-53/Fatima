@@ -54,17 +54,16 @@ console.log("=".repeat(80) + "\n");
 const app = express()
 const port = process.env.PORT || 3001
 
-// Request logging middleware
-app.use((req, res, next) => {
-	console.log(`\n📥 [${new Date().toISOString()}] ${req.method} ${req.path}`);
-	console.log("   Headers:", JSON.stringify(req.headers, null, 2));
-	console.log("   Query:", JSON.stringify(req.query));
-	console.log("   Body preview:", JSON.stringify(req.body, null, 2).substring(0, 200));
-	next();
-});
-
+// Request logging middleware (must be AFTER json parsing)
 app.use(cors())
 app.use(express.json())
+
+app.use((req, res, next) => {
+	console.log(`\n📥 [${new Date().toISOString()}] ${req.method} ${req.path}`);
+	const bodyStr = req.body ? JSON.stringify(req.body, null, 2) : "(no body)";
+	console.log("   Body preview:", bodyStr.substring(0, 200));
+	next();
+});
 
 // Step 1: Redirect user to Google consent screen
 app.get("/auth", async (req, res) => {
