@@ -14,15 +14,25 @@ const Footer = () => {
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
 					{/* Practice Info */}
 					<div>
-						<div className="flex items-center mb-4">
-							<div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
-								<span className="text-white font-bold text-xl">FK</span>
+						<Link to="/" className="flex items-center mb-8 group">
+							<div className="relative">
+								<div className="w-14 h-14 bg-gradient-to-br from-white/10 to-white/5 p-3 rounded-2xl border border-white/10 shadow-2xl transition-all duration-300 group-hover:bg-white/15 group-hover:border-white/20">
+									<img src="/logo.png" alt="FK" className="w-full h-full object-contain filter brightness-110" />
+								</div>
+								<div className="absolute -inset-1 bg-primary-500/10 blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
 							</div>
-							<div className="ml-3">
-								<p className="text-xl font-semibold">Dr. Fatima Kasamnath</p>
-								<p className="text-sm text-gray-400">Speech Therapist</p>
+							<div className="ml-5">
+								<h2 className="text-2xl font-black tracking-tighter leading-none">
+									Fatima <span className="text-primary-400">K.</span>
+								</h2>
+								<div className="flex items-center space-x-2 mt-1.5">
+									<span className="h-[1px] w-3 bg-primary-500/50"></span>
+									<span className="text-[10px] uppercase tracking-[0.3em] text-gray-400 font-bold">
+										Speech & Hearing
+									</span>
+								</div>
 							</div>
-						</div>
+						</Link>
 						<p className="text-gray-300 mb-4">
 							Providing exceptional speech therapy services with compassion and
 							expertise. Helping patients of all ages improve their

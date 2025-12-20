@@ -9,28 +9,76 @@
   
   body {
     font-family: 'Inter', system-ui, sans-serif;
+    @apply antialiased;
   }
 }
 
 @layer components {
+  /* Premium Button Styles - matching logo aesthetic */
   .btn-primary {
-    @apply bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200;
+    @apply relative bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 
+           text-white font-semibold py-3 px-6 rounded-xl 
+           shadow-lg shadow-primary-500/30 hover:shadow-xl hover:shadow-primary-600/40
+           transition-all duration-300 transform hover:-translate-y-0.5;
   }
 
   .btn-secondary {
-    @apply bg-white hover:bg-gray-50 text-primary-600 font-medium py-2 px-4 rounded-md border border-primary-600 transition-colors duration-200;
+    @apply relative bg-white hover:bg-gradient-to-r hover:from-gray-50 hover:to-white 
+           text-primary-600 font-semibold py-3 px-6 rounded-xl 
+           border-2 border-primary-600 hover:border-primary-700
+           shadow-md hover:shadow-lg
+           transition-all duration-300 transform hover:-translate-y-0.5;
   }
 
+  /* Premium Card Styles */
   .card {
-    @apply bg-white rounded-xl shadow-md p-6;
+    @apply bg-white rounded-2xl shadow-lg hover:shadow-2xl p-8
+           border border-gray-100/50
+           transition-all duration-300 transform hover:-translate-y-1;
   }
 
   .section-padding {
-    @apply py-12 px-4 sm:px-6 lg:px-8;
+    @apply py-16 px-4 sm:px-6 lg:px-8;
   }
 
-  /* Add a container class for consistent max-width and padding */
   .container {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Logo-inspired gradient text */
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-700 via-primary-600 to-primary-500;
+  }
+
+  /* Decorative circle element echoing logo */
+  .logo-circle {
+    @apply rounded-full bg-gradient-to-br from-primary-100 to-primary-50 
+           border-2 border-primary-200/50
+           shadow-inner shadow-primary-300/20;
+  }
+
+  /* Icon container matching logo style */
+  .icon-container {
+    @apply w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-50 to-blue-50
+           flex items-center justify-center text-primary-600
+           shadow-md shadow-primary-200/30
+           transition-all duration-300 hover:shadow-lg hover:shadow-primary-300/40
+           hover:scale-110;
+  }
+}
+
+@layer utilities {
+  /* Glassmorphism effect */
+  .glass {
+    @apply bg-white/80 backdrop-blur-xl border border-white/20;
+  }
+
+  /* Premium shadow variations */
+  .shadow-premium {
+    box-shadow: 0 10px 40px -10px rgba(79, 155, 238, 0.2);
+  }
+
+  .shadow-premium-lg {
+    box-shadow: 0 20px 60px -15px rgba(79, 155, 238, 0.3);
   }
 }

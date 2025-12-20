@@ -134,13 +134,55 @@ export default function Dashboard() {
 
 	const fullName = profile ? [profile.firstName, profile.lastName].filter(Boolean).join(" ") : user.email.split('@')[0]
 
+	const combineDateTime = (dateStr, timeStr) => {
+		if (!dateStr) return new Date(0);
+		const [year, month, day] = dateStr.split('-').map(Number);
+		const date = new Date(year, month - 1, day);
+
+		if (timeStr) {
+			const timeMatch = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+			if (timeMatch) {
+				let hours = parseInt(timeMatch[1]);
+				const minutes = parseInt(timeMatch[2]);
+				const modifier = timeMatch[3].toUpperCase();
+
+				if (modifier === 'PM' && hours < 12) hours += 12;
+				if (modifier === 'AM' && hours === 12) hours = 0;
+
+				date.setHours(hours, minutes, 0, 0);
+			} else {
+				const simpleTimeMatch = timeStr.match(/(\d+):(\d+)/);
+				if (simpleTimeMatch) {
+					date.setHours(parseInt(simpleTimeMatch[1]), parseInt(simpleTimeMatch[2]), 0, 0);
+				}
+			}
+		}
+		return date;
+	};
+
+	const formatDate = (dateStr) => {
+		if (!dateStr) return "";
+		const [year, month, day] = dateStr.split('-').map(Number);
+		return new Date(year, month - 1, day).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+	};
+
 	const now = new Date();
 
-	const upcomingAppointments = appointments.filter(appt => new Date(appt.preferredDate) >= now);
-	const pastAppointments = appointments.filter(appt => new Date(appt.preferredDate) < now);
+	const upcomingAppointments = appointments
+		.filter(appt => combineDateTime(appt.preferredDate, appt.preferredTime) >= now)
+		.sort((a, b) => combineDateTime(a.preferredDate, a.preferredTime) - combineDateTime(b.preferredDate, b.preferredTime));
 
-	const upcomingSessions = sessions.filter(session => new Date(session.date) >= now);
-	const pastSessions = sessions.filter(session => new Date(session.date) < now);
+	const pastAppointments = appointments
+		.filter(appt => combineDateTime(appt.preferredDate, appt.preferredTime) < now)
+		.sort((a, b) => combineDateTime(b.preferredDate, b.preferredTime) - combineDateTime(a.preferredDate, a.preferredTime));
+
+	const upcomingSessions = sessions
+		.filter(session => combineDateTime(session.date, session.time) >= now)
+		.sort((a, b) => combineDateTime(a.date, a.time) - combineDateTime(b.date, b.time));
+
+	const pastSessions = sessions
+		.filter(session => combineDateTime(session.date, session.time) < now)
+		.sort((a, b) => combineDateTime(b.date, b.time) - combineDateTime(a.date, a.time));
 
 	return (
 		<>
@@ -156,7 +198,8 @@ export default function Dashboard() {
 									<p className="text-gray-600">Here's your personal health overview.</p>
 								</div>
 							</div>
-							<div className="flex items-center gap-3">
+							<div className="flex flex-wrap items-center gap-3">
+								<Link to="/appointment" className="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-semibold shadow-md transition-all hover:shadow-lg flex items-center gap-2"><FaCalendarAlt /> Book Appointment</Link>
 								<button onClick={() => setIsModalOpen(true)} className="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-semibold shadow-md transition-all hover:shadow-lg flex items-center gap-2"><FaPencilAlt /> Edit Profile</button>
 								<button onClick={() => signOut().catch((err) => console.error(err))} className="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl font-semibold shadow-md transition-all hover:shadow-lg">Log out</button>
 							</div>
@@ -234,7 +277,10 @@ const AppointmentList = ({ appointments }) => {
 			<div className="text-center py-12 bg-gray-100 rounded-2xl">
 				<FaCalendarAlt className="text-5xl text-gray-400 mx-auto mb-4" />
 				<h3 className="text-xl font-semibold text-gray-800">No appointments found</h3>
-				<p className="text-gray-500 mt-2">Book your first appointment to see it here.</p>
+				<p className="text-gray-500 mt-2 mb-6">Book your first appointment to see it here.</p>
+				<Link to="/appointment" className="px-8 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-bold shadow-lg transition-all transform hover:scale-105 inline-flex items-center gap-2">
+					<FaCalendarAlt /> Book Now
+				</Link>
 			</div>
 		)
 	}
@@ -244,7 +290,7 @@ const AppointmentList = ({ appointments }) => {
 				<motion.div key={appt.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.1 }} className="bg-white p-5 rounded-xl border border-gray-200 flex justify-between items-center">
 					<div>
 						<p className="font-bold text-lg text-primary-700">{appt.appointmentType}</p>
-						<p className="text-gray-600">{new Date(appt.preferredDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} at {appt.preferredTime}</p>
+						<p className="text-gray-600">{formatDate(appt.preferredDate)} at {appt.preferredTime}</p>
 						<p className={`capitalize font-semibold ${appt.consultationMethod === 'online' ? 'text-blue-600' : 'text-green-600'}`}>{appt.consultationMethod}</p>
 					</div>
 					<div className="text-right">
@@ -273,7 +319,7 @@ const SessionList = ({ sessions }) => {
 					<motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.1 }} className="bg-white p-5 rounded-xl border border-gray-200 flex justify-between items-center">
 						<div>
 							<p className="font-bold text-lg text-indigo-700">{session.title}</p>
-							<p className="text-gray-600">{new Date(session.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} at {session.time}</p>
+							<p className="text-gray-600">{formatDate(session.date)} at {session.time}</p>
 							<p className="text-gray-500">{session.duration} minutes</p>
 						</div>
 						<div className="text-right">

@@ -474,15 +474,33 @@ const Appointment = () => {
 			return "Please select a medical center for offline appointment"
 		}
 
-		const selectedDate = new Date(preferredDate)
-		const today = new Date()
-		today.setHours(0, 0, 0, 0)
-		if (selectedDate < today) return "Please select a future date"
+		const [year, month, day] = preferredDate.split('-').map(Number);
+		const selectedDate = new Date(year, month - 1, day);
+
+		const today = new Date();
+		const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+		if (selectedDate < todayOnly) return "Please select a future date"
+
+		// Parse time and check if it's in the past if the date is today
+		const timeMatch = preferredTime.match(/(\d+):(\d+)\s*(AM|PM)/i);
+		if (timeMatch) {
+			let hours = parseInt(timeMatch[1]);
+			const minutes = parseInt(timeMatch[2]);
+			const modifier = timeMatch[3].toUpperCase();
+			if (modifier === 'PM' && hours < 12) hours += 12;
+			if (modifier === 'AM' && hours === 12) hours = 0;
+			selectedDate.setHours(hours, minutes, 0, 0);
+		}
+
+		if (selectedDate < today) return "Please select a future time"
 
 		// Check if date is not too far in future (30 days max)
-		const maxDate = new Date()
-		maxDate.setDate(today.getDate() + 30)
-		if (selectedDate > maxDate) return "Please select a date within the next 30 days"
+		const maxDate = new Date(todayOnly);
+		maxDate.setDate(todayOnly.getDate() + 30);
+		// Reset selectedDate hours for the range check or compare with maxDate
+		const selectedDateOnly = new Date(year, month - 1, day);
+		if (selectedDateOnly > maxDate) return "Please select a date within the next 30 days"
 
 		return null
 	}
