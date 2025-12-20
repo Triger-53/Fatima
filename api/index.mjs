@@ -6,8 +6,27 @@ import cors from "cors"
 import { oAuth2Client, setOAuthToken, createMeeting } from "./calendar.mjs"
 import { handleChat } from "./aiHandler.mjs"
 
+// 🔍 ULTRA DEBUG: Vercel API Entry Point
+console.log("\n" + "=".repeat(80));
+console.log("🚀 VERCEL API HANDLER INITIALIZED");
+console.log("=".repeat(80));
+console.log("📋 Environment Check:");
+console.log("   NODE_ENV:", process.env.NODE_ENV || "not set");
+console.log("   VERCEL:", process.env.VERCEL ? "✅ Running on Vercel" : "❌ Not on Vercel");
+console.log("   PORT:", process.env.PORT || "3001 (default)");
+console.log("=".repeat(80) + "\n");
+
 const app = express()
 const port = process.env.PORT || 3001
+
+// Request logging middleware
+app.use((req, res, next) => {
+	console.log(`\n📥 [${new Date().toISOString()}] ${req.method} ${req.path}`);
+	console.log("   Headers:", JSON.stringify(req.headers, null, 2));
+	console.log("   Query:", JSON.stringify(req.query));
+	console.log("   Body preview:", JSON.stringify(req.body, null, 2).substring(0, 200));
+	next();
+});
 
 app.use(cors())
 app.use(express.json())
@@ -80,8 +99,34 @@ app.post("/create-meeting", async (req, res) => {
 
 import { createOrder, verifyPayment } from "./razorpayHandler.mjs"
 
-// Step 4: AI Chat Endpoint
-app.post("/api/chat", handleChat)
+// Step 4: AI Chat Endpoint with comprehensive error handling
+app.post("/api/chat", async (req, res) => {
+	console.log("💬 [VERCEL] Chat endpoint hit");
+	try {
+		await handleChat(req, res);
+		console.log("✅ [VERCEL] Chat handler completed");
+	} catch (error) {
+		console.error("\n" + "🔥".repeat(40));
+		console.error("❌ [VERCEL] CHAT ENDPOINT ERROR");
+		console.error("🔥".repeat(40));
+		console.error("Error name:", error.name);
+		console.error("Error message:", error.message);
+		console.error("Error stack:", error.stack);
+		console.error("Request path:", req.path);
+		console.error("Request method:", req.method);
+		console.error("Request body:", JSON.stringify(req.body, null, 2));
+		console.error("🔥".repeat(40) + "\n");
+
+		// Only send response if not already sent
+		if (!res.headersSent) {
+			res.status(500).json({
+				error: "Internal Server Error",
+				message: error.message,
+				stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+			});
+		}
+	}
+})
 
 // Step 5: Razorpay Endpoints
 app.post("/api/payment/create-order", createOrder)
