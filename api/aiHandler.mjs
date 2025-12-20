@@ -56,43 +56,48 @@ const buildContext = async (intent) => {
     let contextParts = [];
 
     try {
-        // Only fetch what's needed
+        // Fetch Services
         if (intent.needsServices) {
-            const { data } = await supabase.from('services').select('title,description,duration').limit(10);
-            if (data?.length) {
-                contextParts.push(`### 🩺 Services\n${data.map(s => `**${s.title}**: ${s.description.substring(0, 80)}... (${s.duration}min)`).join('\n')}`);
+            const { data, error } = await supabase.from('services').select('title,description,duration').limit(5);
+            if (!error && data?.length) {
+                contextParts.push(`### 🩺 Services\n${data.map(s => `* **${s.title}**: ${s.description.substring(0, 100)}... (${s.duration})`).join('\n')}`);
             }
         }
 
+        // Fetch Locations
         if (intent.needsLocations) {
-            const { data } = await supabase.from('hospitals').select('name,address');
-            if (data?.length) {
-                contextParts.push(`### 📍 Locations\n${data.map(h => `**${h.name}**: ${h.address}`).join('\n')}`);
+            const { data, error } = await supabase.from('hospitals').select('name,address');
+            if (!error && data?.length) {
+                contextParts.push(`### 📍 Locations\n${data.map(h => `* **${h.name}**: ${h.address}`).join('\n')}`);
             }
         }
 
+        // Fetch Reviews
         if (intent.needsReviews) {
-            const { data } = await supabase.from('review').select('comment,userName,rating').limit(3);
-            if (data?.length) {
-                contextParts.push(`### ⭐ Reviews\n${data.map(r => `"${r.comment.substring(0, 60)}..." - ${r.userName} (${r.rating}⭐)`).join('\n')}`);
+            const { data, error } = await supabase.from('review').select('name,review').limit(3);
+            if (!error && data?.length) {
+                contextParts.push(`### ⭐ Patient Reviews\n${data.map(r => `* "${r.review.substring(0, 80)}..." - ${r.name}`).join('\n')}`);
             }
         }
 
+        // Static context for processes
         if (intent.needsBooking) {
-            contextParts.push(`### 📅 Booking Steps\n1. Sign in/Create account\n2. Enter personal info\n3. Choose service, method (Online/Offline), date & time\n4. Add medical history\n5. Pay via Razorpay`);
+            contextParts.push(`### 📅 How to Book\n1. Sign In/Sign Up\n2. Enter Personal Details\n3. Choose Service & Slot (Date/Time)\n4. Add Medical Info\n5. Pay via Razorpay`);
         }
 
         if (intent.needsDashboard) {
-            contextParts.push(`### 🖥️ Dashboard\nView health overview, upcoming/past appointments, sessions, update profile, or book new appointments.`);
+            contextParts.push(`### 🖥️ Dashboard Features\nView prescriptions, doctor notes, medical history, manage appointments, and update your profile.`);
         }
 
+        // General info fallback
         if (intent.needsHours || contextParts.length === 0) {
-            const { data } = await supabase.from('settings').select('booking_range').single();
-            contextParts.push(`### ⚙️ Info\n**Hours**: Mon-Fri 8am-8pm, Sat 9am-2pm\n**Booking**: ${data?.booking_range || 30} days advance\n**Contact**: info@fatimakasamnath.com`);
+            const { data } = await supabase.from('settings').select('booking_range').limit(1);
+            const range = data?.[0]?.booking_range || 30;
+            contextParts.push(`### ⚙️ Practice Info\n* **Hours**: Mon-Fri 8am-8pm, Sat 9am-2pm\n* **Booking**: Up to ${range} days in advance\n* **Contact**: info@fatimakasamnath.com`);
         }
 
     } catch (err) {
-        console.error("Error building context:", err);
+        console.error("Context build error:", err);
     }
 
     return contextParts.join('\n\n');
@@ -110,45 +115,31 @@ export const handleChat = async (req, res) => {
         }
 
         const chatHistory = history || [];
-
-        // Detect intent to fetch only relevant data (RAG approach)
         const intent = detectIntent(message);
         const relevantContext = await buildContext(intent);
 
-        // Only inject full context on first message, otherwise use minimal prompts
-        if (chatHistory.length === 0) {
-            chatHistory.push({
-                role: "user",
-                parts: [{ text: `${BASE_PROMPT}\n\n${relevantContext}\n\nUser: Hello` }]
-            })
-            chatHistory.push({
-                role: "model",
-                parts: [{ text: "Hello! 👋 I'm Dr. Fatima Kasamnath's assistant. How can I help you today?" }]
-            })
-        } else if (relevantContext) {
-            // Inject relevant context for this specific query
-            chatHistory.push({
-                role: "user",
-                parts: [{ text: `[Context for this query]\n${relevantContext}\n\n[User Question]\n${message}` }]
-            })
+        // Prepare the chat session
+        const chat = model.startChat({
+            history: chatHistory.length === 0 ? [] : chatHistory,
+        });
 
-            const chat = model.startChat({ history: chatHistory.slice(0, -1) });
-            const result = await chat.sendMessage(chatHistory[chatHistory.length - 1].parts[0].text);
-            const response = await result.response;
-            return res.json({ response: response.text() });
+        let finalMessage = message;
+
+        // If it's a new chat, inject base prompt and context
+        if (chatHistory.length === 0) {
+            finalMessage = `SYSTEM INSTRUCTION:\n${BASE_PROMPT}\n\nINITIAL CONTEXT:\n${relevantContext}\n\nUSER MESSAGE:\n${message}`;
+        } else if (relevantContext) {
+            // Provide refreshed context for existing chat
+            finalMessage = `RELEVANT CONTEXT:\n${relevantContext}\n\nUSER MESSAGE:\n${message}`;
         }
 
-        const chat = model.startChat({
-            history: chatHistory,
-        })
+        const result = await chat.sendMessage(finalMessage);
+        const response = await result.response;
+        const text = response.text();
 
-        const result = await chat.sendMessage(message)
-        const response = await result.response
-        const text = response.text()
-
-        res.json({ response: text })
+        res.json({ response: text });
     } catch (error) {
-        console.error("AI Chat Error:", error)
-        res.status(500).json({ error: "Failed to generate response" })
+        console.error("AI Chat Error Details:", error);
+        res.status(500).json({ error: "I'm having trouble processing that right now. Please try again." });
     }
 }
