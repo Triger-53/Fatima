@@ -102,16 +102,16 @@ const buildContext = async (intent, userEmail = null, isAdmin = false) => {
             }
 
             if (intent.needsSessions) {
-                const { data } = await supabase.from('sessions').select('patient_email,session_date,session_time').order('session_date', { ascending: false }).limit(5);
+                const { data } = await supabase.from('sessions').select('user_id,date,time').order('date', { ascending: false }).limit(5);
                 if (data?.length) {
-                    contextParts.push(`RECENT SESSIONS: ${data.map(s => `Patient: ${s.patient_email} on ${s.session_date} at ${s.session_time}`).join('\n')}`);
+                    contextParts.push(`RECENT SESSIONS: ${data.map(s => `User ID: ${s.user_id} on ${s.date} at ${s.time}`).join('\n')}`);
                 }
             }
 
             if (intent.needsAnalytics) {
                 const { count: apptCount } = await supabase.from('Appointment').select('*', { count: 'exact', head: true });
-                const { count: diagnosticCount } = await supabase.from('diagnostics').select('*', { count: 'exact', head: true });
-                contextParts.push(`QUICK STATS: Total Appointments: ${apptCount || 0}, Total Diagnostics: ${diagnosticCount || 0}.`);
+                const { count: userCount } = await supabase.from('user_dashboard').select('*', { count: 'exact', head: true });
+                contextParts.push(`QUICK STATS: Total Appointments: ${apptCount || 0}, Total Registered Users: ${userCount || 0}.`);
             }
         } else {
             // Patient context: Limited access
@@ -187,7 +187,9 @@ export const handleChat = async (req, res) => {
 
         // Final fallback to keep the UI from breaking
         return res.json({
-            response: "I'm experiencing a small technical glitch, but I'd love to help! You can book an appointment using the button above, or see our hours: Mon-Fri 8am-8pm. What else can I tell you about Dr. Fatima's practice?"
+            response: isAdmin
+                ? "I encountered an error accessing the dashboard data. Please try again or check the database directly."
+                : "I'm experiencing a small technical glitch, but I'd love to help! You can book an appointment using the button above, or see our hours: Mon-Fri 8am-8pm. What else can I tell you about Dr. Fatima's practice?"
         });
     }
 }
