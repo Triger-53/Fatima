@@ -52,13 +52,17 @@ app.post("/create-meeting", async (req, res) => {
 import { createOrder, verifyPayment } from "./razorpayHandler.js"
 
 // Step 4: AI Chat Endpoint
-app.post("/api/chat", (req, res, next) => {
+app.post("/api/chat", async (req, res, next) => {
 	console.log("📥 Received Chat Request:", JSON.stringify({
 		message: req.body?.message?.substring(0, 50) + "...",
 		isAdmin: req.body?.isAdmin,
 		historyLength: req.body?.history?.length
 	}));
-	handleChat(req, res).catch(next);
+	try {
+		await handleChat(req, res);
+	} catch (err) {
+		next(err);
+	}
 })
 
 // Step 5: Razorpay Endpoints
