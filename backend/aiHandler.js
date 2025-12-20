@@ -27,17 +27,26 @@ const getSupabase = () => {
 };
 
 const getModel = () => {
-    const ai = getGenAI();
-    if (!ai) return null;
-    return ai.getGenerativeModel({
-        model: "gemini-2.5-flash", // Using a verified model name
-        generationConfig: {
-            temperature: 0.7,
-            topP: 0.8,
-            topK: 40,
-            maxOutputTokens: 500,
+    try {
+        const ai = getGenAI();
+        if (!ai) {
+            console.error("❌ getGenAI returned null");
+            return null;
         }
-    });
+        console.log("🤖 Creating model with name: models/gemini-2.5-flash");
+        return ai.getGenerativeModel({
+            model: "models/gemini-2.5-flash", // Using models/ prefix to be safe
+            generationConfig: {
+                temperature: 0.7,
+                topP: 0.8,
+                topK: 40,
+                maxOutputTokens: 500,
+            }
+        });
+    } catch (e) {
+        console.error("❌ Failed to get model:", e);
+        return null;
+    }
 };
 
 // Base system prompt (lightweight)
@@ -157,14 +166,17 @@ export const handleChat = async (req, res) => {
         return res.status(500).json({ response: "I'm sorry, my AI brain is currently offline. Please contact us directly at info@fatimakasamnath.com." });
     }
 
+    const { isAdmin } = req.body; // Move outside try block for catch access
     try {
-        const { message, history, userEmail, isAdmin } = req.body;
+        const { message, history, userEmail } = req.body;
         if (!message) return res.status(400).json({ error: "Message required" });
 
         const intent = detectIntent(message, isAdmin);
         const relevantContext = await buildContext(intent, userEmail, isAdmin);
 
         const activePrompt = isAdmin ? ADMIN_PROMPT : BASE_PROMPT;
+        console.log(`🧠 Using Prompt: ${isAdmin ? 'ADMIN' : 'BASE'}`);
+        console.log(`📝 Context length: ${relevantContext.length} chars`);
 
         // Filter history to ensure it's valid for Gemini (must alternate user/model)
         const chatHistory = (history || []).filter(h => h.role === 'user' || h.role === 'model');

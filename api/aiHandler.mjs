@@ -157,8 +157,9 @@ export const handleChat = async (req, res) => {
         return res.status(500).json({ response: "I'm sorry, my AI brain is currently offline. Please contact us directly at info@fatimakasamnath.com." });
     }
 
+    const { isAdmin } = req.body;
     try {
-        const { message, history, userEmail, isAdmin } = req.body;
+        const { message, history, userEmail } = req.body;
         if (!message) return res.status(400).json({ error: "Message required" });
 
         const intent = detectIntent(message, isAdmin);

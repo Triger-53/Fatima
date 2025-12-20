@@ -52,11 +52,28 @@ app.post("/create-meeting", async (req, res) => {
 import { createOrder, verifyPayment } from "./razorpayHandler.js"
 
 // Step 4: AI Chat Endpoint
-app.post("/api/chat", handleChat)
+app.post("/api/chat", (req, res, next) => {
+	console.log("📥 Received Chat Request:", JSON.stringify({
+		message: req.body?.message?.substring(0, 50) + "...",
+		isAdmin: req.body?.isAdmin,
+		historyLength: req.body?.history?.length
+	}));
+	handleChat(req, res).catch(next);
+})
 
 // Step 5: Razorpay Endpoints
 app.post("/api/payment/create-order", createOrder)
 app.post("/api/payment/verify", verifyPayment)
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+	console.error("🔥 Global Error Caught:", err);
+	res.status(500).json({
+		error: "Internal Server Error",
+		details: err.message,
+		stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+	});
+});
 
 app.listen(port, () => {
 	console.log(`Server running at http://localhost:${port}`)
