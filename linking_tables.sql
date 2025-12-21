@@ -12,11 +12,15 @@ ADD CONSTRAINT user_dashboard_appointment_id_fkey
 FOREIGN KEY (appointment_id) REFERENCES public."Appointment" (id) ON DELETE SET NULL;
 
 
--- 2.1 Add meet_link column to Appointment table
+-- 2.1 Add tracking columns to Appointment table
 ALTER TABLE public."Appointment" ADD COLUMN IF NOT EXISTS meet_link text;
+ALTER TABLE public."Appointment" ADD COLUMN IF NOT EXISTS "orderId" text;
+ALTER TABLE public."Appointment" ADD COLUMN IF NOT EXISTS "paymentId" text;
 
--- 2.2 Add meet_link column to user_dashboard table
+-- 2.2 Add tracking columns to user_dashboard table
 ALTER TABLE public.user_dashboard ADD COLUMN IF NOT EXISTS meet_link text;
+ALTER TABLE public.user_dashboard ADD COLUMN IF NOT EXISTS "orderId" text;
+ALTER TABLE public.user_dashboard ADD COLUMN IF NOT EXISTS "paymentId" text;
 
 
 -- 3. Create a function to handle new user setup (Profiles & Dashboard)
@@ -55,7 +59,9 @@ BEGIN
     allergies = new.allergies,
     "medicalHistory" = new."medicalHistory",
     appointment_id = new.id,
-    meet_link = new.meet_link
+    meet_link = new.meet_link,
+    "orderId" = new."orderId",
+    "paymentId" = new."paymentId"
   WHERE user_id = new.user_id;
   
   RETURN new;

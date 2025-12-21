@@ -312,6 +312,10 @@ const AppointmentList = ({ appointments }) => {
 								Join Meeting
 							</a>
 						)}
+						<div className="mt-2 text-[10px] text-gray-400 font-mono text-right leading-tight">
+							{appt.orderId && <div>Order: {appt.orderId}</div>}
+							{appt.paymentId && <div>Payment: {appt.paymentId}</div>}
+						</div>
 					</div>
 				</motion.div>
 			))}
