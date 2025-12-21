@@ -364,46 +364,32 @@ export class SlotManager {
 		const slotBookings = {}; // key: date_time
 		bookedAppointments.forEach(a => {
 			if (!a.preferredDate || !a.preferredTime) return;
-			// Normalize time to HH:mm if it contains seconds or other formats
 			const time = String(a.preferredTime).split(':').slice(0, 2).join(':');
 			const key = `${a.preferredDate}_${time}`;
 			slotBookings[key] = (slotBookings[key] || 0) + 1;
 		});
 		bookedSessions.forEach(s => {
 			if (!s.date || !s.time) return;
-			// Normalize time to HH:mm
 			const time = String(s.time).split(':').slice(0, 2).join(':');
 			const key = `${s.date}_${time}`;
 			slotBookings[key] = (slotBookings[key] || 0) + 1;
 		});
 
 		// Initialize center tracking
-		if (Array.isArray(this.medicalCenters)) {
-			this.medicalCenters.forEach(center => {
-				summary.byCenter[center.id] = {
-					name: center.name,
-					totalSlots: 0,
-					bookedSlots: 0,
-					availableSlots: 0
-				};
-			});
-		}
+		const centers = [
+			{ id: 'online', name: 'Online Consultation' },
+			{ id: 'session', name: 'Session' },
+			...(Array.isArray(this.medicalCenters) ? this.medicalCenters : [])
+		];
 
-		// Add online center
-		summary.byCenter['online'] = {
-			name: 'Online Consultation',
-			totalSlots: 0,
-			bookedSlots: 0,
-			availableSlots: 0
-		};
-
-		// Add session center
-		summary.byCenter['session'] = {
-			name: 'Session',
-			totalSlots: 0,
-			bookedSlots: 0,
-			availableSlots: 0
-		};
+		centers.forEach(center => {
+			summary.byCenter[center.id] = {
+				name: center.name,
+				totalSlots: 0,
+				bookedSlots: 0,
+				availableSlots: 0
+			};
+		});
 
 		for (const date of dates) {
 			summary.byDate[date] = {
@@ -412,17 +398,18 @@ export class SlotManager {
 				offline: {}
 			};
 
-			// Process online slots
+			// We'll use this to track unique time slots across ALL categories for this date
+			const uniqueDateSlots = new Set();
+
+			// 1. Process Online Slots
 			const onlineSlots = this.getAvailableSlots(date, 'online') || [];
 			for (const slot of onlineSlots) {
-				const normalizedSlot = String(slot).split(':').slice(0, 2).join(':');
-				const key = `${date}_${normalizedSlot}`;
+				const norm = String(slot).split(':').slice(0, 2).join(':');
+				uniqueDateSlots.add(norm);
+
+				const key = `${date}_${norm}`;
 				const bookingsCount = slotBookings[key] || 0;
 				const remaining = Math.max(0, quota - bookingsCount);
-
-				summary.totalSlots += quota;
-				summary.bookedSlots += bookingsCount;
-				summary.availableSlots += remaining;
 
 				summary.byCenter['online'].totalSlots += quota;
 				summary.byCenter['online'].bookedSlots += bookingsCount;
@@ -433,17 +420,15 @@ export class SlotManager {
 				summary.byDate[date].online.available += remaining;
 			}
 
-			// Process session slots
+			// 2. Process Session Slots
 			const sessionSlots = this.getAvailableSlots(date, 'session') || [];
 			for (const slot of sessionSlots) {
-				const normalizedSlot = String(slot).split(':').slice(0, 2).join(':');
-				const key = `${date}_${normalizedSlot}`;
+				const norm = String(slot).split(':').slice(0, 2).join(':');
+				uniqueDateSlots.add(norm);
+
+				const key = `${date}_${norm}`;
 				const bookingsCount = slotBookings[key] || 0;
 				const remaining = Math.max(0, quota - bookingsCount);
-
-				summary.totalSlots += quota;
-				summary.bookedSlots += bookingsCount;
-				summary.availableSlots += remaining;
 
 				summary.byCenter['session'].totalSlots += quota;
 				summary.byCenter['session'].bookedSlots += bookingsCount;
@@ -454,21 +439,19 @@ export class SlotManager {
 				summary.byDate[date].session.available += remaining;
 			}
 
-			// Process offline slots
+			// 3. Process Offline Slots
 			if (Array.isArray(this.medicalCenters)) {
 				for (const center of this.medicalCenters) {
 					summary.byDate[date].offline[center.id] = { total: 0, booked: 0, available: 0 };
 					const offlineSlots = this.getAvailableSlots(date, 'offline', center.id) || [];
 
 					for (const slot of offlineSlots) {
-						const normalizedSlot = String(slot).split(':').slice(0, 2).join(':');
-						const key = `${date}_${normalizedSlot}`;
+						const norm = String(slot).split(':').slice(0, 2).join(':');
+						uniqueDateSlots.add(norm);
+
+						const key = `${date}_${norm}`;
 						const bookingsCount = slotBookings[key] || 0;
 						const remaining = Math.max(0, quota - bookingsCount);
-
-						summary.totalSlots += quota;
-						summary.bookedSlots += bookingsCount;
-						summary.availableSlots += remaining;
 
 						summary.byCenter[center.id].totalSlots += quota;
 						summary.byCenter[center.id].bookedSlots += bookingsCount;
@@ -479,6 +462,17 @@ export class SlotManager {
 						summary.byDate[date].offline[center.id].available += remaining;
 					}
 				}
+			}
+
+			// 4. Calculate Global Summary contribution for this date based on UNIQUE slots
+			for (const slot of uniqueDateSlots) {
+				const key = `${date}_${slot}`;
+				const bookingsCount = slotBookings[key] || 0;
+				const remaining = Math.max(0, quota - bookingsCount);
+
+				summary.totalSlots += quota;
+				summary.bookedSlots += bookingsCount;
+				summary.availableSlots += remaining;
 			}
 		}
 
