@@ -458,6 +458,12 @@ export class SlotManager {
 			.eq("id", this.settingsId)
 		if (error) {
 			console.error("Error updating session slots:", error)
+			if (error.code === "42703") {
+				return {
+					success: false,
+					error: "Missing 'session_slots' column in Supabase. Run this SQL in Supabase Editor: ALTER TABLE settings ADD COLUMN session_slots JSONB DEFAULT '{}';"
+				}
+			}
 			return { success: false, error: error.message }
 		}
 		return { success: true }
