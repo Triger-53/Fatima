@@ -35,6 +35,7 @@ import AdminServices from "./admin/AdminServices"
 import AdminHospitals from "./admin/AdminHospitals"
 import AppointmentSlotManager from "./admin/AppointmentSlotManager"
 import AdminSessions from "./admin/AdminSessions"
+import AdminAIChat from "./admin/AdminAIChat"
 import ChatWidget from "./components/ChatWidget"
 
 function AppContent() {
@@ -158,6 +159,16 @@ function AppContent() {
 							<AdminProtectedRoute>
 								<AdminLayout>
 									<Analytics />
+								</AdminLayout>
+							</AdminProtectedRoute>
+						}
+					/>
+					<Route
+						path="/admin/ai-chat"
+						element={
+							<AdminProtectedRoute>
+								<AdminLayout>
+									<AdminAIChat />
 								</AdminLayout>
 							</AdminProtectedRoute>
 						}

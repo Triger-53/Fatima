@@ -5,6 +5,7 @@ export class SlotManager {
 	constructor() {
 		this.bookingRange = 30 // Default fallback
 		this.onlineSlots = {}
+		this.sessionSlots = {}
 		this.sessionQuota = {}
 		this.medicalCenters = []
 		this.cache = new Map()
@@ -17,7 +18,7 @@ export class SlotManager {
 			// Fetch settings
 			const { data: settingsData, error: settingsError } = await supabase
 				.from("settings")
-				.select("id, booking_range, online_slots, session_quota")
+				.select("id, booking_range, online_slots, session_slots, session_quota")
 				.limit(1)
 				.single()
 
@@ -26,7 +27,8 @@ export class SlotManager {
 			} else if (settingsData) {
 				this.settingsId = settingsData.id
 				this.bookingRange = settingsData.booking_range
-				this.onlineSlots = settingsData.online_slots
+				this.onlineSlots = settingsData.online_slots || {}
+				this.sessionSlots = settingsData.session_slots || {}
 				this.sessionQuota = settingsData.session_quota
 			}
 
@@ -73,13 +75,16 @@ export class SlotManager {
 		return dates;
 	}
 
-	// Get available slots for a specific date and consultation method
 	getAvailableSlots(dateString, consultationMethod, medicalCenter = null) {
 		const dayOfWeek = this.getDayOfWeek(dateString)
 
 		if (consultationMethod === "online") {
 			return this.onlineSlots[dayOfWeek] && this.onlineSlots[dayOfWeek].slots
 				? this.onlineSlots[dayOfWeek].slots
+				: []
+		} else if (consultationMethod === "session") {
+			return this.sessionSlots[dayOfWeek] && this.sessionSlots[dayOfWeek].slots
+				? this.sessionSlots[dayOfWeek].slots
 				: []
 		} else if (consultationMethod === "offline" && medicalCenter) {
 			const center = this.medicalCenters.find(
@@ -312,9 +317,18 @@ export class SlotManager {
 			availableSlots: 0
 		};
 
+		// Add session center
+		summary.byCenter['session'] = {
+			name: 'Session',
+			totalSlots: 0,
+			bookedSlots: 0,
+			availableSlots: 0
+		};
+
 		for (const date of dates) {
 			summary.byDate[date] = {
 				online: { total: 0, booked: 0, available: 0 },
+				session: { total: 0, booked: 0, available: 0 },
 				offline: {}
 			};
 
@@ -337,6 +351,29 @@ export class SlotManager {
 					summary.bookedSlots++;
 					summary.byCenter['online'].bookedSlots++;
 					summary.byDate[date].online.booked++;
+				}
+			}
+
+			// Process session slots
+			const sessionSlots = this.getAvailableSlots(date, 'session');
+			for (const slot of sessionSlots) {
+				const key = `${date}_${slot}`;
+				const bookingsCount = slotBookings[key] || 0;
+				const isCurrentlyAvailable = bookingsCount < quota;
+
+				summary.totalSlots++;
+				// Note: if you want a separate center for sessions in summary, add it here
+				summary.byCenter['session'].totalSlots++;
+				summary.byDate[date].session.total++;
+
+				if (isCurrentlyAvailable) {
+					summary.availableSlots++;
+					summary.byCenter['session'].availableSlots++;
+					summary.byDate[date].session.available++;
+				} else {
+					summary.bookedSlots++;
+					summary.byCenter['session'].bookedSlots++;
+					summary.byDate[date].session.booked++;
 				}
 			}
 
@@ -404,6 +441,23 @@ export class SlotManager {
 			.eq("id", this.settingsId)
 		if (error) {
 			console.error("Error updating online slots:", error)
+			return { success: false, error: error.message }
+		}
+		return { success: true }
+	}
+
+	// Set session slots
+	async setSessionSlots(newSlots) {
+		this.sessionSlots = newSlots
+		this.clearCache()
+
+		// Persist to database
+		const { error } = await supabase
+			.from("settings")
+			.update({ session_slots: newSlots })
+			.eq("id", this.settingsId)
+		if (error) {
+			console.error("Error updating session slots:", error)
 			return { success: false, error: error.message }
 		}
 		return { success: true }

@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { NavLink, useNavigate } from "react-router-dom"
-import { Menu, X } from "lucide-react"
+import { Menu, X, Bot } from "lucide-react"
 
 const AdminNav = () => {
 	const navigate = useNavigate()
@@ -50,9 +50,8 @@ const AdminNav = () => {
 
 const NavLinks = ({ isMobile }) => (
 	<ul
-		className={`flex ${
-			isMobile ? "flex-col space-y-4" : "space-x-6 items-center"
-		}`}>
+		className={`flex ${isMobile ? "flex-col space-y-4" : "space-x-6 items-center"
+			}`}>
 		<li>
 			<NavLink to="/admin/dashboard" className="hover:bg-cyan-100 rounded-3xl p-2">
 				Dashboard
@@ -90,12 +89,17 @@ const NavLinks = ({ isMobile }) => (
 			</NavLink>
 		</li>
 		<li>
-			<NavLink to="/admin/analytics" className="hover:bg-cyan-100 rounded-3xl p-2">
+			<NavLink to="/admin/analytics" className="hover:bg-cyan-100 rounded-3xl p-2 text-sm font-medium">
 				Analytics
 			</NavLink>
 		</li>
 		<li>
-			<NavLink to="/admin/sessions" className="hover:bg-cyan-100 rounded-3xl p-2">
+			<NavLink to="/admin/ai-chat" className="bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-3xl p-2 px-4 text-sm font-bold flex items-center gap-2 border border-blue-200">
+				<Bot className="w-4 h-4" /> AI Assistant
+			</NavLink>
+		</li>
+		<li>
+			<NavLink to="/admin/sessions" className="hover:bg-cyan-100 rounded-3xl p-2 text-sm font-medium">
 				Sessions
 			</NavLink>
 		</li>

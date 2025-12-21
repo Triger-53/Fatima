@@ -3,7 +3,7 @@ import { supabase } from "../supabase"
 import { NavLink } from "react-router-dom"
 import { motion } from "framer-motion"
 import CountUp from "react-countup"
-import { Calendar, BarChart3, Users } from "lucide-react"
+import { Calendar, BarChart3, Users, Bot, Sparkles } from "lucide-react"
 
 const AdminDashboard = () => {
 	const [appointments, setAppointments] = useState([])
@@ -82,14 +82,14 @@ const AdminDashboard = () => {
 				</div>
 			)}
 
-			<div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2">
+			<div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
 				<NavLink
 					to="/admin/appointments"
-					className="cursor-pointer p-6 bg-white rounded-xl shadow hover:shadow-lg border border-gray-200 flex flex-col justify-between">
+					className="cursor-pointer p-6 bg-white rounded-xl shadow hover:shadow-lg border border-gray-200 flex flex-col justify-between transition-all hover:border-blue-200">
 					<div className="flex items-center mb-3">
 						<Calendar className="w-6 h-6 text-blue-500 mr-2" />
 						<h2 className="text-xl font-semibold text-gray-800">
-							View Appointments
+							Appointments
 						</h2>
 					</div>
 					<p className="text-gray-600 text-sm">
@@ -99,16 +99,33 @@ const AdminDashboard = () => {
 
 				<NavLink
 					to="/admin/analytics"
-					className="cursor-pointer p-6 bg-white rounded-xl shadow hover:shadow-lg border border-gray-200 flex flex-col justify-between">
+					className="cursor-pointer p-6 bg-white rounded-xl shadow hover:shadow-lg border border-gray-200 flex flex-col justify-between transition-all hover:border-cyan-200">
 					<div className="flex items-center mb-3">
 						<BarChart3 className="w-6 h-6 text-cyan-500 mr-2" />
 						<h2 className="text-xl font-semibold text-gray-800">
-							View Analytics
+							Analytics
 						</h2>
 					</div>
 					<p className="text-gray-600 text-sm">
 						Explore insights and trends from your appointments.
 					</p>
+				</NavLink>
+
+				<NavLink
+					to="/admin/ai-chat"
+					className="cursor-pointer p-6 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl shadow-lg hover:shadow-xl flex flex-col justify-between transition-all transform hover:scale-[1.02] group lg:col-span-1">
+					<div className="flex items-center mb-3">
+						<Bot className="w-6 h-6 text-white mr-2" />
+						<h2 className="text-xl font-semibold text-white">
+							AI Assistant
+						</h2>
+					</div>
+					<p className="text-blue-100 text-sm">
+						Chat with your data-aware assistant to get instant insights.
+					</p>
+					<div className="mt-4 flex items-center text-white text-xs font-bold gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+						Open Chat <Sparkles className="w-3 h-3" />
+					</div>
 				</NavLink>
 			</div>
 		</div>
