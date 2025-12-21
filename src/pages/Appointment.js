@@ -166,11 +166,40 @@ const Appointment = () => {
 	useEffect(() => {
 		const loadInitialData = async () => {
 			await slotManager.initialized;
-			setAvailableDates(slotManager.getAvailableDates());
 			setMedicalCenters(slotManager.medicalCenters || []);
+			// Initially load dates with no filters if no method selected, 
+			// otherwise use current selection.
+			const dates = await slotManager.getAvailableDates(
+				formData.consultationMethod,
+				formData.medicalCenter
+			);
+			setAvailableDates(dates);
 		};
 		loadInitialData();
 	}, []);
+
+	// ------------------- Refresh available dates when method or center changes -------------------
+	useEffect(() => {
+		const refreshDates = async () => {
+			if (slotManager.initialized) {
+				const dates = await slotManager.getAvailableDates(
+					formData.consultationMethod,
+					formData.medicalCenter
+				);
+				setAvailableDates(dates);
+
+				// If the currently selected date is no longer in the available dates, clear it
+				if (formData.preferredDate && !dates.includes(formData.preferredDate)) {
+					setFormData(prev => ({
+						...prev,
+						preferredDate: '',
+						preferredTime: ''
+					}));
+				}
+			}
+		};
+		refreshDates();
+	}, [formData.consultationMethod, formData.medicalCenter]);
 
 	// ------------------- Keep selected service synced with appointment type -------------------
 	// This now depends on the `services` state as well.

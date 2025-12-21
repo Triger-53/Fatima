@@ -63,15 +63,79 @@ export class SlotManager {
 	}
 
 	// Get available dates within booking range
-	getAvailableDates(bookingRange = this.bookingRange) {
+	async getAvailableDates(consultationMethod = null, medicalCenter = null, bookingRange = this.bookingRange) {
 		const dates = [];
 		const today = new Date();
 		const maxDate = new Date(today);
 		maxDate.setDate(today.getDate() + bookingRange);
 
+		const allDatesInRange = [];
 		for (let d = new Date(today); d <= maxDate; d.setDate(d.getDate() + 1)) {
-			dates.push(d.toISOString().split('T')[0]);
+			allDatesInRange.push(d.toISOString().split('T')[0]);
 		}
+
+		// If no consultation method, we can't really check availability per slot,
+		// so we just return the basic list (legacy behavior or initial load).
+		if (!consultationMethod) {
+			return allDatesInRange;
+		}
+
+		try {
+			const quota = parseInt(this.sessionQuota) || 1;
+
+			// Bulk fetch appointments for the whole range
+			const { data: bookedAppointments, error: apptError } = await supabase
+				.from('Appointment')
+				.select('preferredDate, preferredTime')
+				.in('preferredDate', allDatesInRange);
+
+			if (apptError) throw apptError;
+
+			// Bulk fetch sessions for the whole range
+			const { data: bookedSessions, error: sessionError } = await supabase
+				.from('sessions')
+				.select('date, time')
+				.in('date', allDatesInRange);
+
+			if (sessionError) throw sessionError;
+
+			// Map to count bookings per date and time
+			const bookingCounts = {}; // date_time -> count
+			bookedAppointments.forEach(a => {
+				const key = `${a.preferredDate}_${a.preferredTime}`;
+				bookingCounts[key] = (bookingCounts[key] || 0) + 1;
+			});
+			bookedSessions.forEach(s => {
+				const key = `${s.date}_${s.time}`;
+				bookingCounts[key] = (bookingCounts[key] || 0) + 1;
+			});
+
+			for (const dateString of allDatesInRange) {
+				const slots = this.getAvailableSlots(dateString, consultationMethod, medicalCenter);
+
+				if (!slots || slots.length === 0) {
+					continue;
+				}
+
+				// Check if at least one slot is NOT fully booked
+				const hasAvailableSlot = slots.some(time => {
+					const count = bookingCounts[`${dateString}_${time}`] || 0;
+					return count < quota;
+				});
+
+				if (hasAvailableSlot) {
+					dates.push(dateString);
+				}
+			}
+		} catch (error) {
+			console.error('Error in getAvailableDates availability check:', error);
+			// Fallback to basic configured check if DB fails
+			for (const dateString of allDatesInRange) {
+				const slots = this.getAvailableSlots(dateString, consultationMethod, medicalCenter);
+				if (slots && slots.length > 0) dates.push(dateString);
+			}
+		}
+
 		return dates;
 	}
 

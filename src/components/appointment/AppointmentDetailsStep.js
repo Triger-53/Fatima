@@ -181,7 +181,7 @@ const AppointmentDetailsStep = ({
             <span className="mr-2">📅</span> Select Preferred Date
           </label>
           <span className="text-xs font-medium px-2 py-1 bg-blue-100 text-blue-700 rounded-full">
-            Next {bookingRange || 30} Days
+            {availableDates.length} Days Available
           </span>
         </div>
 
