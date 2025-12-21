@@ -186,7 +186,6 @@ const AppointmentDetailsStep = ({
             {availableDates.map((date) => {
               const dateObj = new Date(date);
               const isSelected = formData.preferredDate === date;
-              const isToday = new Date().toISOString().split('T')[0] === date;
 
               return (
                 <button
@@ -206,9 +205,7 @@ const AppointmentDetailsStep = ({
                   <span className={`text-xs font-medium ${isSelected ? 'text-blue-100' : 'text-gray-500'}`}>
                     {dateObj.toLocaleDateString('en-US', { month: 'short' })}
                   </span>
-                  {isToday && !isSelected && (
-                    <span className="absolute top-2 w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
-                  )}
+                  {/* Removed today indicator */}
                 </button>
               );
             })}
