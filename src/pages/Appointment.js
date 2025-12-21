@@ -57,6 +57,7 @@ const Appointment = () => {
 	// New state for enhanced appointment system
 	const [availableSlots, setAvailableSlots] = useState([])
 	const [availableDates, setAvailableDates] = useState([])
+	const [medicalCenters, setMedicalCenters] = useState([])
 	const [loadingSlots, setLoadingSlots] = useState(false)
 
 	// Holds appointment row returned after insert
@@ -161,13 +162,14 @@ const Appointment = () => {
 		}
 	}, [])
 
-	// ------------------- Load available dates on component mount -------------------
+	// ------------------- Load available dates and medical centers on component mount -------------------
 	useEffect(() => {
-		const loadDates = async () => {
+		const loadInitialData = async () => {
 			await slotManager.initialized;
 			setAvailableDates(slotManager.getAvailableDates());
+			setMedicalCenters(slotManager.medicalCenters || []);
 		};
-		loadDates();
+		loadInitialData();
 	}, []);
 
 	// ------------------- Keep selected service synced with appointment type -------------------
@@ -983,6 +985,7 @@ const Appointment = () => {
 												appointmentTypes={appointmentTypes}
 												selectedService={selectedService}
 												availableDates={availableDates}
+												medicalCenters={medicalCenters}
 												loadingSlots={loadingSlots}
 												availableSlots={availableSlots}
 												bookingRange={slotManager.bookingRange}

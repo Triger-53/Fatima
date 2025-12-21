@@ -1,7 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { getServicePrice } from '../../data/services';
-import { MEDICAL_CENTERS } from '../../data/appointmentData';
 
 const AppointmentDetailsStep = ({
   formData,
@@ -9,10 +8,16 @@ const AppointmentDetailsStep = ({
   appointmentTypes,
   selectedService,
   availableDates,
+  medicalCenters,
   loadingSlots,
   availableSlots,
   bookingRange,
 }) => {
+  // Helper to find medical center name by ID from the dynamic list
+  const getMedicalCenterName = (id) => {
+    return medicalCenters.find(c => String(c.id) === String(id))?.name || 'Medical Center';
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -109,8 +114,8 @@ const AppointmentDetailsStep = ({
         <div className="mt-6">
           <label className="block text-gray-700 mb-4 font-medium text-lg">🏥 Select Medical Center</label>
           <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
-            {Object.values(MEDICAL_CENTERS).map((center) => (
-              <label key={center.id} className={`cursor-pointer group relative overflow-hidden rounded-2xl border-2 transition-all duration-300 hover:shadow-lg ${formData.medicalCenter === center.id
+            {medicalCenters.map((center) => (
+              <label key={center.id} className={`cursor-pointer group relative overflow-hidden rounded-2xl border-2 transition-all duration-300 hover:shadow-lg ${String(formData.medicalCenter) === String(center.id)
                 ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50 shadow-lg ring-2 ring-blue-200'
                 : 'border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50'
                 }`}>
@@ -118,7 +123,7 @@ const AppointmentDetailsStep = ({
                   type="radio"
                   name="medicalCenter"
                   value={center.id}
-                  checked={formData.medicalCenter === center.id}
+                  checked={String(formData.medicalCenter) === String(center.id)}
                   onChange={handleChange}
                   className="sr-only"
                 />
@@ -126,11 +131,10 @@ const AppointmentDetailsStep = ({
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center mb-2">
-                        <div className="w-3 h-3 rounded-full border-2 mr-3 flex-shrink-0 ${
-                          formData.medicalCenter === center.id
-                            ? 'border-blue-500 bg-blue-500'
-                            : 'border-gray-300 group-hover:border-blue-400'
-                        }"></div>
+                        <div className={`w-3 h-3 rounded-full border-2 mr-3 flex-shrink-0 ${String(formData.medicalCenter) === String(center.id)
+                          ? 'border-blue-500 bg-blue-500'
+                          : 'border-gray-300 group-hover:border-blue-400'
+                          }`}></div>
                         <h3 className="font-bold text-gray-900 text-lg">{center.name}</h3>
                       </div>
                       <div className="ml-6 space-y-2">
@@ -149,7 +153,7 @@ const AppointmentDetailsStep = ({
                         </div>
                       </div>
                     </div>
-                    {formData.medicalCenter === center.id && (
+                    {String(formData.medicalCenter) === String(center.id) && (
                       <div className="ml-4 flex-shrink-0">
                         <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
                           <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -264,7 +268,7 @@ const AppointmentDetailsStep = ({
           <p className="text-xs text-center text-gray-400 mt-2 italic font-medium">
             {formData.consultationMethod === 'online'
               ? '✨ Virtual session via Secure Video'
-              : `📍 In-person visit at ${MEDICAL_CENTERS[formData.medicalCenter]?.name}`
+              : `📍 In-person visit at ${getMedicalCenterName(formData.medicalCenter)}`
             }
           </p>
         )}
