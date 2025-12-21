@@ -142,23 +142,7 @@ const AppointmentSlotManager = () => {
 		}, 3000)
 	}
 
-	// Update session quota
-	const handleSessionQuotaChange = async () => {
-		setSuccessMessage("")
-		setErrorMessage("")
-		const result = await slotManager.setSessionQuota(sessionQuota)
-		if (result.success) {
-			setSuccessMessage(
-				`Session quota updated successfully at ${new Date().toLocaleTimeString()}.`
-			)
-		} else {
-			setErrorMessage(`Failed to update session quota: ${result.error}`)
-		}
-		setTimeout(() => {
-			setSuccessMessage("")
-			setErrorMessage("")
-		}, 3000)
-	}
+
 
 	// Edit slot configuration
 	const handleEditSlots = (type, centerId = null) => {
