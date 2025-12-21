@@ -442,6 +442,9 @@ export class SlotManager {
 				const remaining = Math.max(0, quota - bookingsCount);
 
 				summary.totalSlots += quota;
+				summary.bookedSlots += bookingsCount;
+				summary.availableSlots += remaining;
+
 				summary.byCenter['session'].totalSlots += quota;
 				summary.byCenter['session'].bookedSlots += bookingsCount;
 				summary.byCenter['session'].availableSlots += remaining;
@@ -464,6 +467,9 @@ export class SlotManager {
 						const remaining = Math.max(0, quota - bookingsCount);
 
 						summary.totalSlots += quota;
+						summary.bookedSlots += bookingsCount;
+						summary.availableSlots += remaining;
+
 						summary.byCenter[center.id].totalSlots += quota;
 						summary.byCenter[center.id].bookedSlots += bookingsCount;
 						summary.byCenter[center.id].availableSlots += remaining;
