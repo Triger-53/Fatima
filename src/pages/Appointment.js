@@ -163,8 +163,12 @@ const Appointment = () => {
 
 	// ------------------- Load available dates on component mount -------------------
 	useEffect(() => {
-		setAvailableDates(slotManager.getAvailableDates())
-	}, [])
+		const loadDates = async () => {
+			await slotManager.initialized;
+			setAvailableDates(slotManager.getAvailableDates());
+		};
+		loadDates();
+	}, []);
 
 	// ------------------- Keep selected service synced with appointment type -------------------
 	// This now depends on the `services` state as well.
@@ -495,12 +499,12 @@ const Appointment = () => {
 
 		if (selectedDate < today) return "Please select a future time"
 
-		// Check if date is not too far in future (30 days max)
+		// Check if date is not too far in future (dynamic range)
 		const maxDate = new Date(todayOnly);
-		maxDate.setDate(todayOnly.getDate() + 30);
+		maxDate.setDate(todayOnly.getDate() + (slotManager.bookingRange || 30));
 		// Reset selectedDate hours for the range check or compare with maxDate
 		const selectedDateOnly = new Date(year, month - 1, day);
-		if (selectedDateOnly > maxDate) return "Please select a date within the next 30 days"
+		if (selectedDateOnly > maxDate) return `Please select a date within the next ${slotManager.bookingRange || 30} days`
 
 		return null
 	}
@@ -968,6 +972,7 @@ const Appointment = () => {
 												availableDates={availableDates}
 												loadingSlots={loadingSlots}
 												availableSlots={availableSlots}
+												bookingRange={slotManager.bookingRange}
 											/>
 										)}
 									</>

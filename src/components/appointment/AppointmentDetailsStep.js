@@ -11,6 +11,7 @@ const AppointmentDetailsStep = ({
   availableDates,
   loadingSlots,
   availableSlots,
+  bookingRange,
 }) => {
   return (
     <motion.div
@@ -60,15 +61,14 @@ const AppointmentDetailsStep = ({
       </div>
 
       {/* Consultation Method Selection */}
-        <div>
+      <div>
         <label className="block text-gray-700 mb-3">Consultation Method</label>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <label className={`cursor-pointer p-4 border-2 rounded-lg transition-all ${
-            formData.consultationMethod === 'online'
-              ? 'border-primary-500 bg-primary-50'
-              : 'border-gray-300 hover:border-gray-400'
-          }`}>
-          <input
+          <label className={`cursor-pointer p-4 border-2 rounded-lg transition-all ${formData.consultationMethod === 'online'
+            ? 'border-primary-500 bg-primary-50'
+            : 'border-gray-300 hover:border-gray-400'
+            }`}>
+            <input
               type="radio"
               name="consultationMethod"
               value="online"
@@ -83,11 +83,10 @@ const AppointmentDetailsStep = ({
             </div>
           </label>
 
-          <label className={`cursor-pointer p-4 border-2 rounded-lg transition-all ${
-            formData.consultationMethod === 'offline'
-              ? 'border-primary-500 bg-primary-50'
-              : 'border-gray-300 hover:border-gray-400'
-          }`}>
+          <label className={`cursor-pointer p-4 border-2 rounded-lg transition-all ${formData.consultationMethod === 'offline'
+            ? 'border-primary-500 bg-primary-50'
+            : 'border-gray-300 hover:border-gray-400'
+            }`}>
             <input
               type="radio"
               name="consultationMethod"
@@ -111,11 +110,10 @@ const AppointmentDetailsStep = ({
           <label className="block text-gray-700 mb-4 font-medium text-lg">🏥 Select Medical Center</label>
           <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
             {Object.values(MEDICAL_CENTERS).map((center) => (
-              <label key={center.id} className={`cursor-pointer group relative overflow-hidden rounded-2xl border-2 transition-all duration-300 hover:shadow-lg ${
-                formData.medicalCenter === center.id
-                  ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50 shadow-lg ring-2 ring-blue-200'
-                  : 'border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50'
-              }`}>
+              <label key={center.id} className={`cursor-pointer group relative overflow-hidden rounded-2xl border-2 transition-all duration-300 hover:shadow-lg ${formData.medicalCenter === center.id
+                ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50 shadow-lg ring-2 ring-blue-200'
+                : 'border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50'
+                }`}>
                 <input
                   type="radio"
                   name="medicalCenter"
@@ -202,7 +200,7 @@ const AppointmentDetailsStep = ({
         </div>
         <p className="text-xs text-gray-500 mt-1 flex items-center">
           <span className="mr-1">📅</span>
-          Available dates for the next 30 days
+          Available dates for the next {bookingRange || 30} days
         </p>
       </div>
 

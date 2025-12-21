@@ -23,6 +23,8 @@ backend/.env
 jules-scratch/
 .DS_Store
 
+/web_manual
+
 # Google OAuth tokens
 backend/tokens.json
 api/tokens.json

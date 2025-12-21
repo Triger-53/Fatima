@@ -17,13 +17,14 @@ export class SlotManager {
 			// Fetch settings
 			const { data: settingsData, error: settingsError } = await supabase
 				.from("settings")
-				.select("booking_range, online_slots, session_quota")
+				.select("id, booking_range, online_slots, session_quota")
 				.limit(1)
 				.single()
 
 			if (settingsError) {
 				console.error("Error fetching settings:", settingsError)
 			} else if (settingsData) {
+				this.settingsId = settingsData.id
 				this.bookingRange = settingsData.booking_range
 				this.onlineSlots = settingsData.online_slots
 				this.sessionQuota = settingsData.session_quota
@@ -107,22 +108,22 @@ export class SlotManager {
 		}
 
 		try {
-            // Check for sessions first, as they block all types for that time
-            const { count: sessionCount, error: sessionError } = await supabase
-                .from('sessions')
-                .select('id', { count: 'exact', head: true })
-                .eq('date', dateString)
-                .eq('time', timeSlot);
+			// Check for sessions first, as they block all types for that time
+			const { count: sessionCount, error: sessionError } = await supabase
+				.from('sessions')
+				.select('id', { count: 'exact', head: true })
+				.eq('date', dateString)
+				.eq('time', timeSlot);
 
-            if (sessionError) {
-                console.error('Error checking for sessions:', sessionError);
-                return false; // Fail safe
-            }
+			if (sessionError) {
+				console.error('Error checking for sessions:', sessionError);
+				return false; // Fail safe
+			}
 
-            if (sessionCount > 0) {
-                this.cache.set(cacheKey, { available: false, timestamp: Date.now() });
-                return false; // Slot is booked by a session
-            }
+			if (sessionCount > 0) {
+				this.cache.set(cacheKey, { available: false, timestamp: Date.now() });
+				return false; // Slot is booked by a session
+			}
 
 			// Check for appointments of the specific type
 			let query = supabase
@@ -160,42 +161,42 @@ export class SlotManager {
 		}
 	}
 
-    async isTimeSlotCompletelyFree(dateString, timeSlot) {
-        try {
-            // Check for sessions
-            const { count: sessionCount, error: sessionError } = await supabase
-                .from('sessions')
-                .select('id', { count: 'exact', head: true })
-                .eq('date', dateString)
-                .eq('time', timeSlot);
+	async isTimeSlotCompletelyFree(dateString, timeSlot) {
+		try {
+			// Check for sessions
+			const { count: sessionCount, error: sessionError } = await supabase
+				.from('sessions')
+				.select('id', { count: 'exact', head: true })
+				.eq('date', dateString)
+				.eq('time', timeSlot);
 
-            if (sessionError) {
-                console.error('Error checking for sessions:', sessionError);
-                return false; // Fail safe
-            }
-            if (sessionCount > 0) {
-                return false; // Booked by a session
-            }
+			if (sessionError) {
+				console.error('Error checking for sessions:', sessionError);
+				return false; // Fail safe
+			}
+			if (sessionCount > 0) {
+				return false; // Booked by a session
+			}
 
-            // Check for appointments
-            const { count: appointmentCount, error: appointmentError } = await supabase
-                .from('Appointment')
-                .select('id', { count: 'exact', head: true })
-                .eq('preferredDate', dateString)
-                .eq('preferredTime', timeSlot);
+			// Check for appointments
+			const { count: appointmentCount, error: appointmentError } = await supabase
+				.from('Appointment')
+				.select('id', { count: 'exact', head: true })
+				.eq('preferredDate', dateString)
+				.eq('preferredTime', timeSlot);
 
-            if (appointmentError) {
-                console.error('Error checking for appointments:', appointmentError);
-                return false; // Fail safe
-            }
+			if (appointmentError) {
+				console.error('Error checking for appointments:', appointmentError);
+				return false; // Fail safe
+			}
 
-            return appointmentCount === 0; // Free if no appointments found
+			return appointmentCount === 0; // Free if no appointments found
 
-        } catch (error) {
-            console.error('Error checking if time slot is free:', error);
-            return false;
-        }
-    }
+		} catch (error) {
+			console.error('Error checking if time slot is free:', error);
+			return false;
+		}
+	}
 
 	// Get all available slots for a date by fetching booked slots and filtering
 	async getAvailableSlotsForDate(dateString, consultationMethod, medicalCenter = null) {
@@ -224,20 +225,20 @@ export class SlotManager {
 				return []; // Fail safe, return no slots
 			}
 
-            const { data: bookedSessions, error: sessionError } = await supabase
-                .from('sessions')
-                .select('time')
-                .eq('date', dateString);
+			const { data: bookedSessions, error: sessionError } = await supabase
+				.from('sessions')
+				.select('time')
+				.eq('date', dateString);
 
-            if (sessionError) {
-                console.error('Error fetching booked sessions:', sessionError);
-                return []; // Fail safe
-            }
+			if (sessionError) {
+				console.error('Error fetching booked sessions:', sessionError);
+				return []; // Fail safe
+			}
 
 			const bookedSlots = new Set([
-                ...bookedAppointments.map(a => a.preferredTime),
-                ...bookedSessions.map(s => s.time)
-            ]);
+				...bookedAppointments.map(a => a.preferredTime),
+				...bookedSessions.map(s => s.time)
+			]);
 			const availableSlots = allPossibleSlots.filter(slot => !bookedSlots.has(slot));
 
 			return availableSlots;
@@ -249,50 +250,50 @@ export class SlotManager {
 
 	// Get slot availability summary for admin dashboard
 	async getSlotAvailabilitySummary(bookingRange = this.bookingRange) {
-        const dates = this.getAvailableDates(bookingRange);
-        const summary = {
-            totalSlots: 0,
-            bookedSlots: 0,
-            availableSlots: 0,
-            byDate: {},
-            byCenter: {}
-        };
+		const dates = this.getAvailableDates(bookingRange);
+		const summary = {
+			totalSlots: 0,
+			bookedSlots: 0,
+			availableSlots: 0,
+			byDate: {},
+			byCenter: {}
+		};
 
-        // Fetch all booked appointments and sessions in the range to optimize queries
-        const { data: bookedAppointments, error: apptError } = await supabase
-            .from('Appointment')
-            .select('preferredDate, preferredTime, consultationMethod, medicalCenter')
-            .in('preferredDate', dates);
+		// Fetch all booked appointments and sessions in the range to optimize queries
+		const { data: bookedAppointments, error: apptError } = await supabase
+			.from('Appointment')
+			.select('preferredDate, preferredTime, consultationMethod, medicalCenter')
+			.in('preferredDate', dates);
 
-        if (apptError) {
-            console.error("Error fetching appointments for summary:", apptError);
-            return summary;
-        }
+		if (apptError) {
+			console.error("Error fetching appointments for summary:", apptError);
+			return summary;
+		}
 
-        const { data: bookedSessions, error: sessionError } = await supabase
-            .from('sessions')
-            .select('date, time')
-            .in('date', dates);
+		const { data: bookedSessions, error: sessionError } = await supabase
+			.from('sessions')
+			.select('date, time')
+			.in('date', dates);
 
-        if (sessionError) {
-            console.error("Error fetching sessions for summary:", sessionError);
-            return summary;
-        }
+		if (sessionError) {
+			console.error("Error fetching sessions for summary:", sessionError);
+			return summary;
+		}
 
-        const bookedSlotsSet = new Set();
-        bookedAppointments.forEach(a => {
-            const key = `${a.preferredDate}_${a.preferredTime}_${a.consultationMethod}_${a.medicalCenter || 'online'}`;
-            bookedSlotsSet.add(key);
-        });
-        bookedSessions.forEach(s => {
-            // Sessions block all types of slots at that time, so we need to account for this
-            const onlineKey = `${s.date}_${s.time}_online_online`;
-            bookedSlotsSet.add(onlineKey);
-            this.medicalCenters.forEach(center => {
-                const offlineKey = `${s.date}_${s.time}_offline_${center.id}`;
-                bookedSlotsSet.add(offlineKey);
-            });
-        });
+		const bookedSlotsSet = new Set();
+		bookedAppointments.forEach(a => {
+			const key = `${a.preferredDate}_${a.preferredTime}_${a.consultationMethod}_${a.medicalCenter || 'online'}`;
+			bookedSlotsSet.add(key);
+		});
+		bookedSessions.forEach(s => {
+			// Sessions block all types of slots at that time, so we need to account for this
+			const onlineKey = `${s.date}_${s.time}_online_online`;
+			bookedSlotsSet.add(onlineKey);
+			this.medicalCenters.forEach(center => {
+				const offlineKey = `${s.date}_${s.time}_offline_${center.id}`;
+				bookedSlotsSet.add(offlineKey);
+			});
+		});
 
 		// Initialize center tracking
 		this.medicalCenters.forEach(center => {
@@ -313,57 +314,57 @@ export class SlotManager {
 		};
 
 		for (const date of dates) {
-            summary.byDate[date] = {
-                online: { total: 0, booked: 0, available: 0 },
-                offline: {}
-            };
+			summary.byDate[date] = {
+				online: { total: 0, booked: 0, available: 0 },
+				offline: {}
+			};
 
-            // Process online slots
-            const onlineSlots = this.getAvailableSlots(date, 'online');
-            for (const slot of onlineSlots) {
-                const key = `${date}_${slot}_online_online`;
-                const isAvailable = !bookedSlotsSet.has(key);
+			// Process online slots
+			const onlineSlots = this.getAvailableSlots(date, 'online');
+			for (const slot of onlineSlots) {
+				const key = `${date}_${slot}_online_online`;
+				const isAvailable = !bookedSlotsSet.has(key);
 
-                summary.totalSlots++;
-                summary.byCenter['online'].totalSlots++;
-                summary.byDate[date].online.total++;
+				summary.totalSlots++;
+				summary.byCenter['online'].totalSlots++;
+				summary.byDate[date].online.total++;
 
-                if (isAvailable) {
-                    summary.availableSlots++;
-                    summary.byCenter['online'].availableSlots++;
-                    summary.byDate[date].online.available++;
-                } else {
-                    summary.bookedSlots++;
-                    summary.byCenter['online'].bookedSlots++;
-                    summary.byDate[date].online.booked++;
-                }
-            }
+				if (isAvailable) {
+					summary.availableSlots++;
+					summary.byCenter['online'].availableSlots++;
+					summary.byDate[date].online.available++;
+				} else {
+					summary.bookedSlots++;
+					summary.byCenter['online'].bookedSlots++;
+					summary.byDate[date].online.booked++;
+				}
+			}
 
-            // Process offline slots
-            for (const center of this.medicalCenters) {
-                summary.byDate[date].offline[center.id] = { total: 0, booked: 0, available: 0 };
-                const offlineSlots = this.getAvailableSlots(date, 'offline', center.id);
+			// Process offline slots
+			for (const center of this.medicalCenters) {
+				summary.byDate[date].offline[center.id] = { total: 0, booked: 0, available: 0 };
+				const offlineSlots = this.getAvailableSlots(date, 'offline', center.id);
 
-                for (const slot of offlineSlots) {
-                    const key = `${date}_${slot}_offline_${center.id}`;
-                    const isAvailable = !bookedSlotsSet.has(key);
+				for (const slot of offlineSlots) {
+					const key = `${date}_${slot}_offline_${center.id}`;
+					const isAvailable = !bookedSlotsSet.has(key);
 
-                    summary.totalSlots++;
-                    summary.byCenter[center.id].totalSlots++;
-                    summary.byDate[date].offline[center.id].total++;
+					summary.totalSlots++;
+					summary.byCenter[center.id].totalSlots++;
+					summary.byDate[date].offline[center.id].total++;
 
-                    if (isAvailable) {
-                        summary.availableSlots++;
-                        summary.byCenter[center.id].availableSlots++;
-                        summary.byDate[date].offline[center.id].available++;
-                    } else {
-                        summary.bookedSlots++;
-                        summary.byCenter[center.id].bookedSlots++;
-                        summary.byDate[date].offline[center.id].booked++;
-                    }
-                }
-            }
-        }
+					if (isAvailable) {
+						summary.availableSlots++;
+						summary.byCenter[center.id].availableSlots++;
+						summary.byDate[date].offline[center.id].available++;
+					} else {
+						summary.bookedSlots++;
+						summary.byCenter[center.id].bookedSlots++;
+						summary.byDate[date].offline[center.id].booked++;
+					}
+				}
+			}
+		}
 
 		return summary;
 	}
@@ -382,7 +383,7 @@ export class SlotManager {
 		const { error } = await supabase
 			.from("settings")
 			.update({ booking_range: days })
-			.eq("id", 1) // Assuming a single settings row with id 1
+			.eq("id", this.settingsId)
 		if (error) {
 			console.error("Error updating booking range:", error)
 			return { success: false, error: error.message }
@@ -399,7 +400,7 @@ export class SlotManager {
 		const { error } = await supabase
 			.from("settings")
 			.update({ online_slots: newSlots })
-			.eq("id", 1) // Assuming a single settings row with id 1
+			.eq("id", this.settingsId)
 		if (error) {
 			console.error("Error updating online slots:", error)
 			return { success: false, error: error.message }
@@ -441,7 +442,7 @@ export class SlotManager {
 		const { error } = await supabase
 			.from("settings")
 			.update({ session_quota: newQuota })
-			.eq("id", 1) // Assuming a single settings row with id 1
+			.eq("id", this.settingsId)
 		if (error) {
 			console.error("Error updating session quota:", error)
 			return { success: false, error: error.message }
