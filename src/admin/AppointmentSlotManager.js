@@ -30,6 +30,7 @@ const AppointmentSlotManager = () => {
 		totalSlots: 0,
 		bookedSlots: 0,
 		availableSlots: 0,
+		byCenter: {},
 	})
 	const [visibleDatesCount, setVisibleDatesCount] = useState(14)
 	const [successMessage, setSuccessMessage] = useState("")
@@ -80,6 +81,7 @@ const AppointmentSlotManager = () => {
 					totalSlots: availabilitySummary.totalSlots,
 					bookedSlots: availabilitySummary.bookedSlots,
 					availableSlots: availabilitySummary.availableSlots,
+					byCenter: availabilitySummary.byCenter,
 				})
 				setAvailability(availabilitySummary.byDate)
 			} catch (error) {
@@ -559,11 +561,11 @@ const AppointmentSlotManager = () => {
 										<div className="text-sm">
 											<span
 												className={`px-2 py-1 rounded-full text-xs ${dateData.session.available === 0
-														? "bg-red-100 text-red-800"
-														: dateData.session.available <
-															dateData.session.total * 0.5
-															? "bg-yellow-100 text-yellow-800"
-															: "bg-green-100 text-green-800"
+													? "bg-red-100 text-red-800"
+													: dateData.session.available <
+														dateData.session.total * 0.5
+														? "bg-yellow-100 text-yellow-800"
+														: "bg-green-100 text-green-800"
 													}`}>
 												{dateData.session.available}/{dateData.session.total}
 											</span>

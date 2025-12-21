@@ -18,7 +18,7 @@ export class SlotManager {
 			// Fetch settings
 			const { data: settingsData, error: settingsError } = await supabase
 				.from("settings")
-				.select("id, booking_range, online_slots, session_slots, session_quota")
+				.select("*")
 				.limit(1)
 				.single()
 
@@ -26,10 +26,10 @@ export class SlotManager {
 				console.error("Error fetching settings:", settingsError)
 			} else if (settingsData) {
 				this.settingsId = settingsData.id
-				this.bookingRange = settingsData.booking_range
+				this.bookingRange = settingsData.booking_range || 30
 				this.onlineSlots = settingsData.online_slots || {}
 				this.sessionSlots = settingsData.session_slots || {}
-				this.sessionQuota = settingsData.session_quota
+				this.sessionQuota = settingsData.session_quota || 1
 			}
 
 			// Fetch hospitals
