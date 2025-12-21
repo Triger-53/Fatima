@@ -40,14 +40,12 @@ const AppointmentSlotManager = () => {
 	const [successMessage, setSuccessMessage] = useState("")
 	const [errorMessage, setErrorMessage] = useState("")
 
-	const [sessionQuota, setSessionQuota] = useState("")
 
 	// Initialize and fetch data
 	useEffect(() => {
 		const initialize = async () => {
 			await slotManager.initialized
 			setBookingRange(slotManager.bookingRange)
-			setSessionQuota(slotManager.sessionQuota || "")
 			setSlotConfig({
 				online: slotManager.onlineSlots,
 				session: slotManager.sessionSlots,
@@ -274,38 +272,40 @@ const AppointmentSlotManager = () => {
 				</div>
 			)}
 
-			{/* Booking Range Control */}
+			{/* Configuration Controls */}
 			<div className="bg-white rounded-lg shadow-md p-6 mb-6">
-				<div className="flex items-center justify-between mb-4">
-					<h2 className="text-xl font-semibold flex items-center">
-						<Calendar className="w-5 h-5 mr-2" />
-						Booking Range Configuration
-					</h2>
-				</div>
-				<div className="flex items-center space-x-4">
-					<label className="text-sm font-medium text-gray-700">
-						Booking Range (days):
-					</label>
-					<select
-						value={bookingRange}
-						onChange={(e) => handleBookingRangeChange(parseInt(e.target.value))}
-						className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-						<option value={15}>15 days</option>
-						<option value={30}>30 days</option>
-						<option value={45}>45 days</option>
-						<option value={60}>60 days</option>
-						<option value={90}>90 days</option>
-					</select>
-					<span className="text-sm text-gray-600">
-						Currently showing {bookingRange} days from today
-					</span>
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+					<div>
+						<h2 className="text-xl font-semibold flex items-center mb-4">
+							<Calendar className="w-5 h-5 mr-2" />
+							Booking Range Configuration
+						</h2>
+						<div className="flex items-center space-x-4">
+							<label className="text-sm font-medium text-gray-700">
+								Booking Range (days):
+							</label>
+							<select
+								value={bookingRange}
+								onChange={(e) => handleBookingRangeChange(parseInt(e.target.value))}
+								className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+								<option value={15}>15 days</option>
+								<option value={30}>30 days</option>
+								<option value={45}>45 days</option>
+								<option value={60}>60 days</option>
+								<option value={90}>90 days</option>
+							</select>
+							<span className="text-sm text-gray-600">
+								Currently: {bookingRange} days
+							</span>
+						</div>
+					</div>
 				</div>
 			</div>
 
 
 
 			{/* Availability Summary */}
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+			<div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
 				<div className="bg-white rounded-lg shadow-md p-6">
 					<div className="flex items-center">
 						<div className="p-3 rounded-full bg-blue-100 text-blue-600">

@@ -6,7 +6,6 @@ export class SlotManager {
 		this.bookingRange = 30 // Default fallback
 		this.onlineSlots = {}
 		this.sessionSlots = {}
-		this.sessionQuota = 1
 		this.medicalCenters = []
 		this.cache = new Map()
 		this.cacheTimeout = 5 * 60 * 1000 // 5 minutes cache
@@ -29,7 +28,6 @@ export class SlotManager {
 				this.bookingRange = settingsData.booking_range || 30
 				this.onlineSlots = settingsData.online_slots || {}
 				this.sessionSlots = settingsData.session_slots || {}
-				this.sessionQuota = settingsData.session_quota || 1
 			}
 
 			// Fetch hospitals
@@ -82,7 +80,7 @@ export class SlotManager {
 		}
 
 		try {
-			const quota = parseInt(this.sessionQuota) || 1;
+			const quota = 1;
 
 			const datesForQuery = (allDatesInRange && allDatesInRange.length > 0) ? allDatesInRange : [today.toISOString().split('T')[0]];
 
@@ -180,8 +178,7 @@ export class SlotManager {
 		}
 
 		try {
-			// Get session quota
-			const quota = parseInt(this.sessionQuota) || 1;
+			const quota = 1;
 
 			// Check for sessions
 			const { count: sessionCount, error: sessionError } = await supabase
@@ -201,11 +198,6 @@ export class SlotManager {
 				.select('id', { count: 'exact', head: true })
 				.eq('preferredDate', dateString)
 				.eq('preferredTime', timeSlot);
-
-			// If checking for a specific type, we still need to know the total bookings for this slot
-			// because the quota is per global slot (usually).
-			// However, the original code had specific logic for consultationMethod.
-			// If the quota applies to the specific consultation method slot:
 
 			const { count: appointmentCount, error: appointmentError } = await apptQuery;
 
@@ -232,7 +224,7 @@ export class SlotManager {
 
 	async isTimeSlotCompletelyFree(dateString, timeSlot) {
 		try {
-			const quota = parseInt(this.sessionQuota) || 1;
+			const quota = 1;
 
 			// Check for sessions
 			const { count: sessionCount, error: sessionError } = await supabase
@@ -275,7 +267,7 @@ export class SlotManager {
 		}
 
 		try {
-			const quota = parseInt(this.sessionQuota) || 1;
+			const quota = 1;
 
 			// Fetch all appointments for this date
 			const { data: bookedAppointments, error } = await supabase
@@ -334,7 +326,7 @@ export class SlotManager {
 		const dates = await this.getAvailableDates(null, null, bookingRange);
 		if (!dates || !Array.isArray(dates) || dates.length === 0) return summary;
 
-		const quota = parseInt(this.sessionQuota) || 1;
+		const quota = 1;
 
 		const datesForQuery = (dates && dates.length > 0) ? dates : [];
 		if (datesForQuery.length === 0) return summary;
@@ -561,23 +553,6 @@ export class SlotManager {
 				`Error updating schedule for hospital ${hospitalId}:`,
 				error
 			)
-			return { success: false, error: error.message }
-		}
-		return { success: true }
-	}
-
-	// Set session quota
-	async setSessionQuota(newQuota) {
-		this.sessionQuota = newQuota
-		this.clearCache()
-
-		// Persist to database
-		const { error } = await supabase
-			.from("settings")
-			.update({ session_quota: newQuota })
-			.eq("id", this.settingsId)
-		if (error) {
-			console.error("Error updating session quota:", error)
 			return { success: false, error: error.message }
 		}
 		return { success: true }
