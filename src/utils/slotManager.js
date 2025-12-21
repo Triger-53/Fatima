@@ -372,14 +372,16 @@ export class SlotManager {
 		});
 
 		// Initialize center tracking
-		this.medicalCenters.forEach(center => {
-			summary.byCenter[center.id] = {
-				name: center.name,
-				totalSlots: 0,
-				bookedSlots: 0,
-				availableSlots: 0
-			};
-		});
+		if (Array.isArray(this.medicalCenters)) {
+			this.medicalCenters.forEach(center => {
+				summary.byCenter[center.id] = {
+					name: center.name,
+					totalSlots: 0,
+					bookedSlots: 0,
+					availableSlots: 0
+				};
+			});
+		}
 
 		// Add online center
 		summary.byCenter['online'] = {
@@ -450,27 +452,29 @@ export class SlotManager {
 			}
 
 			// Process offline slots
-			for (const center of this.medicalCenters) {
-				summary.byDate[date].offline[center.id] = { total: 0, booked: 0, available: 0 };
-				const offlineSlots = this.getAvailableSlots(date, 'offline', center.id);
+			if (Array.isArray(this.medicalCenters)) {
+				for (const center of this.medicalCenters) {
+					summary.byDate[date].offline[center.id] = { total: 0, booked: 0, available: 0 };
+					const offlineSlots = this.getAvailableSlots(date, 'offline', center.id) || [];
 
-				for (const slot of offlineSlots) {
-					const key = `${date}_${slot}`;
-					const bookingsCount = slotBookings[key] || 0;
-					const isCurrentlyAvailable = bookingsCount < quota;
+					for (const slot of offlineSlots) {
+						const key = `${date}_${slot}`;
+						const bookingsCount = slotBookings[key] || 0;
+						const isCurrentlyAvailable = bookingsCount < quota;
 
-					summary.totalSlots++;
-					summary.byCenter[center.id].totalSlots++;
-					summary.byDate[date].offline[center.id].total++;
+						summary.totalSlots++;
+						summary.byCenter[center.id].totalSlots++;
+						summary.byDate[date].offline[center.id].total++;
 
-					if (isCurrentlyAvailable) {
-						summary.availableSlots++;
-						summary.byCenter[center.id].availableSlots++;
-						summary.byDate[date].offline[center.id].available++;
-					} else {
-						summary.bookedSlots++;
-						summary.byCenter[center.id].bookedSlots++;
-						summary.byDate[date].offline[center.id].booked++;
+						if (isCurrentlyAvailable) {
+							summary.availableSlots++;
+							summary.byCenter[center.id].availableSlots++;
+							summary.byDate[date].offline[center.id].available++;
+						} else {
+							summary.bookedSlots++;
+							summary.byCenter[center.id].bookedSlots++;
+							summary.byDate[date].offline[center.id].booked++;
+						}
 					}
 				}
 			}
