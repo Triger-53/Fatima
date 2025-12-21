@@ -299,8 +299,19 @@ const AppointmentList = ({ appointments }) => {
 						<p className="text-gray-600">{formatDate(appt.preferredDate)} at {appt.preferredTime}</p>
 						<p className={`capitalize font-semibold ${appt.consultationMethod === 'online' ? 'text-blue-600' : 'text-green-600'}`}>{appt.consultationMethod}</p>
 					</div>
-					<div className="text-right">
+					<div className="text-right flex flex-col items-end gap-2">
 						<span className="text-sm bg-green-100 text-green-800 px-3 py-1 rounded-full font-medium">Confirmed</span>
+						{appt.consultationMethod === 'online' && appt.meet_link && (
+							<a
+								href={appt.meet_link}
+								target="_blank"
+								rel="noopener noreferrer"
+								className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-full font-semibold transition-colors"
+								onClick={(e) => e.stopPropagation()}
+							>
+								Join Meeting
+							</a>
+						)}
 					</div>
 				</motion.div>
 			))}

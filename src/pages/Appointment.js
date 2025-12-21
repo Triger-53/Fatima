@@ -135,6 +135,7 @@ const Appointment = () => {
 			try {
 				const service = JSON.parse(decodeURIComponent(serviceParam))
 				setSelectedService(service)
+
 				// Auto-fill appointment type if service is selected
 				if (service.appointmentType) {
 					setFormData(prev => ({
@@ -142,11 +143,14 @@ const Appointment = () => {
 						appointmentType: service.appointmentType
 					}))
 				}
+
+				// If authenticated, maybe we can skip Step 0? 
+				// The existing useEffect for authentication handles setting currentStep.
 			} catch (error) {
 				console.error('Error parsing service parameter:', error)
 			}
 		}
-	}, [])
+	}, [services]) // Add services as dependency to re-sync if needed
 
 	// ------------------- Restore persisted form and step -------------------
 	useEffect(() => {
@@ -814,6 +818,43 @@ const Appointment = () => {
 						}
 
 						// Step 3: Save appointment after successful verification
+						let meetLink = null;
+						if (formData.consultationMethod === 'online') {
+							try {
+								const parseTime = (timeStr) => {
+									const timeMatch = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+									if (!timeMatch) return "10:00:00"; // Fallback
+									let hours = parseInt(timeMatch[1]);
+									const minutes = timeMatch[2];
+									const modifier = timeMatch[3].toUpperCase();
+									if (modifier === 'PM' && hours < 12) hours += 12;
+									if (modifier === 'AM' && hours === 12) hours = 0;
+									return `${String(hours).padStart(2, '0')}:${minutes}:00`;
+								};
+
+								const isoStartTime = `${formData.preferredDate}T${parseTime(formData.preferredTime)}`;
+								const start = new Date(isoStartTime);
+								const end = new Date(start.getTime() + 30 * 60000); // Default 30 min
+
+								const meetRes = await fetch("/create-meeting", {
+									method: "POST",
+									headers: { "Content-Type": "application/json" },
+									body: JSON.stringify({
+										patientEmail: formData.email,
+										startDateTime: start.toISOString(),
+										endDateTime: end.toISOString(),
+									}),
+								});
+
+								if (meetRes.ok) {
+									const meetData = await meetRes.json();
+									meetLink = meetData.meetLink;
+								}
+							} catch (meetErr) {
+								console.error("Error generating meet link:", meetErr);
+							}
+						}
+
 						const appointmentData = {
 							firstName: formData.firstName,
 							lastName: formData.lastName,
@@ -835,6 +876,7 @@ const Appointment = () => {
 							paymentId: response.razorpay_payment_id,
 							orderId: response.razorpay_order_id,
 							user_id: user.id,
+							meet_link: meetLink,
 						}
 
 						const { data, error: insertError } = await supabase
