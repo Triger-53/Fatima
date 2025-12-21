@@ -818,6 +818,7 @@ const Appointment = () => {
 						}
 
 						// Step 3: Create calendar event & optional meet link
+						let meetLink = null;
 						try {
 							const parseTime = (timeStr) => {
 								const timeMatch = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);

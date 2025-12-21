@@ -99,8 +99,8 @@ const AppointmentSlotManager = () => {
 	}, [bookingRange])
 
 	// Use enhanced slot manager for better slot management
-	const getAvailableDates = () => {
-		return slotManager.getAvailableDates(bookingRange)
+	const getAvailableDates = async () => {
+		return await slotManager.getAvailableDates(null, null, bookingRange)
 	}
 
 	// Get day of week from date string

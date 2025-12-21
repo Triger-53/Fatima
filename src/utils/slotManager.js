@@ -64,10 +64,11 @@ export class SlotManager {
 
 	// Get available dates within booking range
 	async getAvailableDates(consultationMethod = null, medicalCenter = null, bookingRange = this.bookingRange) {
+		const range = parseInt(bookingRange) || this.bookingRange;
 		const dates = [];
 		const today = new Date();
 		const maxDate = new Date(today);
-		maxDate.setDate(today.getDate() + bookingRange);
+		maxDate.setDate(today.getDate() + range);
 
 		const allDatesInRange = [];
 		for (let d = new Date(today); d <= maxDate; d.setDate(d.getDate() + 1)) {
@@ -83,11 +84,13 @@ export class SlotManager {
 		try {
 			const quota = parseInt(this.sessionQuota) || 1;
 
+			const datesForQuery = (allDatesInRange && allDatesInRange.length > 0) ? allDatesInRange : [today.toISOString().split('T')[0]];
+
 			// Bulk fetch appointments for the whole range
 			const { data: bookedAppointments, error: apptError } = await supabase
 				.from('Appointment')
 				.select('preferredDate, preferredTime')
-				.in('preferredDate', allDatesInRange);
+				.in('preferredDate', datesForQuery);
 
 			if (apptError) throw apptError;
 
@@ -95,7 +98,7 @@ export class SlotManager {
 			const { data: bookedSessions, error: sessionError } = await supabase
 				.from('sessions')
 				.select('date, time')
-				.in('date', allDatesInRange);
+				.in('date', datesForQuery);
 
 			if (sessionError) throw sessionError;
 
@@ -320,7 +323,6 @@ export class SlotManager {
 
 	// Get slot availability summary for admin dashboard
 	async getSlotAvailabilitySummary(bookingRange = this.bookingRange) {
-		const dates = this.getAvailableDates(bookingRange);
 		const summary = {
 			totalSlots: 0,
 			bookedSlots: 0,
@@ -329,13 +331,19 @@ export class SlotManager {
 			byCenter: {}
 		};
 
+		const dates = await this.getAvailableDates(null, null, bookingRange);
+		if (!dates || !Array.isArray(dates) || dates.length === 0) return summary;
+
 		const quota = parseInt(this.sessionQuota) || 1;
+
+		const datesForQuery = (dates && dates.length > 0) ? dates : [];
+		if (datesForQuery.length === 0) return summary;
 
 		// Fetch all booked appointments and sessions in the range to optimize queries
 		const { data: bookedAppointments, error: apptError } = await supabase
 			.from('Appointment')
 			.select('preferredDate, preferredTime')
-			.in('preferredDate', dates);
+			.in('preferredDate', datesForQuery);
 
 		if (apptError) {
 			console.error("Error fetching appointments for summary:", apptError);
@@ -345,7 +353,7 @@ export class SlotManager {
 		const { data: bookedSessions, error: sessionError } = await supabase
 			.from('sessions')
 			.select('date, time')
-			.in('date', dates);
+			.in('date', datesForQuery);
 
 		if (sessionError) {
 			console.error("Error fetching sessions for summary:", sessionError);
