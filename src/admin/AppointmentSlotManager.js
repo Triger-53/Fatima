@@ -11,6 +11,9 @@ import {
 	Edit3,
 	Save,
 	X,
+	AlertTriangle,
+	ShieldCheck,
+	RefreshCw,
 } from "lucide-react"
 import { slotManager } from "../utils/slotManager"
 
@@ -26,6 +29,7 @@ const AppointmentSlotManager = () => {
 		offline: [],
 	})
 	const [availability, setAvailability] = useState({})
+	const [showAudit, setShowAudit] = useState(false)
 	const [summary, setSummary] = useState({
 		totalSlots: 0,
 		bookedSlots: 0,
@@ -242,6 +246,14 @@ const AppointmentSlotManager = () => {
 				<p className="text-center text-blue-100">
 					Manage booking ranges and slot availability
 				</p>
+				<div className="mt-4 flex justify-center">
+					<button
+						onClick={() => setShowAudit(true)}
+						className="flex items-center px-6 py-2 bg-white text-blue-600 rounded-full font-semibold shadow-lg hover:bg-blue-50 transition-all transform hover:scale-105">
+						<AlertTriangle className="w-5 h-5 mr-2" />
+						Audit Schedule for Overlaps
+					</button>
+				</div>
 			</div>
 
 			{/* Feedback Messages */}
@@ -578,9 +590,184 @@ const AppointmentSlotManager = () => {
 					}}
 				/>
 			)}
+
+			{/* Schedule Audit Modal */}
+			{showAudit && (
+				<ScheduleAudit
+					onClose={() => setShowAudit(false)}
+					onRefresh={() => {
+						// Re-fetch everything if needed, though SlotManager instance is singleton
+						setBookingRange(slotManager.bookingRange)
+					}}
+				/>
+			)}
 		</div>
 	)
 }
+
+// Schedule Audit Component
+const ScheduleAudit = ({ onClose, onRefresh }) => {
+	const [overlappingSlots, setOverlappingSlots] = useState({});
+	const [auditStatus, setAuditStatus] = useState('idle'); // idle, loading, complete
+
+	useEffect(() => {
+		runAudit();
+	}, []);
+
+	const runAudit = () => {
+		setAuditStatus('loading');
+		const results = slotManager.checkScheduleOverlaps();
+		setOverlappingSlots(results);
+		setAuditStatus('complete');
+	};
+
+	const handleFixOverlap = async (day, time, categoryToKeep) => {
+		const categories = overlappingSlots[day][time];
+
+		for (const cat of categories) {
+			if (cat === categoryToKeep) continue;
+
+			// Remove from specific category
+			let result;
+			if (cat.type === 'online') {
+				const newSlots = { ...slotManager.onlineSlots };
+				newSlots[day].slots = newSlots[day].slots.filter(s => s !== time);
+				result = await slotManager.setOnlineSlots(newSlots);
+			} else if (cat.type === 'session') {
+				const newSlots = { ...slotManager.sessionSlots };
+				newSlots[day].slots = newSlots[day].slots.filter(s => s !== time);
+				result = await slotManager.setSessionSlots(newSlots);
+			} else if (cat.type === 'offline') {
+				const center = slotManager.medicalCenters.find(c => c.id === cat.centerId);
+				const newSchedule = { ...center.doctorSchedule };
+				newSchedule[day].slots = newSchedule[day].slots.filter(s => s !== time);
+				result = await slotManager.setHospitalSchedule(cat.centerId, newSchedule);
+			}
+
+			if (!result.success) {
+				alert(`Failed to fix overlap: ${result.error}`);
+				return;
+			}
+		}
+
+		// Refresh audit
+		runAudit();
+		onRefresh();
+	};
+
+	const totalOverlaps = Object.values(overlappingSlots).reduce((acc, day) => acc + Object.keys(day).length, 0);
+
+	return (
+		<div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+			<div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden flex flex-col transform transition-all">
+				<div className="p-6 bg-gradient-to-r from-gray-900 to-blue-900 text-white flex justify-between items-center">
+					<div className="flex items-center">
+						<ShieldCheck className="w-8 h-8 mr-3 text-blue-400" />
+						<div>
+							<h3 className="text-2xl font-bold">Schedule Audit Tool</h3>
+							<p className="text-blue-200 text-sm">Detecting cross-method slot conflicts</p>
+						</div>
+					</div>
+					<button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+						<X className="w-6 h-6" />
+					</button>
+				</div>
+
+				<div className="flex-1 overflow-y-auto p-6 bg-gray-50">
+					{auditStatus === 'loading' ? (
+						<div className="flex flex-col items-center justify-center h-64">
+							<RefreshCw className="w-12 h-12 text-blue-600 animate-spin mb-4" />
+							<p className="text-gray-600 font-medium">Analyzing schedules...</p>
+						</div>
+					) : totalOverlaps === 0 ? (
+						<div className="flex flex-col items-center justify-center py-12 text-center">
+							<div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-6">
+								<ShieldCheck className="w-10 h-10 text-green-600" />
+							</div>
+							<h4 className="text-2xl font-bold text-gray-800 mb-2">Clean Bill of Health!</h4>
+							<p className="text-gray-600 max-w-sm">
+								No overlapping slots were found across Online, Sessions, and Medical Centers.
+							</p>
+						</div>
+					) : (
+						<div className="space-y-6">
+							<div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-lg mb-6">
+								<div className="flex">
+									<AlertTriangle className="h-6 w-6 text-amber-500 mr-3" />
+									<div>
+										<h5 className="text-amber-800 font-bold text-lg">Potential conflicts detected</h5>
+										<p className="text-amber-700 text-sm">
+											The following {totalOverlaps} slots exist in multiple categories. Choose which one to keep to resolve the conflict.
+										</p>
+									</div>
+								</div>
+							</div>
+
+							{Object.entries(overlappingSlots).map(([day, slots]) => (
+								<div key={day} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+									<div className="bg-gray-100 px-4 py-2 border-b border-gray-200">
+										<h4 className="font-bold text-gray-700 capitalize">{day}</h4>
+									</div>
+									<div className="divide-y divide-gray-100">
+										{Object.entries(slots).map(([time, categories]) => (
+											<div key={time} className="p-4 sm:flex items-center justify-between hover:bg-gray-50 transition-colors">
+												<div className="mb-4 sm:mb-0">
+													<div className="flex items-center mb-2">
+														<Clock className="w-4 h-4 text-gray-400 mr-2" />
+														<span className="text-lg font-bold text-gray-800">{time}</span>
+													</div>
+													<div className="flex flex-wrap gap-2">
+														{categories.map((cat, idx) => (
+															<span key={idx} className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium border border-blue-100">
+																{cat.name}
+															</span>
+														))}
+													</div>
+												</div>
+												<div className="flex flex-col sm:items-end gap-2">
+													<p className="text-xs text-gray-500 font-medium">Keep only:</p>
+													<div className="flex flex-wrap gap-2 justify-end">
+														{categories.map((cat, idx) => (
+															<button
+																key={idx}
+																onClick={() => handleFixOverlap(day, time, cat)}
+																className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm hover:shadow-md">
+																{cat.name.split(' ')[0]}
+															</button>
+														))}
+													</div>
+												</div>
+											</div>
+										))}
+									</div>
+								</div>
+							))}
+						</div>
+					)}
+				</div>
+
+				<div className="p-6 bg-gray-100 border-t border-gray-200 flex justify-between items-center">
+					<p className="text-sm text-gray-500">
+						Checked {new Date().toLocaleTimeString()}
+					</p>
+					<div className="flex gap-3">
+						<button
+							onClick={runAudit}
+							className="px-4 py-2 bg-white border border-gray-300 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition-all flex items-center">
+							<RefreshCw className="w-4 h-4 mr-2" />
+							Re-scan
+						</button>
+						<button
+							onClick={onClose}
+							className="px-6 py-2 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-200">
+							Close Audit
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	);
+};
 
 // Slot Editor Component
 const SlotEditor = ({ editingSlots, slotConfig, onSave, onClose }) => {

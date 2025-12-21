@@ -6,7 +6,7 @@ export class SlotManager {
 		this.bookingRange = 30 // Default fallback
 		this.onlineSlots = {}
 		this.sessionSlots = {}
-		this.sessionQuota = {}
+		this.sessionQuota = 1
 		this.medicalCenters = []
 		this.cache = new Map()
 		this.cacheTimeout = 5 * 60 * 1000 // 5 minutes cache
@@ -509,6 +509,56 @@ export class SlotManager {
 			return { success: false, error: error.message }
 		}
 		return { success: true }
+	}
+
+	// Check for overlaps across all consultation methods
+	checkScheduleOverlaps() {
+		const overlaps = {}; // day -> { time -> [categories] }
+		const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+
+		days.forEach(day => {
+			const timeUsage = {}; // time -> [categories]
+
+			// Check Online
+			if (this.onlineSlots[day]?.slots) {
+				this.onlineSlots[day].slots.forEach(slot => {
+					if (!timeUsage[slot]) timeUsage[slot] = [];
+					timeUsage[slot].push({ type: 'online', name: 'Online Consultation' });
+				});
+			}
+
+			// Check Sessions
+			if (this.sessionSlots[day]?.slots) {
+				this.sessionSlots[day].slots.forEach(slot => {
+					if (!timeUsage[slot]) timeUsage[slot] = [];
+					timeUsage[slot].push({ type: 'session', name: 'Sessions' });
+				});
+			}
+
+			// Check Offline Centers
+			this.medicalCenters.forEach(center => {
+				if (center.doctorSchedule[day]?.slots) {
+					center.doctorSchedule[day].slots.forEach(slot => {
+						if (!timeUsage[slot]) timeUsage[slot] = [];
+						timeUsage[slot].push({ type: 'offline', centerId: center.id, name: center.name });
+					});
+				}
+			});
+
+			// Filter overlaps
+			const dayOverlaps = {};
+			Object.entries(timeUsage).forEach(([time, categories]) => {
+				if (categories.length > 1) {
+					dayOverlaps[time] = categories;
+				}
+			});
+
+			if (Object.keys(dayOverlaps).length > 0) {
+				overlaps[day] = dayOverlaps;
+			}
+		});
+
+		return overlaps;
 	}
 }
 
