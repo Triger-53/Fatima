@@ -264,6 +264,11 @@ const Appointment = () => {
 					setUser(null)
 					setIsAuthenticated(false)
 					setCurrentStep(0)
+
+					// Clear local storage on sign out from anywhere
+					localStorage.removeItem(LS_FORM_KEY)
+					localStorage.removeItem(LS_STEP_KEY)
+					localStorage.removeItem(LS_FLAGS_KEY)
 				}
 			}
 		)
@@ -321,16 +326,16 @@ const Appointment = () => {
 
 					setFormData(prev => ({
 						...prev,
-						firstName: prev.firstName || latest.firstName || '',
-						lastName: prev.lastName || latest.lastName || '',
-						email: prev.email || latest.email || '',
-						phone: prev.phone || latest.phone || '',
-						dateOfBirth: prev.dateOfBirth || latest.dateOfBirth || '',
-						gender: prev.gender || latest.gender || '',
-						isNewPatient: prev.isNewPatient || latest.isNewPatient || '',
-						currentMedications: prev.currentMedications || latest.currentMedications || '',
-						allergies: prev.allergies || latest.allergies || '',
-						medicalHistory: prev.medicalHistory || latest.medicalHistory || ''
+						firstName: latest.firstName || prev.firstName || '',
+						lastName: latest.lastName || prev.lastName || '',
+						email: latest.email || prev.email || '',
+						phone: latest.phone || prev.phone || '',
+						dateOfBirth: latest.dateOfBirth || prev.dateOfBirth || '',
+						gender: latest.gender || prev.gender || '',
+						isNewPatient: latest.isNewPatient || prev.isNewPatient || '',
+						currentMedications: latest.currentMedications || prev.currentMedications || '',
+						allergies: latest.allergies || prev.allergies || '',
+						medicalHistory: latest.medicalHistory || prev.medicalHistory || ''
 					}))
 				}
 			} catch (e) {
@@ -543,6 +548,10 @@ const Appointment = () => {
 			setUser(null)
 			setIsAuthenticated(false)
 			setCurrentStep(0)
+			// Clear local storage on sign out
+			localStorage.removeItem(LS_FORM_KEY)
+			localStorage.removeItem(LS_STEP_KEY)
+			localStorage.removeItem(LS_FLAGS_KEY)
 			// keep createdInFlow as-is; if account was created elsewhere it's not safe to auto-delete here
 		}
 	}
@@ -810,6 +819,10 @@ const Appointment = () => {
 
 						setConfirmationData({ appointment: data })
 						setIsSubmitted(true)
+						// Clear local storage on successful booking
+						localStorage.removeItem(LS_FORM_KEY)
+						localStorage.removeItem(LS_STEP_KEY)
+						localStorage.removeItem(LS_FLAGS_KEY)
 					} catch (err) {
 						console.error("❌ Verification/Save error:", err)
 						setError(err.message)
