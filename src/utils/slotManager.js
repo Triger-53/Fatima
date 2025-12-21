@@ -363,11 +363,17 @@ export class SlotManager {
 		// Count bookings per slot
 		const slotBookings = {}; // key: date_time
 		bookedAppointments.forEach(a => {
-			const key = `${a.preferredDate}_${a.preferredTime}`;
+			if (!a.preferredDate || !a.preferredTime) return;
+			// Normalize time to HH:mm if it contains seconds or other formats
+			const time = String(a.preferredTime).split(':').slice(0, 2).join(':');
+			const key = `${a.preferredDate}_${time}`;
 			slotBookings[key] = (slotBookings[key] || 0) + 1;
 		});
 		bookedSessions.forEach(s => {
-			const key = `${s.date}_${s.time}`;
+			if (!s.date || !s.time) return;
+			// Normalize time to HH:mm
+			const time = String(s.time).split(':').slice(0, 2).join(':');
+			const key = `${s.date}_${time}`;
 			slotBookings[key] = (slotBookings[key] || 0) + 1;
 		});
 
@@ -407,48 +413,42 @@ export class SlotManager {
 			};
 
 			// Process online slots
-			const onlineSlots = this.getAvailableSlots(date, 'online');
+			const onlineSlots = this.getAvailableSlots(date, 'online') || [];
 			for (const slot of onlineSlots) {
-				const key = `${date}_${slot}`;
+				const normalizedSlot = String(slot).split(':').slice(0, 2).join(':');
+				const key = `${date}_${normalizedSlot}`;
 				const bookingsCount = slotBookings[key] || 0;
-				const isCurrentlyAvailable = bookingsCount < quota;
+				const remaining = Math.max(0, quota - bookingsCount);
 
-				summary.totalSlots++;
-				summary.byCenter['online'].totalSlots++;
-				summary.byDate[date].online.total++;
+				summary.totalSlots += quota;
+				summary.bookedSlots += bookingsCount;
+				summary.availableSlots += remaining;
 
-				if (isCurrentlyAvailable) {
-					summary.availableSlots++;
-					summary.byCenter['online'].availableSlots++;
-					summary.byDate[date].online.available++;
-				} else {
-					summary.bookedSlots++;
-					summary.byCenter['online'].bookedSlots++;
-					summary.byDate[date].online.booked++;
-				}
+				summary.byCenter['online'].totalSlots += quota;
+				summary.byCenter['online'].bookedSlots += bookingsCount;
+				summary.byCenter['online'].availableSlots += remaining;
+
+				summary.byDate[date].online.total += quota;
+				summary.byDate[date].online.booked += bookingsCount;
+				summary.byDate[date].online.available += remaining;
 			}
 
 			// Process session slots
-			const sessionSlots = this.getAvailableSlots(date, 'session');
+			const sessionSlots = this.getAvailableSlots(date, 'session') || [];
 			for (const slot of sessionSlots) {
-				const key = `${date}_${slot}`;
+				const normalizedSlot = String(slot).split(':').slice(0, 2).join(':');
+				const key = `${date}_${normalizedSlot}`;
 				const bookingsCount = slotBookings[key] || 0;
-				const isCurrentlyAvailable = bookingsCount < quota;
+				const remaining = Math.max(0, quota - bookingsCount);
 
-				summary.totalSlots++;
-				// Note: if you want a separate center for sessions in summary, add it here
-				summary.byCenter['session'].totalSlots++;
-				summary.byDate[date].session.total++;
+				summary.totalSlots += quota;
+				summary.byCenter['session'].totalSlots += quota;
+				summary.byCenter['session'].bookedSlots += bookingsCount;
+				summary.byCenter['session'].availableSlots += remaining;
 
-				if (isCurrentlyAvailable) {
-					summary.availableSlots++;
-					summary.byCenter['session'].availableSlots++;
-					summary.byDate[date].session.available++;
-				} else {
-					summary.bookedSlots++;
-					summary.byCenter['session'].bookedSlots++;
-					summary.byDate[date].session.booked++;
-				}
+				summary.byDate[date].session.total += quota;
+				summary.byDate[date].session.booked += bookingsCount;
+				summary.byDate[date].session.available += remaining;
 			}
 
 			// Process offline slots
@@ -458,23 +458,19 @@ export class SlotManager {
 					const offlineSlots = this.getAvailableSlots(date, 'offline', center.id) || [];
 
 					for (const slot of offlineSlots) {
-						const key = `${date}_${slot}`;
+						const normalizedSlot = String(slot).split(':').slice(0, 2).join(':');
+						const key = `${date}_${normalizedSlot}`;
 						const bookingsCount = slotBookings[key] || 0;
-						const isCurrentlyAvailable = bookingsCount < quota;
+						const remaining = Math.max(0, quota - bookingsCount);
 
-						summary.totalSlots++;
-						summary.byCenter[center.id].totalSlots++;
-						summary.byDate[date].offline[center.id].total++;
+						summary.totalSlots += quota;
+						summary.byCenter[center.id].totalSlots += quota;
+						summary.byCenter[center.id].bookedSlots += bookingsCount;
+						summary.byCenter[center.id].availableSlots += remaining;
 
-						if (isCurrentlyAvailable) {
-							summary.availableSlots++;
-							summary.byCenter[center.id].availableSlots++;
-							summary.byDate[date].offline[center.id].available++;
-						} else {
-							summary.bookedSlots++;
-							summary.byCenter[center.id].bookedSlots++;
-							summary.byDate[date].offline[center.id].booked++;
-						}
+						summary.byDate[date].offline[center.id].total += quota;
+						summary.byDate[date].offline[center.id].booked += bookingsCount;
+						summary.byDate[date].offline[center.id].available += remaining;
 					}
 				}
 			}
