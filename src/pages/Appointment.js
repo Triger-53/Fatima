@@ -817,42 +817,41 @@ const Appointment = () => {
 							throw new Error(verifyData.error || "Payment verification failed");
 						}
 
-						// Step 3: Save appointment after successful verification
-						let meetLink = null;
-						if (formData.consultationMethod === 'online') {
-							try {
-								const parseTime = (timeStr) => {
-									const timeMatch = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
-									if (!timeMatch) return "10:00:00"; // Fallback
-									let hours = parseInt(timeMatch[1]);
-									const minutes = timeMatch[2];
-									const modifier = timeMatch[3].toUpperCase();
-									if (modifier === 'PM' && hours < 12) hours += 12;
-									if (modifier === 'AM' && hours === 12) hours = 0;
-									return `${String(hours).padStart(2, '0')}:${minutes}:00`;
-								};
+						// Step 3: Create calendar event & optional meet link
+						try {
+							const parseTime = (timeStr) => {
+								const timeMatch = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+								if (!timeMatch) return "10:00:00"; // Fallback
+								let hours = parseInt(timeMatch[1]);
+								const minutes = timeMatch[2];
+								const modifier = timeMatch[3].toUpperCase();
+								if (modifier === 'PM' && hours < 12) hours += 12;
+								if (modifier === 'AM' && hours === 12) hours = 0;
+								return `${String(hours).padStart(2, '0')}:${minutes}:00`;
+							};
 
-								const isoStartTime = `${formData.preferredDate}T${parseTime(formData.preferredTime)}`;
-								const start = new Date(isoStartTime);
-								const end = new Date(start.getTime() + 30 * 60000); // Default 30 min
+							const isoStartTime = `${formData.preferredDate}T${parseTime(formData.preferredTime)}`;
+							const start = new Date(isoStartTime);
+							const end = new Date(start.getTime() + 30 * 60000); // Default 30 min
 
-								const meetRes = await fetch("/create-meeting", {
-									method: "POST",
-									headers: { "Content-Type": "application/json" },
-									body: JSON.stringify({
-										patientEmail: formData.email,
-										startDateTime: start.toISOString(),
-										endDateTime: end.toISOString(),
-									}),
-								});
+							const calendarRes = await fetch("/create-meeting", {
+								method: "POST",
+								headers: { "Content-Type": "application/json" },
+								body: JSON.stringify({
+									patientEmail: formData.email,
+									startDateTime: start.toISOString(),
+									endDateTime: end.toISOString(),
+									consultationMethod: formData.consultationMethod,
+									appointmentType: formData.appointmentType
+								}),
+							});
 
-								if (meetRes.ok) {
-									const meetData = await meetRes.json();
-									meetLink = meetData.meetLink;
-								}
-							} catch (meetErr) {
-								console.error("Error generating meet link:", meetErr);
+							if (calendarRes.ok) {
+								const calendarData = await calendarRes.json();
+								meetLink = calendarData.meetLink;
 							}
+						} catch (calendarErr) {
+							console.error("Error creating calendar event:", calendarErr);
 						}
 
 						const appointmentData = {

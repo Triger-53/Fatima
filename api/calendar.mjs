@@ -123,8 +123,8 @@ export async function setOAuthToken(token) {
 	}
 }
 
-// Create a Google Calendar event with Meet link
-export async function createMeeting(patientEmail, startDateTime, endDateTime) {
+// Create a Google Calendar event with optional Meet link
+export async function createMeeting(patientEmail, startDateTime, endDateTime, consultationMethod = 'online', appointmentType = 'Consultation') {
 	if (!oAuth2Client) {
 		throw new Error("Google OAuth client not initialized. Check server environment variables.");
 	}
@@ -135,28 +135,36 @@ export async function createMeeting(patientEmail, startDateTime, endDateTime) {
 
 	const calendar = google.calendar({ version: "v3", auth: oAuth2Client })
 
+	const isOnline = consultationMethod === 'online'
 	const event = {
-		summary: "Patient Consultation",
-		description: "Private consultation",
+		summary: `${appointmentType} (${isOnline ? 'Online' : 'In-Person'})`,
+		description: `Consultation with Dr. Fatima Kasamnath. Method: ${isOnline ? 'Google Meet' : 'In-Person at Clinic'}.`,
 		start: { dateTime: startDateTime, timeZone: "Asia/Kolkata" },
 		end: { dateTime: endDateTime, timeZone: "Asia/Kolkata" },
-		attendees: [{ email: patientEmail }],
-		conferenceData: {
+		// Removed attendees to prevent exposing Dr. Fatima's email in calendar invites
+	}
+
+	if (isOnline) {
+		event.conferenceData = {
 			createRequest: {
 				requestId: `create-meeting-${Date.now()}`,
 				conferenceSolutionKey: { type: "hangoutsMeet" },
 			},
-		},
+		}
 	}
 
 	try {
 		const response = await calendar.events.insert({
 			calendarId: "primary",
 			resource: event,
-			conferenceDataVersion: 1,
+			conferenceDataVersion: isOnline ? 1 : 0,
+			sendUpdates: 'all', // This ensures email invitations are sent
 		})
 
-		return response.data.hangoutLink
+		return {
+			meetLink: response.data.hangoutLink || null,
+			eventId: response.data.id
+		}
 	} catch (error) {
 		console.error("Error creating calendar event:", error)
 		throw new Error("Failed to create calendar event.")

@@ -112,8 +112,7 @@ const TermsOfService = () => {
 								<li>Date and time preferences</li>
 							</ul>
 							<p className="mt-4">
-								Appointments are confirmed only after you receive a confirmation
-								message or email.
+								Appointments are confirmed once they appear as "Confirmed" in your account dashboard.
 							</p>
 							<p>
 								We do not guarantee availability for specific dates, times, or

@@ -54,19 +54,21 @@ app.get("/oauth2callback", async (req, res) => {
 
 // Step 3: Create a meeting
 app.post("/create-meeting", async (req, res) => {
-	const { patientEmail, startDateTime, endDateTime } = req.body
+	const { patientEmail, startDateTime, endDateTime, consultationMethod, appointmentType } = req.body
 
 	if (!patientEmail || !startDateTime || !endDateTime) {
 		return res.status(400).json({ error: "Missing required fields" })
 	}
 
 	try {
-		const meetLink = await createMeeting(
+		const result = await createMeeting(
 			patientEmail,
 			startDateTime,
-			endDateTime
+			endDateTime,
+			consultationMethod,
+			appointmentType
 		)
-		res.status(200).json({ meetLink })
+		res.status(200).json(result)
 	} catch (error) {
 		res.status(500).json({ error: error.message })
 	}
