@@ -15,7 +15,7 @@ const RazorpayButton = ({ amount, formData, onPaymentSuccess, selectedService })
 		}
 
 		const options = {
-			key: "rzp_test_RuDFkTYjCnE1e4",
+			key: "rzp_live_RL4t8lq29IQAcb",
 			amount: paymentAmount * 100, // Convert to paise
 			currency: "INR",
 			name: "Dr. Fatima Kasamnath Clinic",

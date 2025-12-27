@@ -784,7 +784,7 @@ const Appointment = () => {
 			}
 
 			const options = {
-				key: "rzp_test_RuDFkTYjCnE1e4",
+				key: "rzp_live_RL4t8lq29IQAcb",
 				amount: orderData.amount,
 				currency: orderData.currency,
 				name: "Dr. Fatima Kasamnath Clinic",
